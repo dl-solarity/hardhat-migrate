@@ -1,0 +1,33 @@
+{
+  "name": "@dlsl/hardhat-deploy",
+  "version": "1.0.0",
+  "description": "This package facilitates automatic deployment and verification of Solidity Smart Contracts",
+  "main": "index.js",
+  "scripts": {
+    "test": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/distributedlab-solidity-library/hardhat-deploy.git"
+  },
+  "keywords": [
+    "ethereum",
+    "solidity",
+    "smart-contracts",
+    "hardhat",
+    "hardhat-plugin",
+    "etherscan",
+    "distributedlab"
+  ],
+  "author": "Distributed Lab",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/distributedlab-solidity-library/hardhat-deploy/issues"
+  },
+  "homepage": "https://github.com/distributedlab-solidity-library/hardhat-deploy#readme",
+  "dependencies": {
+    "@truffle/deployer": "3.2.56",
+    "@truffle/reporters": "1.1.2",
+    "web3": "^1.7.5"
+  }
+}
