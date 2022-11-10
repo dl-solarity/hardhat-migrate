@@ -1,10 +1,10 @@
-const fs = require("fs");
-const path = require("path");
-const Deployer = require("./deployer");
+import fs = require("fs");
+import path = require("path");
+import { Deployer } from "./deployer";
 
-class Migrations {
-  getMigrationFiles() {
-    const migrationsDir = "./deploy/migrations/";
+export class Migrations {
+  getMigrationFiles(pathToDeploy: string = "./deploy/migrations/") {
+    const migrationsDir = pathToDeploy;
     const directoryContents = fs.readdirSync(migrationsDir);
 
     return directoryContents
@@ -19,11 +19,11 @@ class Migrations {
     return process.env.VERIFY == "true";
   }
 
-  confirmations() {
-    return process.env.CONFIRMATIONS;
+  confirmations():number {
+    return Number(process.env.CONFIRMATIONS);
   }
 
-  getParams() {
+  getParams(): [boolean, number] {
     const verify = this.isVerify();
     let confirmations = 0;
 
@@ -49,8 +49,8 @@ class Migrations {
 
       console.log(migrationFiles);
 
-      for (let i = 0; i < migrationFiles.length; i++) {
-        const migration = require("../../migrations/" + migrationFiles[i]);
+      for (const element of migrationFiles) {
+          const migration = require("../../migrations/" + element);
 
         await migration(deployer);
       }
@@ -58,13 +58,13 @@ class Migrations {
       await deployer.finishMigration();
 
       process.exit(0);
-    } catch (e) {
+    } catch (e: any) {
       console.log(e.message);
       process.exit(1);
     }
   }
 }
 
-let migrations = new Migrations();
-
-migrations.migrate().then();
+// let migrations = new Migrations();
+//
+// migrations.migrate().then();
