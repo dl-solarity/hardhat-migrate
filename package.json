@@ -4,7 +4,8 @@
   "description": "This package facilitates automatic deployment and verification of Solidity Smart Contracts",
   "main": "index.ts",
   "scripts": {
-    "test": ""
+    "test": "",
+    "lint-fix": "eslint . --ext .ts --fix"
   },
   "repository": {
     "type": "git",
@@ -26,6 +27,7 @@
   },
   "homepage": "https://github.com/distributedlab-solidity-library/hardhat-deploy#readme",
   "dependencies": {
+    "@nomiclabs/hardhat-etherscan": "3.1.0",
     "@truffle/deployer": "3.2.56",
     "@truffle/reporters": "1.1.2",
     "@typescript-eslint/eslint-plugin": "^5.30.7",
@@ -39,5 +41,9 @@
   },
   "peerDependencies": {
     "hardhat": "^2.12.2"
+  },
+  "devDependencies": {
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1"
   }
 }

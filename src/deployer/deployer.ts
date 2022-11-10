@@ -1,97 +1,110 @@
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+
 const TruffleDeployer = require("@truffle/deployer");
 const TruffleReporter = require("@truffle/reporters").migrationsV5;
 import { Verifier } from "../verifier/verifier";
+import { pluginName } from "../constants";
 
-const Web3 = require('web3');
+const Web3 = require("web3");
 const web3 = new Web3(Web3.givenProvider);
 
 export class Deployer {
-    private reporter: any;
-    private deployer: any;
-    private verifier: Verifier | undefined;
+  readonly _hre: HardhatRuntimeEnvironment;
+  private reporter: any;
+  private deployer: any;
+  private verifier: Verifier | undefined;
 
-    async startMigration(verify: boolean, confirmations: number = 0) {
-        try {
-            let chainId = await web3.eth.getChainId();
-            let networkType = await web3.eth.net.getNetworkType();
+  constructor(hre_: HardhatRuntimeEnvironment) {
+    this._hre = hre_;
+  }
 
-            this.reporter = new TruffleReporter();
-            this.deployer = new TruffleDeployer({
-                logger: console,
-                confirmations: confirmations,
-                provider: web3.currentProvider,
-                networks: {chainId: networkType},
-                network: "",
-                network_id: chainId,
-            });
+  async startMigration(verify: boolean, confirmations = 0) {
+    try {
+      const chainId = await web3.eth.getChainId();
+      const networkType = await web3.eth.net.getNetworkType();
 
-            if (verify) {
-                this.verifier = new Verifier();
-            }
+      this.reporter = new TruffleReporter();
+      this.deployer = new TruffleDeployer({
+        logger: console,
+        confirmations: confirmations,
+        provider: web3.currentProvider,
+        networks: { chainId: networkType },
+        network: "",
+        network_id: chainId,
+      });
 
-            this.reporter.confirmations = confirmations;
-            this.reporter.setMigration({dryRun: false});
-            this.reporter.setDeployer(this.deployer);
+      if (verify) {
+        this.verifier = new Verifier(this._hre);
+      }
 
-            this.reporter.listen();
-            this.deployer.start();
+      this.reporter.confirmations = confirmations;
+      this.reporter.setMigration({ dryRun: false });
+      this.reporter.setDeployer(this.deployer);
 
-            this.reporter.preMigrate({
-                isFirst: true,
-                file: "Contracts:",
-                network: networkType,
-                networkId: chainId,
-                blockLimit: (await web3.eth.getBlock("latest")).gasLimit,
-            });
-        } catch (e: any) {
-            console.log(e.message);
-        }
+      this.reporter.listen();
+      this.deployer.start();
+
+      this.reporter.preMigrate({
+        isFirst: true,
+        file: "Contracts:",
+        network: networkType,
+        networkId: chainId,
+        blockLimit: (await web3.eth.getBlock("latest")).gasLimit,
+      });
+    } catch (e: any) {
+      console.log(e.message);
+      throw new NomicLabsHardhatPluginError(pluginName, e.message);
     }
+  }
 
-    async link(Library: any, ...Contracts: any) {
-        try {
-            const library = Library.contractName ? await Library.deployed() : Library;
+  async link(Library: any, ...Contracts: any) {
+    try {
+      const library = Library.contractName ? await Library.deployed() : Library;
 
-            for (const Contract of Contracts) {
-                this.reporter.linking({
-                    libraryName: Library.contractName,
-                    libraryAddress: Library.address,
-                    contractName: Contract.contractName,
-                    contractAddress: Contract.contractAddress,
-                });
+      for (const Contract of Contracts) {
+        this.reporter.linking({
+          libraryName: Library.contractName,
+          libraryAddress: Library.address,
+          contractName: Contract.contractName,
+          contractAddress: Contract.contractAddress,
+        });
 
-                await Contract.link(library);
-            }
-        } catch (e: any) {
-            console.log(e.message);
-        }
+        await Contract.link(library);
+      }
+    } catch (e: any) {
+      console.log(e.message);
+      throw new NomicLabsHardhatPluginError(pluginName, e.message);
     }
+  }
 
-    async deploy(Instance: any, ...args: any) {
-        try {
-            const instance = await this.deployer.deploy(Instance, ...args);
+  async deploy(Instance: any, ...args: any) {
+    try {
+      const instance = await this.deployer.deploy(Instance, ...args);
 
-            Instance.setAsDeployed(instance);
+      Instance.setAsDeployed(instance);
 
-            if (this.verifier) {
-                await this.verifier.verify([instance, ...args]);
-            }
+      if (this.verifier) {
+        await this.verifier.verify([instance, ...args]);
+      }
 
-            return instance;
-        } catch (e: any) {
-            console.log(e.message);
-        }
+      return instance;
+    } catch (e: any) {
+      console.log(e.message);
+      throw new NomicLabsHardhatPluginError(pluginName, e.message);
     }
+  }
 
-    async finishMigration() {
-        try {
-            this.reporter.postMigrate({
-                isLast: true,
-            });
+  async finishMigration() {
+    try {
+      this.reporter.postMigrate({
+        isLast: true,
+      });
 
-            this.deployer.finish();
-        } catch (e: any) {
-            console.log(e.message);
-        }
+      this.deployer.finish();
+    } catch (e: any) {
+      console.log(e.message);
+      throw new NomicLabsHardhatPluginError(pluginName, e.message);
     }
+  }
 }

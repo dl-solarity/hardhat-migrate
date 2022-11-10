@@ -51,6 +51,8 @@ This plugin does not extend the environment.
 
 ## Usage
 
+[//]: # (TODO: complete the documenttion)
+
 You need to add the following Deploy config to your `hardhat.config.js` file:
 
 ```js

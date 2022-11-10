@@ -1,10 +1,37 @@
 import fs = require("fs");
 import path = require("path");
 import { Deployer } from "./deployer";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { pluginName } from "../constants";
 
 export class Migrations {
-  getMigrationFiles(pathToDeploy: string = "./deploy/migrations/") {
-    const migrationsDir = pathToDeploy;
+  readonly _verify: boolean = false;
+  readonly _confirmations: number = 1;
+  readonly _pathToMigration: string = "./deploy/migrations/";
+  readonly _hre: HardhatRuntimeEnvironment;
+
+  constructor(
+    hre_: HardhatRuntimeEnvironment,
+    verify_?: boolean,
+    confirmations_?: number,
+    pathToMigration_?: string
+  ) {
+    this._hre = hre_;
+
+    if (verify_ !== undefined) {
+      this._verify = verify_;
+    }
+    if (confirmations_ !== undefined) {
+      this._confirmations = confirmations_;
+    }
+    if (pathToMigration_ !== undefined) {
+      this._pathToMigration = pathToMigration_;
+    }
+  }
+
+  getMigrationFiles() {
+    const migrationsDir = this._pathToMigration;
     const directoryContents = fs.readdirSync(migrationsDir);
 
     return directoryContents
@@ -15,42 +42,25 @@ export class Migrations {
       });
   }
 
-  isVerify() {
-    return process.env.VERIFY == "true";
-  }
-
-  confirmations():number {
-    return Number(process.env.CONFIRMATIONS);
-  }
-
   getParams(): [boolean, number] {
-    const verify = this.isVerify();
-    let confirmations = 0;
-
-    if (verify) {
+    if (this._verify) {
       console.log("\nAUTO VERIFICATION IS ON");
-
-      confirmations = 5;
     }
 
-    if (this.confirmations() !== undefined) {
-      confirmations = this.confirmations();
-    }
-
-    return [verify, confirmations];
+    return [this._verify, this._confirmations];
   }
 
   async migrate() {
     try {
       const migrationFiles = this.getMigrationFiles();
-      const deployer = new Deployer();
+      const deployer = new Deployer(this._hre);
 
       await deployer.startMigration(...this.getParams());
 
       console.log(migrationFiles);
 
       for (const element of migrationFiles) {
-          const migration = require("../../migrations/" + element);
+        const migration = require("../../migrations/" + element);
 
         await migration(deployer);
       }
@@ -60,11 +70,7 @@ export class Migrations {
       process.exit(0);
     } catch (e: any) {
       console.log(e.message);
-      process.exit(1);
+      throw new NomicLabsHardhatPluginError(pluginName, e.message);
     }
   }
 }
-
-// let migrations = new Migrations();
-//
-// migrations.migrate().then();
