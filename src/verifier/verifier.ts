@@ -29,7 +29,6 @@ export class Verifier {
           quiet: true,
         });
       } catch (e: any) {
-        console.log(e.message);
         throw new NomicLabsHardhatPluginError(pluginName, e.message);
       }
     }

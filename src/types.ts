@@ -1,7 +1,7 @@
 export interface DlDeployConfig {
   confirmations: number;
   verify: boolean;
-  pathToMigrations?: string;
+  pathToMigrations: string;
 }
 
 export interface DlDeployUserConfig {

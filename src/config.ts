@@ -1,21 +1,18 @@
 import { ConfigExtender } from "hardhat/types";
 
-export const deployConfigExtender: ConfigExtender = (
-  resolvedConfig,
-  config
-) => {
+export const deployConfigExtender: ConfigExtender = (resolvedConfig, config) => {
   const defaultConfig = {
     confirmations: 1,
     verify: true,
     pathToMigrations: "./migrations",
   };
 
-  if (config.deploy !== undefined) {
+  if (config.hardhat_migrate !== undefined) {
     const { cloneDeep } = require("lodash");
-    const customConfig = cloneDeep(config.deploy);
+    const customConfig = cloneDeep(config.hardhat_migrate);
 
-    resolvedConfig.deploy = { ...defaultConfig, ...customConfig };
+    resolvedConfig.hardhat_migrate = { ...defaultConfig, ...customConfig };
   } else {
-    resolvedConfig.deploy = defaultConfig;
+    resolvedConfig.hardhat_migrate = defaultConfig;
   }
 };

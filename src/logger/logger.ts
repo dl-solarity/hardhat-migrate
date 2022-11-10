@@ -1,7 +1,5 @@
 export function logTransaction(tx: any, name: any) {
-  console.log(
-    `Transaction ${name}: Gas used ${tx.receipt.gasUsed}, Hash ${tx.tx}\n`
-  );
+  console.log(`Transaction ${name}: Gas used ${tx.receipt.gasUsed}, Hash ${tx.tx}\n`);
 }
 
 export function logContracts(...contracts: any) {

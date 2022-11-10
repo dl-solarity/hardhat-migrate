@@ -11,12 +11,7 @@ export class Migrations {
   readonly _pathToMigration: string = "./deploy/migrations/";
   readonly _hre: HardhatRuntimeEnvironment;
 
-  constructor(
-    hre_: HardhatRuntimeEnvironment,
-    verify_?: boolean,
-    confirmations_?: number,
-    pathToMigration_?: string
-  ) {
+  constructor(hre_: HardhatRuntimeEnvironment, verify_?: boolean, confirmations_?: number, pathToMigration_?: string) {
     this._hre = hre_;
 
     if (verify_ !== undefined) {
@@ -51,6 +46,7 @@ export class Migrations {
   }
 
   async migrate() {
+    console.log("here1");
     try {
       const migrationFiles = this.getMigrationFiles();
       const deployer = new Deployer(this._hre);
@@ -60,6 +56,7 @@ export class Migrations {
       console.log(migrationFiles);
 
       for (const element of migrationFiles) {
+        console.log(element);
         const migration = require("../../migrations/" + element);
 
         await migration(deployer);
@@ -69,7 +66,6 @@ export class Migrations {
 
       process.exit(0);
     } catch (e: any) {
-      console.log(e.message);
       throw new NomicLabsHardhatPluginError(pluginName, e.message);
     }
   }

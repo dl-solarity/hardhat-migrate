@@ -7,7 +7,6 @@ import { Verifier } from "../verifier/verifier";
 import { pluginName } from "../constants";
 
 const Web3 = require("web3");
-const web3 = new Web3(Web3.givenProvider);
 
 export class Deployer {
   readonly _hre: HardhatRuntimeEnvironment;
@@ -21,6 +20,7 @@ export class Deployer {
 
   async startMigration(verify: boolean, confirmations = 0) {
     try {
+      const web3 = new Web3(this._hre.network.provider);
       const chainId = await web3.eth.getChainId();
       const networkType = await web3.eth.net.getNetworkType();
 
@@ -53,7 +53,6 @@ export class Deployer {
         blockLimit: (await web3.eth.getBlock("latest")).gasLimit,
       });
     } catch (e: any) {
-      console.log(e.message);
       throw new NomicLabsHardhatPluginError(pluginName, e.message);
     }
   }
@@ -73,7 +72,6 @@ export class Deployer {
         await Contract.link(library);
       }
     } catch (e: any) {
-      console.log(e.message);
       throw new NomicLabsHardhatPluginError(pluginName, e.message);
     }
   }
@@ -90,7 +88,6 @@ export class Deployer {
 
       return instance;
     } catch (e: any) {
-      console.log(e.message);
       throw new NomicLabsHardhatPluginError(pluginName, e.message);
     }
   }
@@ -103,7 +100,6 @@ export class Deployer {
 
       this.deployer.finish();
     } catch (e: any) {
-      console.log(e.message);
       throw new NomicLabsHardhatPluginError(pluginName, e.message);
     }
   }
