@@ -9,16 +9,12 @@ to [Etherscan](https://etherscan.io).
 
 This plugin helps you deploy verify the source code for your Solidity contracts on [Etherscan](https://etherscan.io).
 
-[//]: # (It's smart and it tries to do as much as possible to facilitate the process:)
+This is a fairly simple and rather straightforward Hardhat plugin:
 
-[//]: # ()
-[//]: # (- Just provide the deployment address and constructor arguments, and the plugin will detect locally which contract to verify.)
+- For deployment, it uses [@truffle/deployer](https://www.npmjs.com/package/@truffle/deployer) and 
+[@truffle/reporters](https://www.npmjs.com/package/@truffle/reporters) to report on the deployment process.
 
-[//]: # (- If your contract uses Solidity libraries, the plugin will detect them and deal with them automatically. You don't need to do anything about them.)
-
-[//]: # (- A simulation of the verification process will run locally, allowing the plugin to detect and communicate any mistakes during the process.)
-
-[//]: # (- Once the simulation is successful the contract will be verified using the Etherscan API.)
+- For verification, it uses [@nomiclabs/hardhat-etherscan](https://www.npmjs.com/package/@nomiclabs/hardhat-etherscan)
 
 ## Installation
 
@@ -45,6 +41,28 @@ This plugin provides the `deploy` task, which allows you to deploy and verify co
 Under the hood, for verification process, it uses [@nomiclabs/hardhat-etherscan](https://www.npmjs.com/package/@nomiclabs/hardhat-etherscan) 
 plugin.  
 
+> :warning: **Hardhat Config**: Make sure they are follow the docs from @nomiclabs/hardhat-etherscan. 
+
+Do not import @dlsl/hardhat-migrate and @nomiclabs/hardhat-etherscan together, under the hood in @dlsl/hardhat-migrate.
+@nomiclabs/hardhat-etherscan is already imported.
+
+> :x: **Wrong way**
+```js
+require("@nomiclabs/hardhat-etherscan");
+require("@dlsl/hardhat-migrate");
+```
+
+> :heavy_check_mark: **Right way**
+```js
+require("@dlsl/hardhat-migrate");
+```
+
+
+To view the available options, run the command (help command):
+```bash
+npx hardhat help deploy
+```
+
 ## Environment extensions
 
 This plugin does not extend the environment.
@@ -58,7 +76,7 @@ module.exports = {
   migrate: {
     verify: true,
     confirmations: 5,
-    pathToMigrations: "./deploy/migrations/"
+    pathToMigrations: "./deploy/"
   }
 };
 ```
