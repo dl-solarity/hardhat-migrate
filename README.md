@@ -36,7 +36,7 @@ import "@dlsl/hardhat-migrate";
 
 ## Naming convention
 
-It is also **mandatory** to observe the naming convention for migrations such as this one:
+It is also **mandatory** to specify the naming convention for migrations such as this one:
 > X_migration_name.migration.js
 
 * Where **X** is the serial number in which your migrations will be applied.
