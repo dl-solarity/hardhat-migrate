@@ -7,12 +7,12 @@ export const deployConfigExtender: ConfigExtender = (resolvedConfig, config) => 
     pathToMigrations: "./deploy/migrations",
   };
 
-  if (config.hardhat_migrate !== undefined) {
+  if (config.migrate !== undefined) {
     const { cloneDeep } = require("lodash");
-    const customConfig = cloneDeep(config.hardhat_migrate);
+    const customConfig = cloneDeep(config.migrate);
 
-    resolvedConfig.hardhat_migrate = { ...defaultConfig, ...customConfig };
+    resolvedConfig.migrate = { ...defaultConfig, ...customConfig };
   } else {
-    resolvedConfig.hardhat_migrate = defaultConfig;
+    resolvedConfig.migrate = defaultConfig;
   }
 };

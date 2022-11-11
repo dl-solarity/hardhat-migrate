@@ -23,19 +23,19 @@ This plugin helps you deploy verify the source code for your Solidity contracts 
 ## Installation
 
 ```bash
-npm install --save-dev @dlsl/hardhat-deploy
+npm install --save-dev @dlsl/hardhat-migrate
 ```
 
 And add the following statement to your `hardhat.config.js`:
 
 ```js
-require("@dlsl/hardhat-deploy");
+require("@dlsl/hardhat-migrate");
 ```
 
 Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 
-```js
-import "@dlsl/hardhat-deploy";
+```ts
+import "@dlsl/hardhat-migrate";
 ```
 
 ## Tasks
@@ -55,7 +55,7 @@ You need to add the following Deploy config to your `hardhat.config.js` file:
 
 ```js
 module.exports = {
-  hardhat_migrate: {
+  migrate: {
     verify: true,
     confirmations: 5,
     pathToMigrations: "./deploy/migrations/"

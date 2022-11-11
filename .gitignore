@@ -9,16 +9,9 @@ artifacts
 coverage.json
 coverage
 
-# Typechain generated files
-generated-types
-
 # Compilation output
 /build-test/
 /dist
-
-# Code coverage artifacts
-/coverage
-/.nyc_output
 
 # Below is Github's node gitignore template,
 # ignoring the node_modules part, as it'd ignore every node_modules, and we have some for testing
@@ -31,39 +24,17 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# Diagnostic reports (https://nodejs.org/api/report.html)
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-
 # Runtime data
 pids
 *.pid
 *.seed
 *.pid.lock
 
-# nyc test coverage
-.nyc_output
-
-# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
-.grunt
-
-# Bower dependency directory (https://bower.io/)
-bower_components
-
 # node-waf configuration
 .lock-wscript
-
-# Compiled binary addons (https://nodejs.org/api/addons.html)
-build/Release
-
-# Dependency directories
-#node_modules/
-jspm_packages/
 
 # TypeScript v1 declaration files
 typings/
 
 # Optional npm cache directory
 .npm
-
-# Optional eslint cache
-.eslintcache

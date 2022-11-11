@@ -1,4 +1,5 @@
 require("@nomiclabs/hardhat-etherscan");
+
 import {
   TASK_COMPILE,
 } from "hardhat/builtin-tasks/task-names";
@@ -33,11 +34,11 @@ const deploy: ActionType<DeploymentArgs> = async (
 
   const migrations = new Migrations(
     env,
-    verify === undefined ? env.config.hardhat_migrate.verify : verify,
-    confirmations === undefined ? env.config.hardhat_migrate.confirmations : confirmations,
-    pathToMigrations === undefined ? env.config.hardhat_migrate.pathToMigrations : pathToMigrations
+    verify === undefined ? env.config.migrate.verify : verify,
+    confirmations === undefined ? env.config.migrate.confirmations : confirmations,
+    pathToMigrations === undefined ? env.config.migrate.pathToMigrations : pathToMigrations
   );
-  await migrations.migrate().then();
+  await migrations.migrate();
 };
 
 task(TASK_DEPLOY, "Deploy contract on Etherscan")
