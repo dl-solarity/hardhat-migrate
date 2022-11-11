@@ -18,7 +18,10 @@ interface DeploymentArgs {
 
 extendConfig(deployConfigExtender);
 
-const deploy: ActionType<DeploymentArgs> = async ({ confirmations, pathToMigrations, verify }, env) => {
+const deploy: ActionType<DeploymentArgs> = async (
+  { confirmations, pathToMigrations, verify },
+  env
+) => {
   const migrations = new Migrations(
     env,
     env.config.hardhat_migrate.verify,
@@ -29,11 +32,7 @@ const deploy: ActionType<DeploymentArgs> = async ({ confirmations, pathToMigrati
 };
 
 task(TASK_DEPLOY, "Deploy contract on Etherscan")
-  .addOptionalParam(
-    "verify",
-    "Flag that enables verification",
-    false,
-    types.boolean)
+  .addOptionalParam("verify", "Flag that enables verification", false, types.boolean)
   .addOptionalParam(
     "confirmations",
     "A number that determines after how many blocks the verification should start.",

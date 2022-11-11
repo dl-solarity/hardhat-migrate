@@ -46,18 +46,14 @@ export class Migrations {
   }
 
   async migrate() {
-    console.log("here1");
     try {
       const migrationFiles = this.getMigrationFiles();
       const deployer = new Deployer(this._hre);
 
       await deployer.startMigration(...this.getParams());
 
-      console.log(migrationFiles);
-
       for (const element of migrationFiles) {
-        console.log(element);
-        const migration = require("../../migrations/" + element);
+        const migration = require(fs.realpathSync(this._pathToMigration) + "/" + element);
 
         await migration(deployer);
       }
