@@ -55,7 +55,7 @@ You need to add the following Deploy config to your `hardhat.config.js` file:
 
 ```js
 module.exports = {
-    hardhat_migrate: {
+  hardhat_migrate: {
     verify: true,
     confirmations: 5,
     pathToMigrations: "./deploy/migrations/"
