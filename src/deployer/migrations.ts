@@ -6,27 +6,20 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { pluginName } from "../constants";
 
 export class Migrations {
-  readonly _verify: boolean = false;
-  readonly _confirmations: number = 1;
-  readonly _pathToMigration: string = "./deploy/migrations/";
+  readonly _verify: boolean;
+  readonly _confirmations: number;
+  readonly _pathToMigration: string;
   readonly _hre: HardhatRuntimeEnvironment;
 
-  constructor(hre_: HardhatRuntimeEnvironment, verify_?: boolean, confirmations_?: number, pathToMigration_?: string) {
+  constructor(hre_: HardhatRuntimeEnvironment, verify_: boolean, confirmations_: number, pathToMigration_: string) {
     this._hre = hre_;
-
-    if (verify_ !== undefined) {
-      this._verify = verify_;
-    }
-    if (confirmations_ !== undefined) {
-      this._confirmations = confirmations_;
-    }
-    if (pathToMigration_ !== undefined) {
-      this._pathToMigration = pathToMigration_;
-    }
+    this._verify = verify_;
+    this._confirmations = confirmations_;
+    this._pathToMigration = pathToMigration_;
   }
 
   getMigrationFiles() {
-    const migrationsDir = this._pathToMigration;
+    const migrationsDir = this.resolvePathToFile(this._pathToMigration);
     const directoryContents = fs.readdirSync(migrationsDir);
 
     return directoryContents
@@ -49,11 +42,10 @@ export class Migrations {
     try {
       const migrationFiles = this.getMigrationFiles();
       const deployer = new Deployer(this._hre);
-
       await deployer.startMigration(...this.getParams());
 
       for (const element of migrationFiles) {
-        const migration = require(fs.realpathSync(this._pathToMigration) + "/" + element);
+        const migration = require(this.resolvePathToFile(fs.realpathSync(this._pathToMigration), element));
 
         await migration(deployer);
       }
@@ -64,5 +56,12 @@ export class Migrations {
     } catch (e: any) {
       throw new NomicLabsHardhatPluginError(pluginName, e.message);
     }
+  }
+
+  resolvePathToFile(path: string, file: string = ""): string {
+    if (path.substring(path.length - 1, path.length) === '/') {
+      return fs.realpathSync(this._pathToMigration) + file;
+    }
+    return fs.realpathSync(this._pathToMigration) + "/" + file;
   }
 }

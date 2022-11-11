@@ -2,9 +2,9 @@ import { ConfigExtender } from "hardhat/types";
 
 export const deployConfigExtender: ConfigExtender = (resolvedConfig, config) => {
   const defaultConfig = {
-    confirmations: 1,
-    verify: true,
-    pathToMigrations: "./migrations",
+    confirmations: 0,
+    verify: false,
+    pathToMigrations: "./deploy/migrations",
   };
 
   if (config.hardhat_migrate !== undefined) {
