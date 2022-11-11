@@ -4,7 +4,7 @@ export const deployConfigExtender: ConfigExtender = (resolvedConfig, config) => 
   const defaultConfig = {
     confirmations: 0,
     verify: false,
-    pathToMigrations: "./deploy/migrations",
+    pathToMigrations: "./deploy",
   };
 
   if (config.migrate !== undefined) {
