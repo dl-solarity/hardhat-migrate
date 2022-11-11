@@ -1,6 +1,6 @@
 [//]: # ([![npm]&#40;https://img.shields.io/npm/v/@dlsl/hardhat-deploy.svg&#41;]&#40;https://www.npmjs.com/package/@dlsl/hardhat-deploy&#41; [![hardhat]&#40;https://hardhat.org/buidler-plugin-badge.svg?1&#41;]&#40;https://hardhat.org&#41;)
 
-# hardhat-deploy
+# Hardhat migrate
 
 [Hardhat](https://hardhat.org) plugin to simplify the deployment and verification of contracts 
 to [Etherscan](https://etherscan.io).
@@ -33,6 +33,14 @@ Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 ```ts
 import "@dlsl/hardhat-migrate";
 ```
+
+## Naming convention
+
+It is also **mandatory** to observe the naming convention for migrations such as this one:
+> X_migration_name.migration.js
+
+* Where **X** is the serial number in which your migrations will be applied.
+* migration_name is simply the name of the migration.
 
 ## Tasks
 
