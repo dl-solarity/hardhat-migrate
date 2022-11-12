@@ -33,6 +33,7 @@ export class Migrations {
   getParams(): [boolean, number] {
     if (this._verify) {
       console.log("\nAUTO VERIFICATION IS ON");
+      console.log("\nNUMBER OF CONFIRMATIONS: " + this._confirmations);
     }
 
     return [this._verify, this._confirmations];
@@ -59,7 +60,7 @@ export class Migrations {
   }
 
   resolvePathToFile(path: string, file: string = ""): string {
-    if (path.substring(path.length - 1, path.length) === '/') {
+    if (path.substring(path.length - 1, path.length) === "/") {
       return fs.realpathSync(this._pathToMigration) + file;
     }
     return fs.realpathSync(this._pathToMigration) + "/" + file;

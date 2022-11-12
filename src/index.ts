@@ -1,8 +1,6 @@
 require("@nomiclabs/hardhat-etherscan");
 
-import {
-  TASK_COMPILE,
-} from "hardhat/builtin-tasks/task-names";
+import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 
 import { extendConfig, task, types } from "hardhat/config";
 import { ActionType } from "hardhat/types";
@@ -16,21 +14,17 @@ interface DeploymentArgs {
   confirmations?: number;
   // File path to a folder with specified migrations.
   pathToMigrations?: string;
-  // A flag indicating whether a check is needed.
+  // A flag indicating whether the verification of the contract is needed.
   verify?: boolean;
 }
 
 extendConfig(deployConfigExtender);
 
-const deploy: ActionType<DeploymentArgs> = async (
-  { confirmations, pathToMigrations, verify },
-  env
-) => {
+const deploy: ActionType<DeploymentArgs> = async ({ confirmations, pathToMigrations, verify }, env) => {
   // Make sure that contract artifacts are up-to-date.
   await env.run(TASK_COMPILE, {
-      quiet: true,
-    }
-  );
+    quiet: true,
+  });
 
   const migrations = new Migrations(
     env,
@@ -41,21 +35,18 @@ const deploy: ActionType<DeploymentArgs> = async (
   await migrations.migrate();
 };
 
-task(TASK_DEPLOY, "Deploy contract on Etherscan")
+task(TASK_DEPLOY, "Deploy contracts")
   .addOptionalParam(
     "verify",
-    "A flag indicating whether a check is needed.",
+    "A flag indicating whether the verification of the contract is needed.",
     undefined,
-    types.boolean)
+    types.boolean
+  )
   .addOptionalParam(
     "confirmations",
     "A number that determines after how many blocks the verification should start.",
     undefined,
     types.int
   )
-  .addOptionalParam(
-    "pathToMigrations",
-    "File path to a folder with specified migrations",
-    undefined,
-    types.string)
+  .addOptionalParam("pathToMigrations", "File path to a folder with specified migrations.", undefined, types.string)
   .setAction(deploy);
