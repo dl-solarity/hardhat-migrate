@@ -59,10 +59,11 @@ export class Migrations {
     }
   }
 
-  resolvePathToFile(path: string, file: string = ""): string {
-    if (path.substring(path.length - 1, path.length) === "/") {
-      return fs.realpathSync(this._pathToMigration) + file;
+  resolvePathToFile(path_: string, file: string = ""): string {
+    let pathToFile = fs.realpathSync(path_);
+    if (pathToFile.substring(pathToFile.length - 1, pathToFile.length) === "/") {
+      return pathToFile + file;
     }
-    return fs.realpathSync(this._pathToMigration) + "/" + file;
+    return pathToFile + "/" + file;
   }
 }
