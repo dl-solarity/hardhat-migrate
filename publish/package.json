@@ -2,13 +2,17 @@
   "name": "@dlsl/hardhat-migrate",
   "version": "1.0.2",
   "description": "This package facilitates automatic deployment and verification of Solidity Smart Contracts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
-    "install": "npx husky install",
-    "compile": "tsc --build .",
-    "lint-fix": "prettier --write \"./**/*.ts\"",
-    "test": "echo \"No test specified\"",
-    "publish-to-npm": "npm run compile && npm run lint-fix && bash ./scripts/publish.sh"
+    "test": "echo \"No test specified\""
   },
+  "files": [
+    "dist/src/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/distributedlab-solidity-library/hardhat-migrate.git"
@@ -38,11 +42,5 @@
   },
   "peerDependencies": {
     "hardhat": "^2.10.0"
-  },
-  "devDependencies": {
-    "husky": "^7.0.2",
-    "prettier": "^2.7.1",
-    "ts-node": "^8.1.0",
-    "typescript": "~4.5.2"
   }
 }
