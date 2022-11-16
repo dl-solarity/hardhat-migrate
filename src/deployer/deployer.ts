@@ -77,8 +77,9 @@ export class Deployer {
   }
 
   async deploy(Instance: any, ...args: any) {
+    let instance;
     try {
-      const instance = await this.deployer.deploy(Instance, ...args);
+      instance = await this.deployer.deploy(Instance, ...args);
 
       Instance.setAsDeployed(instance);
 
@@ -88,7 +89,12 @@ export class Deployer {
 
       return instance;
     } catch (e: any) {
-      throw new NomicLabsHardhatPluginError(pluginName, e.message);
+      if (e.message.toLowerCase().includes("already verified")) {
+        console.log(`Contract at ${instance.address} already verified.`);
+        return instance;
+      } else {
+        throw new NomicLabsHardhatPluginError(pluginName, e.message);
+      }
     }
   }
 

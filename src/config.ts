@@ -2,6 +2,9 @@ import { ConfigExtender } from "hardhat/types";
 
 export const deployConfigExtender: ConfigExtender = (resolvedConfig, config) => {
   const defaultConfig = {
+    from: -1,
+    to: -1,
+    only: -1,
     confirmations: 0,
     verify: false,
     pathToMigrations: "./deploy",
