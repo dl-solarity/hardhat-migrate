@@ -10,6 +10,12 @@ import { TASK_DEPLOY } from "./constants";
 import { Migrations } from "./deployer/migrations";
 
 interface DeploymentArgs {
+  // Number of the migration from which the migration will be applied.
+  from?: number;
+  // Number of the migration up to which the migration will be applied.
+  to?: number;
+  // The number of the migration that will be applied. Overrides from and to parameters.
+  only?: number;
   // A number that determines after how many blocks the verification should start.
   confirmations?: number;
   // File path to a folder with specified migrations.
@@ -20,7 +26,7 @@ interface DeploymentArgs {
 
 extendConfig(deployConfigExtender);
 
-const deploy: ActionType<DeploymentArgs> = async ({ confirmations, pathToMigrations, verify }, env) => {
+const deploy: ActionType<DeploymentArgs> = async ({ from, to, only, confirmations, pathToMigrations, verify }, env) => {
   // Make sure that contract artifacts are up-to-date.
   await env.run(TASK_COMPILE, {
     quiet: true,
@@ -30,12 +36,23 @@ const deploy: ActionType<DeploymentArgs> = async ({ confirmations, pathToMigrati
     env,
     verify === undefined ? env.config.migrate.verify : verify,
     confirmations === undefined ? env.config.migrate.confirmations : confirmations,
-    pathToMigrations === undefined ? env.config.migrate.pathToMigrations : pathToMigrations
+    pathToMigrations === undefined ? env.config.migrate.pathToMigrations : pathToMigrations,
+    from === undefined ? env.config.migrate.from : from,
+    to === undefined ? env.config.migrate.to : to,
+    only === undefined ? env.config.migrate.only : only
   );
   await migrations.migrate();
 };
 
 task(TASK_DEPLOY, "Deploy contracts")
+  .addOptionalParam("from", "Name of the file from which the migration will be applied.", undefined, types.int)
+  .addOptionalParam("to", "Name of the file up to which the migration will be applied.", undefined, types.int)
+  .addOptionalParam(
+    "only",
+    "The number of the migration that will be applied. Overrides from and to parameters.",
+    undefined,
+    types.int
+  )
   .addOptionalParam(
     "verify",
     "A flag indicating whether the verification of the contract is needed.",

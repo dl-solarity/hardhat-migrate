@@ -9,25 +9,61 @@ export class Migrations {
   readonly _verify: boolean;
   readonly _confirmations: number;
   readonly _pathToMigration: string;
+  readonly from: number;
+  readonly to: number;
+  readonly only: number;
   readonly _hre: HardhatRuntimeEnvironment;
 
-  constructor(hre_: HardhatRuntimeEnvironment, verify_: boolean, confirmations_: number, pathToMigration_: string) {
+  constructor(
+    hre_: HardhatRuntimeEnvironment,
+    verify_: boolean,
+    confirmations_: number,
+    pathToMigration_: string,
+    from: number,
+    to: number,
+    only: number
+  ) {
     this._hre = hre_;
     this._verify = verify_;
     this._confirmations = confirmations_;
     this._pathToMigration = pathToMigration_;
+    this.from = from;
+    this.to = to;
+    this.only = only;
   }
 
   getMigrationFiles() {
     const migrationsDir = this.resolvePathToFile(this._pathToMigration);
     const directoryContents = fs.readdirSync(migrationsDir);
 
-    return directoryContents
+    let files = directoryContents
       .filter((file) => !isNaN(parseInt(path.basename(file))))
       .filter((file) => fs.statSync(migrationsDir + file).isFile())
+      .filter((file) => {
+        let migrationNumber = parseInt(path.basename(file));
+        if ((this.from > migrationNumber || (this.to < migrationNumber && this.to != -1)) && this.only == -1) {
+          return false;
+        }
+
+        return true;
+      })
+      .filter((file) => {
+        let migrationNumber = parseInt(path.basename(file));
+        if (this.only != migrationNumber && this.only != -1) {
+          return false;
+        }
+
+        return true;
+      })
       .sort((a, b) => {
         return parseInt(path.basename(a)) - parseInt(path.basename(b));
       });
+
+    if (files.length === 0) {
+      throw new NomicLabsHardhatPluginError(pluginName, "No migration files were found.");
+    }
+
+    return files;
   }
 
   getParams(): [boolean, number] {
