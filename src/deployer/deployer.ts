@@ -78,6 +78,7 @@ export class Deployer {
 
   async deploy(Instance: any, ...args: any) {
     let instance;
+
     try {
       instance = await this.deployer.deploy(Instance, ...args);
 

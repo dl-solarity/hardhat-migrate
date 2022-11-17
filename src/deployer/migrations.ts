@@ -41,16 +41,18 @@ export class Migrations {
       .filter((file) => fs.statSync(migrationsDir + file).isFile())
       .filter((file) => {
         let migrationNumber = parseInt(path.basename(file));
-        if (this.from >= 0 && this.to >= 0 && this.only == -1) {
-          return this.from <= migrationNumber && migrationNumber <= this.to;
+        if ((this.from > migrationNumber || (this.to < migrationNumber && this.to != -1)) && this.only == -1) {
+          return false;
         }
+
         return true;
       })
       .filter((file) => {
         let migrationNumber = parseInt(path.basename(file));
-        if (this.only >= 0) {
-          return this.only === migrationNumber;
+        if (this.only != migrationNumber && this.only != -1) {
+          return false;
         }
+
         return true;
       })
       .sort((a, b) => {

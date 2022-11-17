@@ -14,7 +14,7 @@ interface DeploymentArgs {
   from?: number;
   // Number of the migration up to which the migration will be applied.
   to?: number;
-  // The number of the migration that will be applied.
+  // The number of the migration that will be applied. Overrides from and to parameters.
   only?: number;
   // A number that determines after how many blocks the verification should start.
   confirmations?: number;
@@ -45,9 +45,14 @@ const deploy: ActionType<DeploymentArgs> = async ({ from, to, only, confirmation
 };
 
 task(TASK_DEPLOY, "Deploy contracts")
-  .addOptionalParam("from", "Name of the file up to which the migration will be applied.", undefined, types.int)
-  .addOptionalParam("to", "Name of the file from which the migration will be applied.", undefined, types.int)
-  .addOptionalParam("only", "The number of the migration that will be applied.", undefined, types.int)
+  .addOptionalParam("from", "Name of the file from which the migration will be applied.", undefined, types.int)
+  .addOptionalParam("to", "Name of the file up to which the migration will be applied.", undefined, types.int)
+  .addOptionalParam(
+    "only",
+    "The number of the migration that will be applied. Overrides from and to parameters.",
+    undefined,
+    types.int
+  )
   .addOptionalParam(
     "verify",
     "A flag indicating whether the verification of the contract is needed.",
