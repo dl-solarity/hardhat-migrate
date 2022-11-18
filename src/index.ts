@@ -20,8 +20,9 @@ interface DeploymentArgs {
   confirmations?: number;
   // File path to a folder with specified migrations.
   pathToMigrations?: string;
+
   // A flag indicating whether the verification of the contract is needed.
-  verify?: boolean;
+  verify: boolean;
 }
 
 extendConfig(deployConfigExtender);
@@ -34,7 +35,7 @@ const deploy: ActionType<DeploymentArgs> = async ({ from, to, only, confirmation
 
   const migrations = new Migrations(
     env,
-    verify === undefined ? env.config.migrate.verify : verify,
+    !verify ? env.config.migrate.verify : verify,
     confirmations === undefined ? env.config.migrate.confirmations : confirmations,
     pathToMigrations === undefined ? env.config.migrate.pathToMigrations : pathToMigrations,
     from === undefined ? env.config.migrate.from : from,
@@ -53,12 +54,7 @@ task(TASK_DEPLOY, "Deploy contracts")
     undefined,
     types.int
   )
-  .addOptionalParam(
-    "verify",
-    "A flag indicating whether the verification of the contract is needed.",
-    undefined,
-    types.boolean
-  )
+  .addFlag("verify", "A flag indicating whether the verification of the contract is needed.")
   .addOptionalParam(
     "confirmations",
     "A number that determines after how many blocks the verification should start.",
