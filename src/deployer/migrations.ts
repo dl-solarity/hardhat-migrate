@@ -63,6 +63,8 @@ export class Migrations {
       throw new NomicLabsHardhatPluginError(pluginName, "No migration files were found.");
     }
 
+    console.log(files)
+
     return files;
   }
 
