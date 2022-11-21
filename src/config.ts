@@ -8,11 +8,13 @@ export const deployConfigExtender: ConfigExtender = (resolvedConfig, config) => 
     confirmations: 0,
     verify: false,
     pathToMigrations: "./deploy",
+    excludedErrors: ["already verified"],
   };
 
   if (config.migrate !== undefined) {
     const { cloneDeep } = require("lodash");
     const customConfig = cloneDeep(config.migrate);
+    customConfig.excludedErrors.push("already verified");
 
     resolvedConfig.migrate = { ...defaultConfig, ...customConfig };
   } else {

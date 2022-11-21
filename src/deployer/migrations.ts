@@ -12,6 +12,7 @@ export class Migrations {
   readonly from: number;
   readonly to: number;
   readonly only: number;
+  readonly excludedErrors: string[];
   readonly _hre: HardhatRuntimeEnvironment;
 
   constructor(
@@ -21,7 +22,8 @@ export class Migrations {
     pathToMigration_: string,
     from: number,
     to: number,
-    only: number
+    only: number,
+    excludedErrors: string[]
   ) {
     this._hre = hre_;
     this._verify = verify_;
@@ -30,6 +32,7 @@ export class Migrations {
     this.from = from;
     this.to = to;
     this.only = only;
+    this.excludedErrors = excludedErrors;
   }
 
   getMigrationFiles() {
@@ -63,7 +66,7 @@ export class Migrations {
       throw new NomicLabsHardhatPluginError(pluginName, "No migration files were found.");
     }
 
-    console.log(files)
+    console.log(files);
 
     return files;
   }
@@ -80,7 +83,7 @@ export class Migrations {
   async migrate() {
     try {
       const migrationFiles = this.getMigrationFiles();
-      const deployer = new Deployer(this._hre);
+      const deployer = new Deployer(this._hre, this.excludedErrors);
       await deployer.startMigration(...this.getParams());
 
       for (const element of migrationFiles) {

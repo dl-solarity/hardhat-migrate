@@ -9,6 +9,8 @@ import { deployConfigExtender } from "./config";
 import { TASK_DEPLOY } from "./constants";
 import { Migrations } from "./deployer/migrations";
 
+export { logTransaction, logContracts } from "./logger/logger";
+
 interface DeploymentArgs {
   // Number of the migration from which the migration will be applied.
   from?: number;
@@ -40,7 +42,8 @@ const deploy: ActionType<DeploymentArgs> = async ({ from, to, only, confirmation
     pathToMigrations === undefined ? env.config.migrate.pathToMigrations : pathToMigrations,
     from === undefined ? env.config.migrate.from : from,
     to === undefined ? env.config.migrate.to : to,
-    only === undefined ? env.config.migrate.only : only
+    only === undefined ? env.config.migrate.only : only,
+    env.config.migrate.excludedErrors
   );
   await migrations.migrate();
 };

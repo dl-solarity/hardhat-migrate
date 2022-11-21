@@ -5,6 +5,7 @@ const TruffleDeployer = require("@truffle/deployer");
 const TruffleReporter = require("@truffle/reporters").migrationsV5;
 import { Verifier } from "../verifier/verifier";
 import { pluginName } from "../constants";
+import { checkExclusion } from "../utils/exclude-error";
 
 const Web3 = require("web3");
 
@@ -13,9 +14,11 @@ export class Deployer {
   private reporter: any;
   private deployer: any;
   private verifier: Verifier | undefined;
+  private readonly excludedErrors: string[];
 
-  constructor(hre_: HardhatRuntimeEnvironment) {
+  constructor(hre_: HardhatRuntimeEnvironment, _excludedErrors: string[]) {
     this._hre = hre_;
+    this.excludedErrors = _excludedErrors;
   }
 
   async startMigration(verify: boolean, confirmations = 0) {
@@ -90,8 +93,10 @@ export class Deployer {
 
       return instance;
     } catch (e: any) {
-      if (e.message.toLowerCase().includes("already verified")) {
-        console.log(`Contract at ${instance.address} already verified.`);
+      const [isExcluded, msg] = checkExclusion(e.message, this.excludedErrors);
+
+      if (isExcluded) {
+        console.log(`Contract at ${instance.address} ${msg}.`);
         return instance;
       } else {
         throw new NomicLabsHardhatPluginError(pluginName, e.message);

@@ -82,6 +82,9 @@ You need to add the following Deploy config to your `hardhat.config.js` file:
 ```js
 module.exports = {
   migrate: {
+    from: 1,
+    to: 2,
+    only: 3,  
     verify: true,
     confirmations: 5,
     pathToMigrations: "./deploy/"
@@ -89,6 +92,44 @@ module.exports = {
 };
 ```
 
+### Parameter explanation
+
+- from : Number of the migration from which the migration will be applied.
+- to : Number of the migration up to which the migration will be applied.
+- only : The number of the migration that will be applied. **Overrides from and to parameters.**
+- confirmations : A number that determines after how many blocks the verification should start.
+- pathToMigrations : File path to a folder with specified migrations.
+
+* verify : A flag indicating whether the verification of the contract is needed.
+
+### Deploying
+
+If the **verify** flag is set, the automatic verification will be enabled.
+
+You can set your own migrations and deploy them to the network you want.
+#### With only parameter
+```console
+$ npx hardhat deploy --network goerli --verify --only 2
+```
+In this case, only the migration that begins with digit 2 will be applied.
+
+#### Or with from/to parameters
+```console
+$ npx hardhat deploy --network goerli --verify --from 1 --to 2
+```
+In this case, migrations 1 through 2 (both) will be applied.
+
+### Verifying
+
+#### You could manually verify contracts:
+```console
+$ npx hardhat verify --network goerli DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
+```
+
+Other examples of manual contract verification can be found here [@nomiclabs/hardhat-etherscan](https://www.npmjs.com/package/@nomiclabs/hardhat-etherscan)
+
+
+[//]: # ()
 [//]: # (## How it works)
 
 ## Known limitations
