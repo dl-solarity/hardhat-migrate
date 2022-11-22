@@ -87,7 +87,8 @@ module.exports = {
     only: 3,  
     verify: true,
     confirmations: 5,
-    pathToMigrations: "./deploy/"
+    pathToMigrations: "./deploy/", 
+    excludedErrors: ['already verified']
   }
 };
 ```
@@ -99,6 +100,9 @@ module.exports = {
 - only : The number of the migration that will be applied. **Overrides from and to parameters.**
 - confirmations : A number that determines after how many blocks the verification should start.
 - pathToMigrations : File path to a folder with specified migrations.
+- excludedErrors: The user can specify custom errors that will be omitted and just be printed to the log instead of 
+stopping the program completely.
+By default, if this parameter is not specified, the `already verified` error is omitted.
 
 * verify : A flag indicating whether the verification of the contract is needed.
 

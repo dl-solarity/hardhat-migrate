@@ -43,7 +43,7 @@ const deploy: ActionType<DeploymentArgs> = async ({ from, to, only, confirmation
     from === undefined ? env.config.migrate.from : from,
     to === undefined ? env.config.migrate.to : to,
     only === undefined ? env.config.migrate.only : only,
-    env.config.migrate.excludedErrors
+    env.config.migrate.excludedErrors === undefined ? [] : env.config.migrate.excludedErrors
   );
   await migrations.migrate();
 };
