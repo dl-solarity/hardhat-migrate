@@ -7,7 +7,7 @@ to [Etherscan](https://etherscan.io).
 
 ## What
 
-This plugin helps you deploy verify the source code for your Solidity contracts on [Etherscan](https://etherscan.io).
+This plugin helps you deploy and automatically verify the source code for your Solidity contracts on [Etherscan](https://etherscan.io).
 
 This is a fairly simple and rather straightforward Hardhat plugin:
 
@@ -95,22 +95,23 @@ module.exports = {
 
 ### Parameter explanation
 
-- from : Number of the migration from which the migration will be applied.
-- to : Number of the migration up to which the migration will be applied.
-- only : The number of the migration that will be applied. **Overrides from and to parameters.**
-- confirmations : A number that determines after how many blocks the verification should start.
-- pathToMigrations : File path to a folder with specified migrations.
-- excludedErrors: The user can specify custom errors that will be omitted and just be printed to the log instead of 
+- `from` : Number of the migration from which the migration will be applied.
+- `to` : Number of the migration up to which the migration will be applied.
+- `only` : The number of the migration that will be applied. **Overrides from and to parameters.**
+- `confirmations` : A number that determines after how many blocks the verification should start.
+- `pathToMigrations` : File path to a folder with specified migrations.
+- `excludedErrors` : The user can specify custom errors that will be omitted and just be printed to the log instead of 
 stopping the program completely.
 By default, if this parameter is not specified, the `already verified` error is omitted.
 
-* verify : A flag indicating whether the verification of the contract is needed.
+* `verify` : A flag indicating whether the verification of the contract is needed.
 
 ### Deploying
 
-If the **verify** flag is set, the automatic verification will be enabled.
+If the `verify` flag is set, the automatic verification will be enabled.
 
 You can set your own migrations and deploy them to the network you want.
+
 #### With only parameter
 ```console
 $ npx hardhat deploy --network goerli --verify --only 2
