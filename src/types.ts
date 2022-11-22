@@ -5,6 +5,7 @@ export interface DlDeployConfig {
   confirmations: number;
   verify: boolean;
   pathToMigrations: string;
+  excludedErrors: string[];
 }
 
 export interface DlDeployUserConfig {
@@ -14,4 +15,5 @@ export interface DlDeployUserConfig {
   confirmations?: number;
   verify?: boolean;
   pathToMigrations?: string;
+  excludedErrors?: string[];
 }
