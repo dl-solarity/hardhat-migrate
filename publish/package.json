@@ -1,6 +1,6 @@
 {
   "name": "@dlsl/hardhat-migrate",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "This package facilitates automatic deployment and verification of Solidity Smart Contracts",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -33,6 +33,7 @@
     "@nomiclabs/hardhat-etherscan": "^3.1.2",
     "@truffle/deployer": "3.2.56",
     "@truffle/reporters": "1.1.2",
+    "bignumber.js": "^9.1.0",
     "hardhat": "^2.10.0",
     "lodash": "^4.17.11",
     "web3": "^1.7.5"

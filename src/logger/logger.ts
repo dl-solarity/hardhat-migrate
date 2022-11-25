@@ -1,16 +1,21 @@
+import { BigNumber } from "bignumber.js";
+
 export function logTransaction(tx: any, name: any, printLogs: boolean = false) {
   const excludedKeys = ["contractAddress", "cumulativeGasUsed", "status", "transactionIndex", "type", "logsBloom"];
-  let output = `\n   > ${"Transaction name".padEnd(20)} ${name}\n`;
+  let output = underline(`Transaction '${name}'`);
   let logs = "";
 
   for (const [key, value] of Object.entries(tx.receipt)) {
     if (excludedKeys.includes(key)) {
       continue;
     }
+
     if (key.toLowerCase().includes("logs")) {
-      logs += `   > ${key.padEnd(20)} \n${JSON.stringify(value, null, 2)}\n`;
+      logs += `   + ${key.padEnd(20)} \n${JSON.stringify(value, null, 2)}\n`;
+    } else if (key === "effectiveGasPrice") {
+      output += `   + ${key.padEnd(20)} ${BigNumber(<string>value).dividedBy(10 ** 9)} gwei\n`;
     } else {
-      output += `   > ${key.padEnd(20)} ${value}\n`;
+      output += `   + ${key.padEnd(20)} ${value}\n`;
     }
   }
 
@@ -31,4 +36,8 @@ export function logContracts(...contracts: any) {
   console.table(table);
 
   console.log();
+}
+
+function underline(msg: string): string {
+  return `\n   ${msg}\n   ${"-".repeat(msg.length)}\n`;
 }
