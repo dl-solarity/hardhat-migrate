@@ -2,8 +2,7 @@ import { BigNumber } from "bignumber.js";
 
 export function logTransaction(tx: any, name: any, printLogs: boolean = false) {
   const excludedKeys = ["contractAddress", "cumulativeGasUsed", "status", "transactionIndex", "type", "logsBloom"];
-  let output = "\n";
-  output += underline(`Transaction '${name}'`);
+  let output = underline(`Transaction '${name}'`);
   let logs = "";
 
   for (const [key, value] of Object.entries(tx.receipt)) {
