@@ -6,37 +6,20 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { pluginName } from "../constants";
 
 export class Migrations {
-  readonly _verify: boolean;
-  readonly _confirmations: number;
-  readonly _pathToMigration: string;
-  readonly from: number;
-  readonly to: number;
-  readonly only: number;
-  readonly excludedErrors: string[];
-  readonly _hre: HardhatRuntimeEnvironment;
-
   constructor(
-    hre_: HardhatRuntimeEnvironment,
-    verify_: boolean,
-    confirmations_: number,
-    pathToMigration_: string,
-    from: number,
-    to: number,
-    only: number,
-    excludedErrors: string[]
-  ) {
-    this._hre = hre_;
-    this._verify = verify_;
-    this._confirmations = confirmations_;
-    this._pathToMigration = pathToMigration_;
-    this.from = from;
-    this.to = to;
-    this.only = only;
-    this.excludedErrors = excludedErrors;
-  }
+    private hre: HardhatRuntimeEnvironment,
+    private verify: boolean,
+    private confirmations: number,
+    private pathToMigration: string,
+    private from: number,
+    private to: number,
+    private only: number,
+    private excludedErrors: string[],
+    private verificationAttempts: number
+  ) {}
 
   getMigrationFiles() {
-    const migrationsDir = this.resolvePathToFile(this._pathToMigration);
+    const migrationsDir = this.resolvePathToFile(this.pathToMigration);
     const directoryContents = fs.readdirSync(migrationsDir);
 
     let files = directoryContents
@@ -72,22 +55,23 @@ export class Migrations {
   }
 
   getParams(): [boolean, number] {
-    if (this._verify) {
+    if (this.verify) {
       console.log("\nAUTO VERIFICATION IS ON");
-      console.log("\nNUMBER OF CONFIRMATIONS: " + this._confirmations);
+      console.log("\nNUMBER OF CONFIRMATIONS: " + this.confirmations);
+      console.log("\nNUMBER OF VERIFICATION ATTEMPTS: " + this.verificationAttempts);
     }
 
-    return [this._verify, this._confirmations];
+    return [this.verify, this.confirmations];
   }
 
   async migrate() {
     try {
       const migrationFiles = this.getMigrationFiles();
-      const deployer = new Deployer(this._hre, this.excludedErrors);
+      const deployer = new Deployer(this.hre, this.excludedErrors, this.verificationAttempts);
       await deployer.startMigration(...this.getParams());
 
       for (const element of migrationFiles) {
-        const migration = require(this.resolvePathToFile(fs.realpathSync(this._pathToMigration), element));
+        const migration = require(this.resolvePathToFile(fs.realpathSync(this.pathToMigration), element));
 
         await migration(deployer);
       }

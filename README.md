@@ -86,25 +86,27 @@ module.exports = {
     to: 2,
     only: 3,  
     verify: true,
+    verificationAttempts: 2,
     confirmations: 5,
-    pathToMigrations: "./deploy/", 
-    excludedErrors: ['already verified']
-  }
+    pathToMigrations: './deploy/', 
+    excludedErrors: ['already verified'],
+  },
 };
 ```
 
 ### Parameter explanation
 
-- `from` : Number of the migration from which the migration will be applied.
-- `to` : Number of the migration up to which the migration will be applied.
+- `from` : The migration number from which the migration will be applied.
+- `to` : The migration number up to which the migration will be applied.
 - `only` : The number of the migration that will be applied. **Overrides from and to parameters.**
-- `confirmations` : A number that determines after how many blocks the verification should start.
-- `pathToMigrations` : File path to a folder with specified migrations.
+- `confirmations` : The number defining after how many blocks the verification should start.
+- `verificationAttempts`: The number of attempts to verify the contract.
+- `pathToMigrations` :The path to the folder with the specified migrations.
 - `excludedErrors` : The user can specify custom errors that will be omitted and just be printed to the log instead of 
 stopping the program completely.
 By default, if this parameter is not specified, the `already verified` error is omitted.
 
-* `verify` : A flag indicating whether the verification of the contract is needed.
+* `verify` : The flag indicating whether the verification of the contract is needed.
 
 ### Deploying
 
@@ -132,7 +134,6 @@ $ npx hardhat verify --network goerli DEPLOYED_CONTRACT_ADDRESS "Constructor arg
 ```
 
 Other examples of manual contract verification can be found here [@nomiclabs/hardhat-etherscan](https://www.npmjs.com/package/@nomiclabs/hardhat-etherscan)
-
 
 [//]: # ()
 [//]: # (## How it works)

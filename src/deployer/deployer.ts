@@ -10,20 +10,19 @@ import { checkExclusion } from "../utils/exclude-error";
 const Web3 = require("web3");
 
 export class Deployer {
-  readonly _hre: HardhatRuntimeEnvironment;
   private reporter: any;
   private deployer: any;
   private verifier: Verifier | undefined;
-  private readonly excludedErrors: string[];
 
-  constructor(hre_: HardhatRuntimeEnvironment, _excludedErrors: string[]) {
-    this._hre = hre_;
-    this.excludedErrors = _excludedErrors;
-  }
+  constructor(
+    private hre: HardhatRuntimeEnvironment,
+    private excludedErrors: string[],
+    private verificationAttempts: number
+  ) {}
 
   async startMigration(verify: boolean, confirmations = 0) {
     try {
-      const web3 = new Web3(this._hre.network.provider);
+      const web3 = new Web3(this.hre.network.provider);
       const chainId = await web3.eth.getChainId();
       const networkType = await web3.eth.net.getNetworkType();
 
@@ -38,7 +37,7 @@ export class Deployer {
       });
 
       if (verify) {
-        this.verifier = new Verifier(this._hre);
+        this.verifier = new Verifier(this.hre, this.verificationAttempts, this.excludedErrors);
       }
 
       this.reporter.confirmations = confirmations;

@@ -9,6 +9,7 @@ export const deployConfigExtender: ConfigExtender = (resolvedConfig, config) => 
     verify: false,
     pathToMigrations: "./deploy",
     excludedErrors: ["already verified"],
+    verificationAttempts: 1,
   };
 
   if (config.migrate !== undefined) {

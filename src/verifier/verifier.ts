@@ -1,36 +1,60 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { pluginName } from "../constants";
+import { checkExclusion } from "../utils/exclude-error";
 
 export class Verifier {
-  readonly _hre: HardhatRuntimeEnvironment | any;
-
-  constructor(hre_: HardhatRuntimeEnvironment) {
-    this._hre = hre_;
-  }
+  constructor(
+    private hre: HardhatRuntimeEnvironment | any,
+    private attempts: number,
+    private excludedErrors: string[]
+  ) {}
 
   async verify(...contractsWithArgs: any) {
-    this._hre.config.contractSizer.runOnCompile = false;
+    this.hre.config.contractSizer.runOnCompile = false;
 
     for (const element of contractsWithArgs) {
-      const contract = element[0];
-      const fileName = contract.constructor._hArtifact.sourceName;
-      const contractName = contract.constructor._hArtifact.contractName;
-      const args = element.slice(1);
+      let response: [boolean, string];
+      let counter = 0;
 
-      try {
-        await this._hre.run("verify:verify", {
-          address: contract.address,
-          constructorArguments: args,
-          contract: fileName + ":" + contractName,
-        });
+      let isExcluded;
+      do {
+        response = await this.verificationTask(element);
+        if (!response[0] && !isExcluded) {
+          console.log("Verification failed, reason:\n" + response[1]);
+          console.log("Attempt #" + (counter + 1) + "\n");
+        }
 
-        await this._hre.run("compile", {
-          quiet: true,
-        });
-      } catch (e: any) {
-        throw new NomicLabsHardhatPluginError(pluginName, e.message);
+        counter += 1;
+        [isExcluded] = checkExclusion(response[1], this.excludedErrors);
+      } while (!response[0] && counter < this.attempts && !isExcluded);
+
+      if (!response[0]) {
+        throw new NomicLabsHardhatPluginError(pluginName, response[1]);
       }
     }
+  }
+
+  async verificationTask(contractObject: any): Promise<[boolean, string]> {
+    try {
+      const contract = contractObject[0];
+      const fileName = contract.constructor._hArtifact.sourceName;
+      const contractName = contract.constructor._hArtifact.contractName;
+      const args = contractObject.slice(1);
+
+      await this.hre.run("verify:verify", {
+        address: contract.address,
+        constructorArguments: args,
+        contract: fileName + ":" + contractName,
+        noCompile: true,
+      });
+
+      await this.hre.run("compile", {
+        quiet: true,
+      });
+    } catch (e: any) {
+      return [false, e.message];
+    }
+    return [true, ""];
   }
 }
