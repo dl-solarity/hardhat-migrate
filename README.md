@@ -88,8 +88,8 @@ module.exports = {
     verify: true,
     verificationAttempts: 2,
     confirmations: 5,
-    pathToMigrations: './deploy/', 
-    excludedErrors: ['already verified'],
+    pathToMigrations: "./deploy/", 
+    excludedErrors: ["already verified"],
   },
 };
 ```

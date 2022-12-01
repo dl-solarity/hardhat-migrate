@@ -14,13 +14,9 @@ export class Deployer {
   private deployer: any;
   private verifier: Verifier | undefined;
 
-  constructor(
-    private hre: HardhatRuntimeEnvironment,
-    private excludedErrors: string[],
-    private verificationAttempts: number
-  ) {}
+  constructor(private hre: HardhatRuntimeEnvironment, private excludedErrors: string[]) {}
 
-  async startMigration(verify: boolean, confirmations = 0) {
+  async startMigration(verify: boolean, verificationAttempts: number, confirmations: number) {
     try {
       const web3 = new Web3(this.hre.network.provider);
       const chainId = await web3.eth.getChainId();
@@ -37,7 +33,7 @@ export class Deployer {
       });
 
       if (verify) {
-        this.verifier = new Verifier(this.hre, this.verificationAttempts, this.excludedErrors);
+        this.verifier = new Verifier(this.hre, verificationAttempts, this.excludedErrors);
       }
 
       this.reporter.confirmations = confirmations;

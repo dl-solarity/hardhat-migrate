@@ -54,20 +54,20 @@ export class Migrations {
     return files;
   }
 
-  getParams(): [boolean, number] {
+  getParams(): [boolean, number, number] {
     if (this.verify) {
       console.log("\nAUTO VERIFICATION IS ON");
       console.log("\nNUMBER OF CONFIRMATIONS: " + this.confirmations);
       console.log("\nNUMBER OF VERIFICATION ATTEMPTS: " + this.verificationAttempts);
     }
 
-    return [this.verify, this.confirmations];
+    return [this.verify, this.confirmations, this.verificationAttempts];
   }
 
   async migrate() {
     try {
       const migrationFiles = this.getMigrationFiles();
-      const deployer = new Deployer(this.hre, this.excludedErrors, this.verificationAttempts);
+      const deployer = new Deployer(this.hre, this.excludedErrors);
       await deployer.startMigration(...this.getParams());
 
       for (const element of migrationFiles) {
