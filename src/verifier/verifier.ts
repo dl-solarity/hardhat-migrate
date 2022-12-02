@@ -7,7 +7,7 @@ export class Verifier {
   constructor(
     private hre: HardhatRuntimeEnvironment | any,
     private attempts: number,
-    private excludedErrors: string[]
+    private skipVerificationErrors: string[]
   ) {}
 
   async verify(...contractsWithArgs: any) {
@@ -21,14 +21,17 @@ export class Verifier {
           await this.verificationTask(element);
           break;
         } catch (e: any) {
-          const [isExcluded] = checkExclusion(e.message, this.excludedErrors);
+          const [isSkipped, msg] = checkExclusion(e.message, this.skipVerificationErrors);
 
-          if (!isExcluded) {
+          if (isSkipped) {
+            console.log(`Contract at ${element[0].address} ${msg}.`);
+            break;
+          } else {
             console.log("Verification failed\n" + e.message);
             console.log("Attempt #" + (counter + 1) + "\n");
           }
 
-          if (counter == this.attempts - 1 || isExcluded) {
+          if (counter == this.attempts - 1) {
             throw new NomicLabsHardhatPluginError(pluginName, e.message);
           }
         }

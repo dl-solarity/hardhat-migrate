@@ -30,7 +30,7 @@ export function logContracts(...contracts: any) {
   const table = [];
 
   for (const element of contracts) {
-    table.push({ "Proxy Contract": element[0], Address: element[1] });
+    table.push({ Contract: element[0], Address: element[1] });
   }
 
   console.table(table);

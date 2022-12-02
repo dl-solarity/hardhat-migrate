@@ -89,7 +89,7 @@ module.exports = {
     verificationAttempts: 2,
     confirmations: 5,
     pathToMigrations: "./deploy/", 
-    excludedErrors: ["already verified"],
+    skipVerificationErrors: ["already verified"],
   },
 };
 ```
@@ -102,8 +102,8 @@ module.exports = {
 - `confirmations` : The number defining after how many blocks the verification should start.
 - `verificationAttempts`: The number of attempts to verify the contract.
 - `pathToMigrations` :The path to the folder with the specified migrations.
-- `excludedErrors` : The user can specify custom errors that will be omitted and just be printed to the log instead of 
-stopping the program completely.
+- `skipVerificationErrors` : The user can specify custom verification errors that will be omitted and just be printed 
+to the log instead of stopping the program completely.
 By default, if this parameter is not specified, the `already verified` error is omitted.
 
 * `verify` : The flag indicating whether the verification of the contract is needed.

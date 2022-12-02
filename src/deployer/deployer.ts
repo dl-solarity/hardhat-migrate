@@ -5,7 +5,6 @@ const TruffleDeployer = require("@truffle/deployer");
 const TruffleReporter = require("@truffle/reporters").migrationsV5;
 import { Verifier } from "../verifier/verifier";
 import { pluginName } from "../constants";
-import { checkExclusion } from "../utils/exclude-error";
 
 const Web3 = require("web3");
 
@@ -14,9 +13,9 @@ export class Deployer {
   private deployer: any;
   private verifier: Verifier | undefined;
 
-  constructor(private hre: HardhatRuntimeEnvironment, private excludedErrors: string[]) {}
+  constructor(private hre: HardhatRuntimeEnvironment, private skipVerificationErrors: string[]) {}
 
-  async startMigration(verify: boolean, verificationAttempts: number, confirmations: number) {
+  async startMigration(verify: boolean, confirmations: number, verificationAttempts: number) {
     try {
       const web3 = new Web3(this.hre.network.provider);
       const chainId = await web3.eth.getChainId();
@@ -33,7 +32,7 @@ export class Deployer {
       });
 
       if (verify) {
-        this.verifier = new Verifier(this.hre, verificationAttempts, this.excludedErrors);
+        this.verifier = new Verifier(this.hre, verificationAttempts, this.skipVerificationErrors);
       }
 
       this.reporter.confirmations = confirmations;
@@ -88,14 +87,7 @@ export class Deployer {
 
       return instance;
     } catch (e: any) {
-      const [isExcluded, msg] = checkExclusion(e.message, this.excludedErrors);
-
-      if (isExcluded) {
-        console.log(`Contract at ${instance.address} ${msg}.`);
-        return instance;
-      } else {
-        throw new NomicLabsHardhatPluginError(pluginName, e.message);
-      }
+      throw new NomicLabsHardhatPluginError(pluginName, e.message);
     }
   }
 

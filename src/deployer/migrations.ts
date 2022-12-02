@@ -14,7 +14,7 @@ export class Migrations {
     private from: number,
     private to: number,
     private only: number,
-    private excludedErrors: string[],
+    private skipVerificationErrors: string[],
     private verificationAttempts: number
   ) {}
 
@@ -67,7 +67,7 @@ export class Migrations {
   async migrate() {
     try {
       const migrationFiles = this.getMigrationFiles();
-      const deployer = new Deployer(this.hre, this.excludedErrors);
+      const deployer = new Deployer(this.hre, this.skipVerificationErrors);
       await deployer.startMigration(...this.getParams());
 
       for (const element of migrationFiles) {
