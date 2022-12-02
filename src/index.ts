@@ -12,24 +12,28 @@ import { Migrations } from "./deployer/migrations";
 export { logTransaction, logContracts } from "./logger/logger";
 
 interface DeploymentArgs {
-  // Number of the migration from which the migration will be applied.
+  // The migration number from which the migration will be applied.
   from?: number;
-  // Number of the migration up to which the migration will be applied.
+  // The migration number up to which the migration will be applied.
   to?: number;
   // The number of the migration that will be applied. Overrides from and to parameters.
   only?: number;
-  // A number that determines after how many blocks the verification should start.
+  // The number defining after how many blocks the verification should start.
   confirmations?: number;
-  // File path to a folder with specified migrations.
+  // The number of attempts to verify the contract.
+  verificationAttempts?: number;
+  // The path to the folder with the specified migrations.
   pathToMigrations?: string;
-
-  // A flag indicating whether the verification of the contract is needed.
+  // The flag indicating whether the verification of the contract is needed.
   verify: boolean;
 }
 
 extendConfig(deployConfigExtender);
 
-const deploy: ActionType<DeploymentArgs> = async ({ from, to, only, confirmations, pathToMigrations, verify }, env) => {
+const deploy: ActionType<DeploymentArgs> = async (
+  { from, to, only, confirmations, verificationAttempts, pathToMigrations, verify },
+  env
+) => {
   // Make sure that contract artifacts are up-to-date.
   await env.run(TASK_COMPILE, {
     quiet: true,
@@ -43,26 +47,33 @@ const deploy: ActionType<DeploymentArgs> = async ({ from, to, only, confirmation
     from === undefined ? env.config.migrate.from : from,
     to === undefined ? env.config.migrate.to : to,
     only === undefined ? env.config.migrate.only : only,
-    env.config.migrate.excludedErrors === undefined ? [] : env.config.migrate.excludedErrors
+    env.config.migrate.skipVerificationErrors === undefined ? [] : env.config.migrate.skipVerificationErrors,
+    verificationAttempts === undefined ? env.config.migrate.verificationAttempts : verificationAttempts
   );
   await migrations.migrate();
 };
 
 task(TASK_DEPLOY, "Deploy contracts")
-  .addOptionalParam("from", "Name of the file from which the migration will be applied.", undefined, types.int)
-  .addOptionalParam("to", "Name of the file up to which the migration will be applied.", undefined, types.int)
+  .addOptionalParam("from", "The migration number from which the migration will be applied.", undefined, types.int)
+  .addOptionalParam("to", "The migration number up to which the migration will be applied.", undefined, types.int)
   .addOptionalParam(
     "only",
     "The number of the migration that will be applied. Overrides from and to parameters.",
     undefined,
     types.int
   )
-  .addFlag("verify", "A flag indicating whether the verification of the contract is needed.")
+  .addFlag("verify", "The flag indicating whether the verification of the contract is needed.")
   .addOptionalParam(
     "confirmations",
-    "A number that determines after how many blocks the verification should start.",
+    "The number defining after how many blocks the verification should start.",
     undefined,
     types.int
   )
-  .addOptionalParam("pathToMigrations", "File path to a folder with specified migrations.", undefined, types.string)
+  .addOptionalParam("verificationAttempts", "The number of attempts to verify the contract.", undefined, types.int)
+  .addOptionalParam(
+    "pathToMigrations",
+    "The path to the folder with the specified migrations.",
+    undefined,
+    types.string
+  )
   .setAction(deploy);
