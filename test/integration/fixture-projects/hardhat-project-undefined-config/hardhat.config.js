@@ -1,0 +1,3 @@
+require("../../../../src");
+
+module.exports = {};

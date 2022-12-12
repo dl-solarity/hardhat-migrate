@@ -14,7 +14,7 @@ export class Migrations {
     private from: number,
     private to: number,
     private only: number,
-    private skip: number[],
+    private skip: number,
     private skipVerificationErrors: string[],
     private verificationAttempts: number
   ) {}
@@ -24,7 +24,10 @@ export class Migrations {
     const directoryContents = fs.readdirSync(migrationsDir);
 
     let files = directoryContents
-      .filter((file) => !isNaN(parseInt(path.basename(file))))
+      .filter((file) => {
+        let migrationNumber = parseInt(path.basename(file));
+        return !isNaN(migrationNumber) && migrationNumber > 0;
+      })
       .filter((file) => fs.statSync(migrationsDir + file).isFile())
       .filter((file) => {
         let migrationNumber = parseInt(path.basename(file));
@@ -36,7 +39,7 @@ export class Migrations {
       })
       .filter((file) => {
         let migrationNumber = parseInt(path.basename(file));
-        if (this.only != migrationNumber && this.only != -1 && !this.skip.includes(this.only)) {
+        if (this.only != migrationNumber && this.only != -1) {
           return false;
         }
 
@@ -44,7 +47,7 @@ export class Migrations {
       })
       .filter((file) => {
         let migrationNumber = parseInt(path.basename(file));
-        if (this.skip.includes(migrationNumber)) {
+        if (this.skip == migrationNumber) {
           return false;
         }
 

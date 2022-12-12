@@ -1,17 +1,11 @@
-require("../../../src/index");
-
-const dotenv = require("dotenv");
-dotenv.config();
+require("../../../../src");
 
 module.exports = {
-  solidity: {
-    version: "0.5.15",
-  },
   migrate: {
     from: 1,
     to: 5,
     only: 2,
-    skip: [1, 2],
+    skip: 1,
     verify: true,
     verificationAttempts: 2,
     confirmations: 5,
