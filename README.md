@@ -1,9 +1,8 @@
-[//]: # ([![npm]&#40;https://img.shields.io/npm/v/@dlsl/hardhat-deploy.svg&#41;]&#40;https://www.npmjs.com/package/@dlsl/hardhat-deploy&#41; [![hardhat]&#40;https://hardhat.org/buidler-plugin-badge.svg?1&#41;]&#40;https://hardhat.org&#41;)
+[![npm](https://img.shields.io/npm/v/@dlsl/hardhat-migrate.svg)](https://www.npmjs.com/package/@dlsl/hardhat-migrate) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # Hardhat migrate
 
-[Hardhat](https://hardhat.org) plugin to simplify the deployment and verification of contracts 
-to [Etherscan](https://etherscan.io).
+[Hardhat](https://hardhat.org) plugin to simplify the deployment and verification of contracts.
 
 ## What
 
