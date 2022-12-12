@@ -55,6 +55,7 @@ export class Verifier {
 
     await this.hre.run("compile", {
       quiet: true,
+      force: true,
     });
   }
 }

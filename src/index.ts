@@ -26,17 +26,20 @@ interface DeploymentArgs {
   pathToMigrations?: string;
   // The flag indicating whether the verification of the contract is needed.
   verify: boolean;
+  // Makes the compilation process less verbose.
+  quiet: boolean;
 }
 
 extendConfig(deployConfigExtender);
 
 const deploy: ActionType<DeploymentArgs> = async (
-  { from, to, only, confirmations, verificationAttempts, pathToMigrations, verify },
+  { from, to, only, confirmations, verificationAttempts, pathToMigrations, verify, quiet },
   env
 ) => {
   // Make sure that contract artifacts are up-to-date.
   await env.run(TASK_COMPILE, {
-    quiet: true,
+    quiet: quiet,
+    force: true,
   });
 
   const migrations = new Migrations(
@@ -47,6 +50,7 @@ const deploy: ActionType<DeploymentArgs> = async (
     from === undefined ? env.config.migrate.from : from,
     to === undefined ? env.config.migrate.to : to,
     only === undefined ? env.config.migrate.only : only,
+    env.config.migrate.skip === undefined ? [] : env.config.migrate.skip,
     env.config.migrate.skipVerificationErrors === undefined ? [] : env.config.migrate.skipVerificationErrors,
     verificationAttempts === undefined ? env.config.migrate.verificationAttempts : verificationAttempts
   );
@@ -63,6 +67,7 @@ task(TASK_DEPLOY, "Deploy contracts")
     types.int
   )
   .addFlag("verify", "The flag indicating whether the verification of the contract is needed.")
+  .addFlag("quiet", "Makes the compilation process less verbose.")
   .addOptionalParam(
     "confirmations",
     "The number defining after how many blocks the verification should start.",

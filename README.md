@@ -83,8 +83,9 @@ You need to add the following Deploy config to your `hardhat.config.js` file:
 module.exports = {
   migrate: {
     from: 1,
-    to: 2,
-    only: 3,  
+    to: 5,
+    only: 2,
+    skip: [1, 2],
     verify: true,
     verificationAttempts: 2,
     confirmations: 5,
@@ -105,8 +106,10 @@ module.exports = {
 - `skipVerificationErrors` : The user can specify custom verification errors that will be omitted and just be printed 
 to the log instead of stopping the program completely.
 By default, if this parameter is not specified, the `already verified` error is omitted.
+- `skip`: The user can specify the number of migration(s) to skip. 
 
 * `verify` : The flag indicating whether the verification of the contract is needed.
+* `quiet` : Makes the compilation process less verbose.
 
 ### Deploying
 

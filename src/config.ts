@@ -5,6 +5,7 @@ export const deployConfigExtender: ConfigExtender = (resolvedConfig, config) => 
     from: -1,
     to: -1,
     only: -1,
+    skip: [],
     confirmations: 0,
     verify: false,
     pathToMigrations: "./deploy",
