@@ -18,6 +18,8 @@ interface DeploymentArgs {
   to?: number;
   // The number of the migration that will be applied. Overrides from and to parameters.
   only?: number;
+  // The number of migration to skip. Overrides only parameter.
+  skip?: number;
   // The number defining after how many blocks the verification should start.
   confirmations?: number;
   // The number of attempts to verify the contract.
@@ -31,12 +33,13 @@ interface DeploymentArgs {
 extendConfig(deployConfigExtender);
 
 const deploy: ActionType<DeploymentArgs> = async (
-  { from, to, only, confirmations, verificationAttempts, pathToMigrations, verify },
+  { from, to, only, skip, confirmations, verificationAttempts, pathToMigrations, verify },
   env
 ) => {
   // Make sure that contract artifacts are up-to-date.
   await env.run(TASK_COMPILE, {
     quiet: true,
+    force: true,
   });
 
   const migrations = new Migrations(
@@ -47,6 +50,7 @@ const deploy: ActionType<DeploymentArgs> = async (
     from === undefined ? env.config.migrate.from : from,
     to === undefined ? env.config.migrate.to : to,
     only === undefined ? env.config.migrate.only : only,
+    skip === undefined ? env.config.migrate.skip : skip,
     env.config.migrate.skipVerificationErrors === undefined ? [] : env.config.migrate.skipVerificationErrors,
     verificationAttempts === undefined ? env.config.migrate.verificationAttempts : verificationAttempts
   );
@@ -62,6 +66,7 @@ task(TASK_DEPLOY, "Deploy contracts")
     undefined,
     types.int
   )
+  .addOptionalParam("skip", "The number of migration to skip. Overrides only parameter.", undefined, types.int)
   .addFlag("verify", "The flag indicating whether the verification of the contract is needed.")
   .addOptionalParam(
     "confirmations",
