@@ -1,12 +1,11 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
+const Web3 = require("web3");
 const TruffleDeployer = require("@truffle/deployer");
 const TruffleReporter = require("@truffle/reporters").migrationsV5;
 import { Verifier } from "../verifier/verifier";
 import { pluginName } from "../constants";
-
-const Web3 = require("web3");
 
 export class Deployer {
   private reporter: any;
@@ -15,7 +14,7 @@ export class Deployer {
 
   constructor(private hre: HardhatRuntimeEnvironment, private skipVerificationErrors: string[]) {}
 
-  async startMigration(verify: boolean, confirmations: number, verificationAttempts: number) {
+  async startMigration(verify: boolean, confirmations: number, attempts: number) {
     try {
       const web3 = new Web3(this.hre.network.provider);
       const chainId = await web3.eth.getChainId();
@@ -32,7 +31,7 @@ export class Deployer {
       });
 
       if (verify) {
-        this.verifier = new Verifier(this.hre, verificationAttempts, this.skipVerificationErrors);
+        this.verifier = new Verifier(this.hre, attempts, this.skipVerificationErrors);
       }
 
       this.reporter.confirmations = confirmations;

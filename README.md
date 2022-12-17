@@ -86,7 +86,7 @@ module.exports = {
     only: 2,
     skip: 1,
     verify: true,
-    verificationAttempts: 2,
+    attempts: 2,
     confirmations: 5,
     pathToMigrations: "./deploy/", 
     skipVerificationErrors: ["already verified"],
@@ -101,7 +101,7 @@ module.exports = {
 - `only` : The number of the migration that will be applied. **Overrides from and to parameters.**
 - `skip`: The number of migration to skip. **Overrides only parameter.**
 - `confirmations` : The number defining after how many blocks the verification should start.
-- `verificationAttempts`: The number of attempts to verify the contract.
+- `attempts`: The number of attempts to verify the contract.
 - `pathToMigrations` : The path to the folder with the specified migrations.
 - `skipVerificationErrors` : The user can specify custom verification errors that will be omitted and just be printed 
 to the log instead of stopping the program completely.

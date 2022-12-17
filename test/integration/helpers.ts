@@ -34,6 +34,6 @@ export function getMigrationInstanceFromConfig(env: HardhatRuntimeEnvironment, m
     migrate.only,
     migrate.skip,
     migrate.skipVerificationErrors,
-    migrate.verificationAttempts
+    migrate.attempts
   );
 }

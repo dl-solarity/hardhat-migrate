@@ -23,7 +23,7 @@ interface DeploymentArgs {
   // The number defining after how many blocks the verification should start.
   confirmations?: number;
   // The number of attempts to verify the contract.
-  verificationAttempts?: number;
+  attempts?: number;
   // The path to the folder with the specified migrations.
   pathToMigrations?: string;
   // The flag indicating whether the verification of the contract is needed.
@@ -33,7 +33,7 @@ interface DeploymentArgs {
 extendConfig(deployConfigExtender);
 
 const deploy: ActionType<DeploymentArgs> = async (
-  { from, to, only, skip, confirmations, verificationAttempts, pathToMigrations, verify },
+  { from, to, only, skip, confirmations, attempts, pathToMigrations, verify },
   env
 ) => {
   // Make sure that contract artifacts are up-to-date.
@@ -52,12 +52,13 @@ const deploy: ActionType<DeploymentArgs> = async (
     only === undefined ? env.config.migrate.only : only,
     skip === undefined ? env.config.migrate.skip : skip,
     env.config.migrate.skipVerificationErrors === undefined ? [] : env.config.migrate.skipVerificationErrors,
-    verificationAttempts === undefined ? env.config.migrate.verificationAttempts : verificationAttempts
+    attempts === undefined ? env.config.migrate.attempts : attempts
   );
+
   await migrations.migrate();
 };
 
-task(TASK_DEPLOY, "Deploy contracts")
+task(TASK_DEPLOY, "Deploy contracts via migration files")
   .addOptionalParam("from", "The migration number from which the migration will be applied.", undefined, types.int)
   .addOptionalParam("to", "The migration number up to which the migration will be applied.", undefined, types.int)
   .addOptionalParam(
@@ -74,7 +75,7 @@ task(TASK_DEPLOY, "Deploy contracts")
     undefined,
     types.int
   )
-  .addOptionalParam("verificationAttempts", "The number of attempts to verify the contract.", undefined, types.int)
+  .addOptionalParam("attempts", "The number of attempts to verify the contract.", undefined, types.int)
   .addOptionalParam(
     "pathToMigrations",
     "The path to the folder with the specified migrations.",

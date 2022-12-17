@@ -16,7 +16,7 @@ export class Migrations {
     private only: number,
     private skip: number,
     private skipVerificationErrors: string[],
-    private verificationAttempts: number
+    private attempts: number
   ) {}
 
   getMigrationFiles() {
@@ -26,11 +26,13 @@ export class Migrations {
     let files = directoryContents
       .filter((file) => {
         let migrationNumber = parseInt(path.basename(file));
+
         return !isNaN(migrationNumber) && migrationNumber > 0;
       })
       .filter((file) => fs.statSync(migrationsDir + file).isFile())
       .filter((file) => {
         let migrationNumber = parseInt(path.basename(file));
+
         if (this.from > migrationNumber || (this.to < migrationNumber && this.to != -1)) {
           return false;
         }
@@ -39,6 +41,7 @@ export class Migrations {
       })
       .filter((file) => {
         let migrationNumber = parseInt(path.basename(file));
+
         if (this.only != migrationNumber && this.only != -1) {
           return false;
         }
@@ -47,6 +50,7 @@ export class Migrations {
       })
       .filter((file) => {
         let migrationNumber = parseInt(path.basename(file));
+
         if (this.skip == migrationNumber) {
           return false;
         }
@@ -61,25 +65,24 @@ export class Migrations {
       throw new NomicLabsHardhatPluginError(pluginName, "No migration files were found.");
     }
 
-    console.log(files);
+    console.log("\nMigration files:", files);
 
     return files;
   }
 
   getParams(): [boolean, number, number] {
-    if (this.verify) {
-      console.log("\nAUTO VERIFICATION IS ON");
-      console.log("\nNUMBER OF CONFIRMATIONS: " + this.confirmations);
-      console.log("\nNUMBER OF VERIFICATION ATTEMPTS: " + this.verificationAttempts);
+    if (!this.verify && this.attempts > 0) {
+      throw new NomicLabsHardhatPluginError(pluginName, "attempts > 0 with missing verify flag");
     }
 
-    return [this.verify, this.confirmations, this.verificationAttempts];
+    return [this.verify, this.confirmations, this.attempts];
   }
 
   async migrate() {
     try {
       const migrationFiles = this.getMigrationFiles();
       const deployer = new Deployer(this.hre, this.skipVerificationErrors);
+
       await deployer.startMigration(...this.getParams());
 
       for (const element of migrationFiles) {
@@ -98,9 +101,11 @@ export class Migrations {
 
   resolvePathToFile(path_: string, file: string = ""): string {
     let pathToFile = fs.realpathSync(path_);
+
     if (pathToFile.substring(pathToFile.length - 1, pathToFile.length) === "/") {
       return pathToFile + file;
     }
+
     return pathToFile + "/" + file;
   }
 }
