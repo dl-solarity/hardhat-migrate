@@ -37,15 +37,15 @@
   "peerDependencies": {
     "@nomiclabs/hardhat-truffle5": "^2.0.0",
     "@nomiclabs/hardhat-web3": "^2.0.0",
-    "web3": "^1.7.0",
-    "hardhat": "^2.10.0"
+    "hardhat": "^2.10.0",
+    "web3": "^1.7.0"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-truffle5": "^2.0.0",
     "@nomiclabs/hardhat-web3": "^2.0.0",
-    "web3": "^1.7.0",
+    "bignumber.js": "^9.1.0",
     "hardhat": "^2.10.0",
     "lodash": "^4.17.21",
-    "bignumber.js": "^9.1.0"
+    "web3": "^1.7.0"
   }
 }
