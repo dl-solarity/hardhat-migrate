@@ -8,15 +8,15 @@ import { pluginName } from "../constants";
 export class Migrations {
   constructor(
     private hre: HardhatRuntimeEnvironment,
-    private verify: boolean,
-    private confirmations: number,
-    private pathToMigration: string,
     private from: number,
     private to: number,
     private only: number,
     private skip: number,
+    private verify: boolean,
+    private confirmations: number,
     private skipVerificationErrors: string[],
-    private attempts: number
+    private attempts: number,
+    private pathToMigration: string
   ) {}
 
   getMigrationFiles() {
