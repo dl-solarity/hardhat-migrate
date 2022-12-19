@@ -28,31 +28,33 @@ interface DeploymentArgs {
   pathToMigrations?: string;
   // The flag indicating whether the verification of the contract is needed.
   verify: boolean;
+  // The flag indicating whether the compilation is forced.
+  force: boolean;
 }
 
 extendConfig(deployConfigExtender);
 
 const deploy: ActionType<DeploymentArgs> = async (
-  { from, to, only, skip, confirmations, attempts, pathToMigrations, verify },
+  { from, to, only, skip, confirmations, attempts, pathToMigrations, verify, force },
   env
 ) => {
   // Make sure that contract artifacts are up-to-date.
   await env.run(TASK_COMPILE, {
     quiet: true,
-    force: true,
+    force: force,
   });
 
   const migrations = new Migrations(
     env,
-    !verify ? env.config.migrate.verify : verify,
-    confirmations === undefined ? env.config.migrate.confirmations : confirmations,
-    pathToMigrations === undefined ? env.config.migrate.pathToMigrations : pathToMigrations,
     from === undefined ? env.config.migrate.from : from,
     to === undefined ? env.config.migrate.to : to,
     only === undefined ? env.config.migrate.only : only,
     skip === undefined ? env.config.migrate.skip : skip,
+    !verify ? env.config.migrate.verify : verify,
+    confirmations === undefined ? env.config.migrate.confirmations : confirmations,
     env.config.migrate.skipVerificationErrors === undefined ? [] : env.config.migrate.skipVerificationErrors,
-    attempts === undefined ? env.config.migrate.attempts : attempts
+    attempts === undefined ? env.config.migrate.attempts : attempts,
+    pathToMigrations === undefined ? env.config.migrate.pathToMigrations : pathToMigrations
   );
 
   await migrations.migrate();
@@ -69,6 +71,7 @@ task(TASK_DEPLOY, "Deploy contracts via migration files")
   )
   .addOptionalParam("skip", "The number of migration to skip. Overrides only parameter.", undefined, types.int)
   .addFlag("verify", "The flag indicating whether the verification of the contract is needed.")
+  .addFlag("force", "The flag indicating whether the compilation is forced.")
   .addOptionalParam(
     "confirmations",
     "The number defining after how many blocks the verification should start.",

@@ -108,6 +108,7 @@ to the log instead of stopping the program completely.
 By default, if this parameter is not specified, the `already verified` error is omitted.
 
 * `verify` : The flag indicating whether the verification of the contract is needed.
+* `force` : The flag indicating whether the compilation is forced.
 
 ### Deploying
 
