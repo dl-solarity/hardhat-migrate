@@ -33,6 +33,25 @@ Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 import "@dlsl/hardhat-migrate";
 ```
 
+> **Important**
+
+Also, it is mandatory to use following requires in `hardhat.config.ts`, 
+because those plugins are needed to write migration files
+
+See the #How_it_works section to see the example of the migration.
+
+```js
+require("@nomiclabs/hardhat-web3");
+require("@nomiclabs/hardhat-truffle5");
+```
+
+Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
+
+```ts
+import "@nomiclabs/hardhat-web3";
+import "@nomiclabs/hardhat-truffle5";
+```
+
 ## Naming convention
 
 It is also **mandatory** to specify the naming convention for migrations such as this one:
@@ -137,8 +156,52 @@ $ npx hardhat verify --network goerli DEPLOYED_CONTRACT_ADDRESS "Constructor arg
 
 Other examples of manual contract verification can be found here [@nomiclabs/hardhat-etherscan](https://www.npmjs.com/package/@nomiclabs/hardhat-etherscan)
 
-[//]: # ()
-[//]: # (## How it works)
+
+## How it works
+
+The plugin includes the following packages to perform the deployment and verification process:
+* For deployment
+    * [@nomiclabs/hardhat-web3](https://www.npmjs.com/package/@nomiclabs/hardhat-web3)
+    * [@nomiclabs/hardhat-truffle5](https://www.npmjs.com/package/@nomiclabs/hardhat-truffle5)
+* For verification:
+    * [@nomiclabs/hardhat-etherscan](https://www.npmjs.com/package/@nomiclabs/hardhat-etherscan)
+
+The core of this plugin is migration files, you can specify the migration route that suits you best.
+
+You can find an example of migration files in the sample project.
+
+### Migration Lifecycle
+
+After the user has specified all migrations and started the migration process, for example with the following command:
+```console
+$ npx hardhat deploy --network localhost
+```
+
+The migration files are sorted by the first digit in the file name and run one by one.  
+
+### Deployer.
+
+Deployer contains two functions that are used to deploy contracts:
+* Deployment function.
+  
+Under the hood, it uses TruffleDeployer from [@truffle/deployer](https://www.npmjs.com/package/@truffle/deployer) 
+and TruffleReporter from [@truffle/reporters](https://www.npmjs.com/package/@truffle/reporters) to deploy the contract. 
+After that, if the user sets the `verify` flag, it will automatically verify the contract.
+
+* Link function.
+The link function in TruffleContract from the [@nomiclabs/hardhat-truffle5](https://www.npmjs.com/package/@nomiclabs/hardhat-truffle5) package is used.
+To link an external library to the contract.
+
+### Verify.
+
+If set to `verify`, automatic verification will start, 
+see #Parameter_explanation for the parameters that affect the verification process.
+
+### Logger
+
+Logger provides two auxiliary functions:
+* LogTransaction -- logs transaction data after it has been verified.
+* LogContracts -- an auxiliary function for outputting the contract addresses at the end of the migration.
 
 ## Known limitations
 
