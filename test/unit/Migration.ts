@@ -3,7 +3,7 @@ import { Migrations } from "../../src/deployer/migrations";
 
 function getMigrationInstance(from: number = -1, to: number = -1, only: number = -1, skip: number = -1): Migrations {
   // @ts-ignore
-  return new Migrations(undefined,  from, to, only, skip,false, 0,  [], 0, "./deploy");
+  return new Migrations(undefined, from, to, only, skip, false, 0, [], 0, "./deploy");
 }
 
 describe("GetMigrationFiles functionality", function () {
