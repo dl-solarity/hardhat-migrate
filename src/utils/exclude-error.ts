@@ -4,5 +4,6 @@ export function checkExclusion(errorMessage: string, excludes: string[]): [boole
       return [true, exclude];
     }
   }
+
   return [false, ""];
 }

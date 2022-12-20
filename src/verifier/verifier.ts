@@ -11,6 +11,8 @@ export class Verifier {
   ) {}
 
   async verify(...contractsWithArgs: any) {
+    console.log();
+
     this.hre.config.contractSizer.runOnCompile = false;
 
     for (const element of contractsWithArgs) {
@@ -26,15 +28,20 @@ export class Verifier {
           if (isSkipped) {
             console.log(`Contract at ${element[0].address} ${msg}.`);
             break;
-          } else {
-            console.log("Verification failed\n" + e.message);
-            console.log("Attempt #" + (counter + 1) + "\n");
-          }
+          } else if (counter < this.attempts - 1) {
+            console.log(`Attempt #${counter + 1}\n`);
+            console.log(`Verification failed\n${e.message}\n`);
 
-          if (counter == this.attempts - 1) {
+            await this.hre.run("compile", {
+              quiet: true,
+              force: true,
+            });
+            console.log();
+          } else {
             throw new NomicLabsHardhatPluginError(pluginName, e.message);
           }
         }
+
         counter += 1;
       }
     }

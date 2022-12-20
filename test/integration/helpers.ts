@@ -26,14 +26,14 @@ export function useEnvironment(fixtureProjectName: string, networkName = "hardha
 export function getMigrationInstanceFromConfig(env: HardhatRuntimeEnvironment, migrate: any) {
   return new Migrations(
     env,
-    migrate.verify,
-    migrate.confirmations,
-    migrate.pathToMigrations,
     migrate.from,
     migrate.to,
     migrate.only,
     migrate.skip,
+    migrate.verify,
+    migrate.confirmations,
     migrate.skipVerificationErrors,
-    migrate.verificationAttempts
+    migrate.attempts,
+    migrate.pathToMigrations
   );
 }

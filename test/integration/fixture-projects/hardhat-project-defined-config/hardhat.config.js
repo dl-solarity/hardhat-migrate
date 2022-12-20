@@ -7,7 +7,7 @@ module.exports = {
     only: 2,
     skip: 1,
     verify: true,
-    verificationAttempts: 2,
+    attempts: 2,
     confirmations: 5,
     pathToMigrations: "./deploy/",
     skipVerificationErrors: ["already verified"],

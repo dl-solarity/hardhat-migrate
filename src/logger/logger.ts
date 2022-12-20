@@ -11,12 +11,20 @@ export function logTransaction(tx: any, name: any, printLogs: boolean = false) {
     }
 
     if (key.toLowerCase().includes("logs")) {
-      logs += `   + ${key.padEnd(20)} \n${JSON.stringify(value, null, 2)}\n`;
+      logs += `   + ${(key + ":").padEnd(20)} \n${JSON.stringify(value, null, 2)}\n`;
     } else if (key === "effectiveGasPrice") {
-      output += `   + ${key.padEnd(20)} ${BigNumber(<string>value).dividedBy(10 ** 9)} gwei\n`;
+      output += `   + ${"gasPrice:".padEnd(20)} ${BigNumber(<string>value).div(10 ** 9)} gwei\n`;
     } else {
-      output += `   + ${key.padEnd(20)} ${value}\n`;
+      output += `   + ${(key + ":").padEnd(20)} ${value}\n`;
     }
+  }
+
+  if (tx.receipt.effectiveGasPrice != undefined) {
+    const totalCost = BigNumber(tx.receipt.effectiveGasPrice)
+      .times(tx.receipt.gasUsed)
+      .div(10 ** 18);
+
+    output += `   + ${"totalCost:".padEnd(20)} ${totalCost} ETH\n`;
   }
 
   console.log(output);
