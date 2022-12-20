@@ -25,5 +25,8 @@ jobs:
       - name: Install packages
         run: npm install
 
+      - name: Build plugin
+        run: npm run build-local
+
       - name: Run tests
         run: npm run sol-test
