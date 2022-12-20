@@ -1,4 +1,4 @@
-// Required plugins to write migrations and test
+// Required plugins to write migrations and tests
 require("@nomiclabs/hardhat-web3");
 require("@nomiclabs/hardhat-truffle5");
 require("../dist/src");

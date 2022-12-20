@@ -33,12 +33,10 @@ Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 import "@dlsl/hardhat-migrate";
 ```
 
-> **Important**
+> **Important**.
 
-Also, it is mandatory to use following requires in `hardhat.config.ts`, 
-because those plugins are needed to write migration files
-
-See the #How_it_works section to see the example of the migration.
+The following requirements in `hardhat.config.ts` are necessary as well,
+as these plugins are used while working with migration files.
 
 ```js
 require("@nomiclabs/hardhat-web3");
@@ -51,6 +49,7 @@ Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 import "@nomiclabs/hardhat-web3";
 import "@nomiclabs/hardhat-truffle5";
 ```
+See [How it works](https://github.com/distributedlab-solidity-library/hardhat-migrate/tree/feat/refactor#how-it-works) for further information.
 
 ## Naming convention
 
@@ -173,35 +172,51 @@ You can find an example of migration files in the sample project.
 ### Migration Lifecycle
 
 After the user has specified all migrations and started the migration process, for example with the following command:
-```console
-$ npx hardhat deploy --network localhost
+```shell
+npx hardhat deploy --network localhost
 ```
 
-The migration files are sorted by the first digit in the file name and run one by one.  
+If the `forced` flag is set, the compilation of contracts before the migration process will be forced.
+
+The migration files are sorted by the first digit in the file name and run one after the other in ascending order.
+
+Parameters: `from`, `to`, `only` and `skip` affect the order in which migrations are performed.
 
 ### Deployer.
 
 Deployer contains two functions that are used to deploy contracts:
-* Deployment function.
+* **Deployment function**.
   
 Under the hood, it uses TruffleDeployer from [@truffle/deployer](https://www.npmjs.com/package/@truffle/deployer) 
-and TruffleReporter from [@truffle/reporters](https://www.npmjs.com/package/@truffle/reporters) to deploy the contract. 
-After that, if the user sets the `verify` flag, it will automatically verify the contract.
+and TruffleReporter from [@truffle/reporters](https://www.npmjs.com/package/@truffle/reporters) to deploy the contract, 
+and reports its status during the deployment process.
+    
+    
+After that, if the user has set the `verify` flag, the contract will be automatically verified, however, 
+it will wait several blocks before sending a verification request to etherscan, the number of blocks 
+it will wait is set by the `confirmations` parameter.
 
-* Link function.
-The link function in TruffleContract from the [@nomiclabs/hardhat-truffle5](https://www.npmjs.com/package/@nomiclabs/hardhat-truffle5) package is used.
-To link an external library to the contract.
+* **Link function**.
+    
+The link function of the TruffleContract class from the [@nomiclabs/hardhat-truffle5](https://www.npmjs.com/package/@nomiclabs/hardhat-truffle5) 
+package is used to link an external library to a contract.
 
-### Verify.
+### Verifier.
 
-If set to `verify`, automatic verification will start, 
-see #Parameter_explanation for the parameters that affect the verification process.
+If the `verify` flag is set, automatic verification will start immediately after the contract is deployed. 
+For a list of parameters that affect the verification process, see [Parameter Explanation](https://github.com/distributedlab-solidity-library/hardhat-migrate/tree/feat/refactor#parameter-explanation).
+
+If verification fails, the `attempts` parameter indicates how many additional requests will be made before the migration process is terminated.   
+This is useful if the Internet connection is weak or there are problems with blockscout or etherscan.
+
+The user can also define which verification errors that are not relevant to him can be ignored using the `skipVerificationErrors` parameter.
+By default, if this parameter is not specified, the `already verified` error is omitted.
 
 ### Logger
 
-Logger provides two auxiliary functions:
-* LogTransaction -- logs transaction data after it has been verified.
-* LogContracts -- an auxiliary function for outputting the contract addresses at the end of the migration.
+Logger provides two functions:
+* logTransaction - logs data about the transaction after its confirmation.
+* logContracts - function for outputting contract addresses at the end of migration. Quite a useful function if a large number of contracts are deployed during one migration.
 
 ## Known limitations
 

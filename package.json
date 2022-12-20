@@ -8,7 +8,7 @@
     "build-local": "npm run compile && npm run lint-fix && bash ./scripts/build-local.sh",
     "lint-fix": "prettier --write \"./**/*.ts\" && prettier --write \"./**/*.js\"",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
-    "sol-test": "cd sample-project/ && npx hardhat test\n",
+    "sol-test": "cd sample-project/ && npx hardhat test",
     "publish-to-npm": "npm run compile && npm run lint-fix && bash ./scripts/publish.sh"
   },
   "repository": {

@@ -2,15 +2,15 @@
 const ERC20 = artifacts.require("ERC20Mock");
 const TokenBalance = artifacts.require("TokenBalance");
 
-// logTransaction logs transaction data after it has been verified.
-// logContracts is an auxiliary function for outputting the contract addresses at the end of the migration.
+// logTransaction - logs data about the transaction after its confirmation.
+// logContracts - function for outputting contract addresses at the end of migration.
 const { logTransaction, logContracts } = require("../../dist/src");
 
 /**
  * This anonymous function is used by the deployer instance to perform a sequence of steps.
  * defined by the user.
- * @param deployer instance of the Deployer class that implements deployment and binding functionality.
- * @returns {Promise<void>} asynchronous migration scheme
+ * @param deployer instance of the Deployer class that implements deployment and linking functionality.
+ * @returns {Promise<void>} asynchronous function to perform the migration, which will be done in Deployer.
  */
 module.exports = async (deployer) => {
   // First we need to deploy the external library
