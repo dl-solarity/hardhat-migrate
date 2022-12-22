@@ -4,27 +4,32 @@ import { pluginName } from "../constants";
 import { checkExclusion } from "../utils/exclude-error";
 import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
 
+type VerificationItem = {
+  instance: string;
+  address: number;
+  args: any;
+};
+
 export class Verifier {
   constructor(
     private hre: HardhatRuntimeEnvironment | any,
     private attempts: number,
     private skipVerificationErrors: string[]
-  ) {}
+  ) {
+    if (this.hre.config.contractSizer !== undefined) {
+      this.hre.config.contractSizer.runOnCompile = false;
+    }
+  }
 
-  async batchVerify(...contractsWithArgs: any) {
-    console.log();
-
-    this.hre.config.contractSizer.runOnCompile = false;
-
-    for (const element of contractsWithArgs) {
-      await this.verificationAttempt(element);
+  async batchVerify(verificationTable: Array<VerificationItem>) {
+    for (const item of verificationTable) {
+      const contract = await item.instance.at(item.address);
+      await this.verify(contract, ...item.args);
     }
   }
 
   async verify(contract: TruffleContract, ...args: any) {
     console.log();
-
-    this.hre.config.contractSizer.runOnCompile = false;
 
     await this.verificationAttempt(contract, ...args);
   }
