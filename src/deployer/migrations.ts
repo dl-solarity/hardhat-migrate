@@ -4,6 +4,8 @@ import { Deployer } from "./deployer";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { pluginName } from "../constants";
+import { Logger } from "../logger/logger";
+import { Verifier } from "../verifier/verifier";
 
 export class Migrations {
   constructor(
@@ -85,13 +87,32 @@ export class Migrations {
 
       await deployer.startMigration(...this.getParams());
 
+      const logger = new Logger();
+
       for (const element of migrationFiles) {
         const migration = require(this.resolvePathToFile(fs.realpathSync(this.pathToMigration), element));
 
-        await migration(deployer);
+        await migration(deployer, logger);
       }
 
-      await deployer.finishMigration();
+      await deployer.finishMigration(logger);
+
+      process.exit(0);
+    } catch (e: any) {
+      throw new NomicLabsHardhatPluginError(pluginName, e.message);
+    }
+  }
+
+  async batchVerify() {
+    try {
+      const migrationFiles = this.getMigrationFiles();
+      const verifier = new Verifier(this.hre, this.attempts, this.skipVerificationErrors);
+
+      for (const element of migrationFiles) {
+        const migration = require(this.resolvePathToFile(fs.realpathSync(this.pathToMigration), element));
+
+        await migration(verifier);
+      }
 
       process.exit(0);
     } catch (e: any) {

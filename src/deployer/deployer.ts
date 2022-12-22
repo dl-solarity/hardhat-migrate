@@ -6,6 +6,7 @@ const TruffleDeployer = require("@truffle/deployer");
 const TruffleReporter = require("@truffle/reporters").migrationsV5;
 import { Verifier } from "../verifier/verifier";
 import { pluginName } from "../constants";
+import { Logger } from "../logger/logger";
 
 export class Deployer {
   private reporter: any;
@@ -81,7 +82,7 @@ export class Deployer {
       Instance.setAsDeployed(instance);
 
       if (this.verifier) {
-        await this.verifier.verify([instance, ...args]);
+        await this.verifier.verify(instance, ...args);
       }
 
       return instance;
@@ -90,11 +91,12 @@ export class Deployer {
     }
   }
 
-  async finishMigration() {
+  async finishMigration(logger: Logger) {
     try {
       this.reporter.postMigrate({
         isLast: true,
       });
+      logger.summary();
 
       this.deployer.finish();
     } catch (e: any) {

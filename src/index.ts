@@ -6,12 +6,10 @@ import { extendConfig, task, types } from "hardhat/config";
 import { ActionType } from "hardhat/types";
 
 import { deployConfigExtender } from "./config";
-import { TASK_DEPLOY } from "./constants";
+import { TASK_BATCH_VERIFY, TASK_DEPLOY } from "./constants";
 import { Migrations } from "./deployer/migrations";
 
-export { logTransaction, logContracts } from "./logger/logger";
-
-interface DeploymentArgs {
+interface MigrationArgs {
   // The migration number from which the migration will be applied.
   from?: number;
   // The migration number up to which the migration will be applied.
@@ -34,7 +32,7 @@ interface DeploymentArgs {
 
 extendConfig(deployConfigExtender);
 
-const deploy: ActionType<DeploymentArgs> = async (
+const migrationConfig: ActionType<MigrationArgs> = async (
   { from, to, only, skip, confirmations, attempts, pathToMigrations, verify, force },
   env
 ) => {
@@ -44,7 +42,7 @@ const deploy: ActionType<DeploymentArgs> = async (
     force: force,
   });
 
-  const migrations = new Migrations(
+  return new Migrations(
     env,
     from === undefined ? env.config.migrate.from : from,
     to === undefined ? env.config.migrate.to : to,
@@ -56,8 +54,16 @@ const deploy: ActionType<DeploymentArgs> = async (
     attempts === undefined ? env.config.migrate.attempts : attempts,
     pathToMigrations === undefined ? env.config.migrate.pathToMigrations : pathToMigrations
   );
+};
 
+const deploy: ActionType<MigrationArgs> = async (taskArgs, env, runSuper) => {
+  const migrations = await migrationConfig(taskArgs, env, runSuper);
   await migrations.migrate();
+};
+
+const batchVerify: ActionType<MigrationArgs> = async (taskArgs, env, runSuper) => {
+  const migrations = await migrationConfig(taskArgs, env, runSuper);
+  await migrations.batchVerify();
 };
 
 task(TASK_DEPLOY, "Deploy contracts via migration files")
@@ -86,3 +92,23 @@ task(TASK_DEPLOY, "Deploy contracts via migration files")
     types.string
   )
   .setAction(deploy);
+
+task(TASK_BATCH_VERIFY, "Verify contracts via migration files")
+  .addOptionalParam("from", "The migration number from which the migration will be applied.", undefined, types.int)
+  .addOptionalParam("to", "The migration number up to which the migration will be applied.", undefined, types.int)
+  .addOptionalParam(
+    "only",
+    "The number of the migration that will be applied. Overrides from and to parameters.",
+    undefined,
+    types.int
+  )
+  .addOptionalParam("skip", "The number of migration to skip. Overrides only parameter.", undefined, types.int)
+  .addFlag("force", "The flag indicating whether the compilation is forced.")
+  .addOptionalParam("attempts", "The number of attempts to verify the contract.", undefined, types.int)
+  .addOptionalParam(
+    "pathToMigrations",
+    "The path to the folder with the specified migrations.",
+    undefined,
+    types.string
+  )
+  .setAction(batchVerify);
