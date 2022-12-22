@@ -14,6 +14,7 @@ describe("GetMigrationFiles functionality", function () {
   describe("from/to", function () {
     it("should correctly return specified migrations", function () {
       const instance = getMigrationInstance(3, 5, -1, -1);
+      // @ts-ignore
       const migrationFiles = instance.getMigrationFiles();
 
       assert.equal(migrationFiles.length, 3);
@@ -26,6 +27,7 @@ describe("GetMigrationFiles functionality", function () {
   describe("from/to/only", () => {
     it("should return only one migration", () => {
       const instance = getMigrationInstance(3, 5, 4, -1);
+      // @ts-ignore
       const migrationFiles = instance.getMigrationFiles();
 
       assert.equal(migrationFiles.length, 1);
@@ -34,7 +36,7 @@ describe("GetMigrationFiles functionality", function () {
 
     it("should return no migration if only specified out of from/to range", () => {
       const instance = getMigrationInstance(3, 5, 1, -1);
-
+      // @ts-ignore
       assert.throw(() => instance.getMigrationFiles(), "No migration files were found.");
     });
   });
@@ -42,6 +44,7 @@ describe("GetMigrationFiles functionality", function () {
   describe("from/to/only/skip", () => {
     it("should skip migrations", () => {
       const instance = getMigrationInstance(-1, 5, -1, 2);
+      // @ts-ignore
       const migrationFiles = instance.getMigrationFiles();
 
       assert.equal(migrationFiles.length, 4);
@@ -53,6 +56,7 @@ describe("GetMigrationFiles functionality", function () {
 
     it("should return only migration if there is a no collision between them", () => {
       const instance = getMigrationInstance(3, 4, 4, 3);
+      // @ts-ignore
       const migrationFiles = instance.getMigrationFiles();
 
       assert.equal(migrationFiles.length, 1);
@@ -61,13 +65,13 @@ describe("GetMigrationFiles functionality", function () {
 
     it("should skip all migrations with only parameter specified", () => {
       const instance = getMigrationInstance(1, 5, 2, 2);
-
+      // @ts-ignore
       assert.throw(() => instance.getMigrationFiles(), "No migration files were found.");
     });
 
     it("should skip all migrations without only parameter specified", () => {
       const instance = getMigrationInstance(3, 3, -1, 3);
-
+      // @ts-ignore
       assert.throw(() => instance.getMigrationFiles(), "No migration files were found.");
     });
   });
@@ -76,7 +80,9 @@ describe("GetMigrationFiles functionality", function () {
 describe("ResolvePathToFile functionality", () => {
   it("should correctly resolve paths with and without slash", () => {
     const instance = getMigrationInstance(3, 5, -1, -1);
+    // @ts-ignore
     const firstResolvedPath = instance.resolvePathToFile(__dirname + "/deploy/");
+    // @ts-ignore
     const secondResolvedPath = instance.resolvePathToFile(__dirname + "/deploy");
 
     assert.equal(firstResolvedPath, secondResolvedPath);

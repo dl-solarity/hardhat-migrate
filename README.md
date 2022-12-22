@@ -42,7 +42,7 @@ import "@dlsl/hardhat-migrate";
 The `@nomiclabs/hardhat-web3` and `@nomiclabs/hardhat-truffle5` are necessary,
 as these plugins are used to work with migration files.
 
-See [How it works](https://github.com/distributedlab-solidity-library/hardhat-migrate/tree/feat/refactor#how-it-works) for further information.
+See [How it works](https://github.com/distributedlab-solidity-library/hardhat-migrate#how-it-works) for further information.
 
 ## Naming convention
 
@@ -54,7 +54,8 @@ It is also **mandatory** to specify the naming convention for migrations such as
 
 ## Tasks
 
-This plugin provides the `deploy` task, which allows you to deploy and verify contracts.
+- `migrate` task, which allows you to deploy and automatically verify contracts.
+- `migrate:verify` task, which helps you verify already deployed contracts.
 
 Under the hood, for verification process, it uses [@nomiclabs/hardhat-etherscan](https://www.npmjs.com/package/@nomiclabs/hardhat-etherscan) 
 plugin.  
@@ -66,7 +67,7 @@ Do not import `@dlsl/hardhat-migrate` and `@nomiclabs/hardhat-etherscan` togethe
 To view the available options, run the command (help command):
 
 ```bash
-npx hardhat help deploy
+npx hardhat help migrate
 ```
 
 ## Environment extensions
@@ -116,7 +117,7 @@ You can set your own migrations and deploy the contracts to the network you want
 #### With only parameter
 
 ```console
-$ npx hardhat deploy --network goerli --verify --only 2
+$ npx hardhat migrate --network goerli --verify --only 2
 ```
 
 In this case, only the migration that begins with digit 2 will be applied. The plugin will also try to automatically verify the deployed contracts.
@@ -124,12 +125,14 @@ In this case, only the migration that begins with digit 2 will be applied. The p
 #### Or with from/to parameters
 
 ```console
-$ npx hardhat deploy --network sepolia --from 1 --to 2
+$ npx hardhat migrate --network sepolia --from 1 --to 2
 ```
 
 In this case, migrations 1 through 2 (both) will be applied without the automatic verification.
 
 ### Verifying
+
+> *This plugin has a `migrate:verify` task, to learn how to use it, see the example project.*
 
 #### You can manually verify contracts:
 
@@ -180,11 +183,11 @@ package is used to link external libraries to a contract.
 ### Verifier
 
 If the `verify` flag is set, automatic verification will start immediately after the contract is deployed. 
-For a list of parameters that affect the verification process, see [Parameter Explanation](https://github.com/distributedlab-solidity-library/hardhat-migrate/tree/feat/refactor#parameter-explanation).
+For a list of parameters that affect the verification process, see [Parameter Explanation](https://github.com/distributedlab-solidity-library/hardhat-migrate#parameter-explanation).
 
 If verification fails, the `attempts` parameter indicates how many additional requests will be made before the migration process is terminated.   
 
-The user can also define which verification errors are irrelevant and have to be ignored using the `skipVerificationErrors` parameter. By default the `already verified` error is omitted.
+The user can also define which verification errors are irrelevant and have to be ignored using the `skipVerificationErrors` parameter. By default, the `already verified` error is omitted.
 
 ### Logger
 
