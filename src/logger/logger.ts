@@ -43,7 +43,7 @@ export class Logger {
   summary() {
     const output =
       `> ${"Total transactions:".padEnd(20)} ${this.totalTransactions}\n` +
-      `> ${"Final transaction cost:".padEnd(20)} ${this.totalCost.toString()} ETH\n`;
+      `> ${"Final cost:".padEnd(20)} ${this.totalCost.toString()} ETH\n`;
     console.log(output);
   }
 
