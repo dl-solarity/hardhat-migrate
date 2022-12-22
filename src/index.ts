@@ -6,7 +6,7 @@ import { extendConfig, task, types } from "hardhat/config";
 import { ActionType } from "hardhat/types";
 
 import { deployConfigExtender } from "./config";
-import { TASK_BATCH_VERIFY, TASK_DEPLOY } from "./constants";
+import { TASK_MIGRATE, TASK_MIGRATE_VERIFY } from "./constants";
 import { Migrations } from "./deployer/migrations";
 
 interface MigrationArgs {
@@ -32,7 +32,7 @@ interface MigrationArgs {
 
 extendConfig(deployConfigExtender);
 
-const migrationConfig: ActionType<MigrationArgs> = async (
+const getMigrationConfig: ActionType<MigrationArgs> = async (
   { from, to, only, skip, confirmations, attempts, pathToMigrations, verify, force },
   env
 ) => {
@@ -56,17 +56,19 @@ const migrationConfig: ActionType<MigrationArgs> = async (
   );
 };
 
-const deploy: ActionType<MigrationArgs> = async (taskArgs, env, runSuper) => {
-  const migrations = await migrationConfig(taskArgs, env, runSuper);
+const migrate: ActionType<MigrationArgs> = async (taskArgs, env, runSuper) => {
+  const migrations = await getMigrationConfig(taskArgs, env, runSuper);
+
   await migrations.migrate();
 };
 
-const batchVerify: ActionType<MigrationArgs> = async (taskArgs, env, runSuper) => {
-  const migrations = await migrationConfig(taskArgs, env, runSuper);
-  await migrations.batchVerify();
+const migrateVerify: ActionType<MigrationArgs> = async (taskArgs, env, runSuper) => {
+  const migrations = await getMigrationConfig(taskArgs, env, runSuper);
+
+  await migrations.migrateVerify();
 };
 
-task(TASK_DEPLOY, "Deploy contracts via migration files")
+task(TASK_MIGRATE, "Deploy contracts via migration files")
   .addOptionalParam("from", "The migration number from which the migration will be applied.", undefined, types.int)
   .addOptionalParam("to", "The migration number up to which the migration will be applied.", undefined, types.int)
   .addOptionalParam(
@@ -91,9 +93,9 @@ task(TASK_DEPLOY, "Deploy contracts via migration files")
     undefined,
     types.string
   )
-  .setAction(deploy);
+  .setAction(migrate);
 
-task(TASK_BATCH_VERIFY, "Verify contracts via migration files")
+task(TASK_MIGRATE_VERIFY, "Verify contracts via migration files")
   .addOptionalParam("from", "The migration number from which the migration will be applied.", undefined, types.int)
   .addOptionalParam("to", "The migration number up to which the migration will be applied.", undefined, types.int)
   .addOptionalParam(
@@ -111,4 +113,4 @@ task(TASK_BATCH_VERIFY, "Verify contracts via migration files")
     undefined,
     types.string
   )
-  .setAction(batchVerify);
+  .setAction(migrateVerify);

@@ -1,9 +1,10 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-
 const Web3 = require("web3");
 const TruffleDeployer = require("@truffle/deployer");
 const TruffleReporter = require("@truffle/reporters").migrationsV5;
+
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+
 import { Verifier } from "../verifier/verifier";
 import { pluginName } from "../constants";
 import { Logger } from "../logger/logger";
@@ -82,7 +83,7 @@ export class Deployer {
       Instance.setAsDeployed(instance);
 
       if (this.verifier) {
-        await this.verifier.verify(instance, ...args);
+        await this.verifier.verifySingle(instance, ...args);
       }
 
       return instance;

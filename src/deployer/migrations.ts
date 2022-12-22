@@ -1,8 +1,10 @@
 import fs = require("fs");
 import path = require("path");
-import { Deployer } from "./deployer";
+
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+
+import { Deployer } from "./deployer";
 import { pluginName } from "../constants";
 import { Logger } from "../logger/logger";
 import { Verifier } from "../verifier/verifier";
@@ -21,7 +23,46 @@ export class Migrations {
     private pathToMigration: string
   ) {}
 
-  getMigrationFiles() {
+  async migrate() {
+    try {
+      const migrationFiles = this.getMigrationFiles();
+      const deployer = new Deployer(this.hre, this.skipVerificationErrors);
+      const logger = new Logger();
+
+      await deployer.startMigration(...this.getParams());
+
+      for (const element of migrationFiles) {
+        const migration = require(this.resolvePathToFile(fs.realpathSync(this.pathToMigration), element));
+
+        await migration(deployer, logger);
+      }
+
+      await deployer.finishMigration(logger);
+
+      process.exit(0);
+    } catch (e: any) {
+      throw new NomicLabsHardhatPluginError(pluginName, e.message);
+    }
+  }
+
+  async migrateVerify() {
+    try {
+      const migrationFiles = this.getMigrationFiles();
+      const verifier = new Verifier(this.hre, this.attempts, this.skipVerificationErrors);
+
+      for (const element of migrationFiles) {
+        const migration = require(this.resolvePathToFile(fs.realpathSync(this.pathToMigration), element));
+
+        await migration(verifier);
+      }
+
+      process.exit(0);
+    } catch (e: any) {
+      throw new NomicLabsHardhatPluginError(pluginName, e.message);
+    }
+  }
+
+  private getMigrationFiles() {
     const migrationsDir = this.resolvePathToFile(this.pathToMigration);
     const directoryContents = fs.readdirSync(migrationsDir);
 
@@ -72,7 +113,7 @@ export class Migrations {
     return files;
   }
 
-  getParams(): [boolean, number, number] {
+  private getParams(): [boolean, number, number] {
     if (!this.verify && this.attempts > 0) {
       throw new NomicLabsHardhatPluginError(pluginName, "attempts > 0 with missing verify flag");
     }
@@ -80,47 +121,7 @@ export class Migrations {
     return [this.verify, this.confirmations, this.attempts];
   }
 
-  async migrate() {
-    try {
-      const migrationFiles = this.getMigrationFiles();
-      const deployer = new Deployer(this.hre, this.skipVerificationErrors);
-
-      await deployer.startMigration(...this.getParams());
-
-      const logger = new Logger();
-
-      for (const element of migrationFiles) {
-        const migration = require(this.resolvePathToFile(fs.realpathSync(this.pathToMigration), element));
-
-        await migration(deployer, logger);
-      }
-
-      await deployer.finishMigration(logger);
-
-      process.exit(0);
-    } catch (e: any) {
-      throw new NomicLabsHardhatPluginError(pluginName, e.message);
-    }
-  }
-
-  async batchVerify() {
-    try {
-      const migrationFiles = this.getMigrationFiles();
-      const verifier = new Verifier(this.hre, this.attempts, this.skipVerificationErrors);
-
-      for (const element of migrationFiles) {
-        const migration = require(this.resolvePathToFile(fs.realpathSync(this.pathToMigration), element));
-
-        await migration(verifier);
-      }
-
-      process.exit(0);
-    } catch (e: any) {
-      throw new NomicLabsHardhatPluginError(pluginName, e.message);
-    }
-  }
-
-  resolvePathToFile(path_: string, file: string = ""): string {
+  private resolvePathToFile(path_: string, file: string = ""): string {
     let pathToFile = fs.realpathSync(path_);
 
     if (pathToFile.substring(pathToFile.length - 1, pathToFile.length) === "/") {

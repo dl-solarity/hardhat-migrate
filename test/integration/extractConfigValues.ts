@@ -27,6 +27,7 @@ describe("hardhat-migrate configuration extension", function () {
     const { migrate } = this.env.config;
     const instance = getMigrationInstanceFromConfig(this.env, migrate);
 
+    // @ts-ignore
     const params = instance.getParams();
     assert.equal(params[0], true);
     assert.equal(params[1], 5);
@@ -56,6 +57,7 @@ describe("hardhat-migrate configuration defaults in an empty project", function 
   it("should correctly get params from undefined config", function () {
     const { migrate } = this.env.config;
     const instance = getMigrationInstanceFromConfig(this.env, migrate);
+    // @ts-ignore
     const params = instance.getParams();
 
     assert.equal(params[0], false);

@@ -6,10 +6,10 @@
     "install": "npx husky install",
     "compile": "tsc --build .",
     "build-local": "npm run compile && npm run lint-fix && bash ./scripts/build-local.sh",
-    "clean-project": "bash ./scripts/clean.sh",
-    "lint-fix": "prettier --write \"./**/*.ts\" && prettier --write \"./**/*.js\"",
+    "clean": "bash ./scripts/clean.sh",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
-    "sol-test": "cd sample-project/ && npx hardhat test",
+    "sol-test": "cd sample-project/ && npx hardhat test && cd ../",
+    "lint-fix": "prettier --write \"./**/*.ts\" && prettier --write \"./**/*.js\"",
     "publish-to-npm": "npm run compile && npm run lint-fix && bash ./scripts/publish.sh"
   },
   "repository": {

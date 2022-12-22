@@ -1,8 +1,8 @@
 import { BigNumber } from "bignumber.js";
 
 export class Logger {
-  public totalCost: BigNumber = BigNumber(0);
-  public totalTransactions: number = 0;
+  private totalCost: BigNumber = BigNumber(0);
+  private totalTransactions: number = 0;
 
   logTransaction(tx: any, name: any, printLogs: boolean = false) {
     const excludedKeys = ["contractAddress", "cumulativeGasUsed", "status", "transactionIndex", "type", "logsBloom"];
@@ -29,8 +29,9 @@ export class Logger {
         .div(10 ** 18);
 
       output += `   + ${"totalCost:".padEnd(20)} ${totalCost} ETH\n`;
-      this.totalCost = this.totalCost.plus(totalCost);
+
       this.totalTransactions += 1;
+      this.totalCost = this.totalCost.plus(totalCost);
     }
 
     console.log(output);
@@ -44,6 +45,7 @@ export class Logger {
     const output =
       `> ${"Total transactions:".padEnd(20)} ${this.totalTransactions}\n` +
       `> ${"Final cost:".padEnd(20)} ${this.totalCost.toString()} ETH\n`;
+
     console.log(output);
   }
 
@@ -59,7 +61,7 @@ export class Logger {
     console.log();
   }
 
-  underline(msg: string): string {
+  private underline(msg: string): string {
     return `\n   ${msg}\n   ${"-".repeat(msg.length)}\n`;
   }
 }

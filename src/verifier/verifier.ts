@@ -1,12 +1,14 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-import { pluginName } from "../constants";
-import { checkExclusion } from "../utils/exclude-error";
 import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
 
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+
+import { pluginName } from "../constants";
+import { checkExclusion } from "../utils/exclude-error";
+
 type VerificationItem = {
-  instance: string;
-  address: number;
+  instance: TruffleContract;
+  address: string;
   args: any;
 };
 
@@ -21,20 +23,21 @@ export class Verifier {
     }
   }
 
-  async batchVerify(verificationTable: Array<VerificationItem>) {
+  async verifyBatch(verificationTable: Array<VerificationItem>) {
     for (const item of verificationTable) {
       const contract = await item.instance.at(item.address);
-      await this.verify(contract, ...item.args);
+
+      await this.verifySingle(contract, ...item.args);
     }
   }
 
-  async verify(contract: TruffleContract, ...args: any) {
+  async verifySingle(contract: TruffleContract, ...args: any) {
     console.log();
 
-    await this.verificationAttempt(contract, ...args);
+    await this.attemptVerification(contract, ...args);
   }
 
-  async verificationAttempt(contract: TruffleContract, ...args: any) {
+  private async attemptVerification(contract: TruffleContract, ...args: any) {
     let counter: number = 0;
 
     while (true) {
@@ -59,7 +62,7 @@ export class Verifier {
     }
   }
 
-  async verificationTask(contract: TruffleContract, ...args: any) {
+  private async verificationTask(contract: TruffleContract, ...args: any) {
     const fileName = contract.constructor._hArtifact.sourceName;
     const contractName = contract.constructor._hArtifact.contractName;
 
