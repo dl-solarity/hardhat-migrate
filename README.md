@@ -131,6 +131,8 @@ In this case, migrations 1 through 2 (both) will be applied without the automati
 
 ### Verifying
 
+> *This plugin has a batch verification task, to learn how to use it, see the example project.*
+
 #### You can manually verify contracts:
 
 ```console
@@ -184,7 +186,7 @@ For a list of parameters that affect the verification process, see [Parameter Ex
 
 If verification fails, the `attempts` parameter indicates how many additional requests will be made before the migration process is terminated.   
 
-The user can also define which verification errors are irrelevant and have to be ignored using the `skipVerificationErrors` parameter. By default the `already verified` error is omitted.
+The user can also define which verification errors are irrelevant and have to be ignored using the `skipVerificationErrors` parameter. By default, the `already verified` error is omitted.
 
 ### Logger
 
