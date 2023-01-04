@@ -32,7 +32,7 @@ export class Migrations {
       await deployer.startMigration(...this.getParams());
 
       for (const element of migrationFiles) {
-        const migration = require(this.resolvePathToFile(fs.realpathSync(this.pathToMigration), element));
+        const migration = require(this.resolvePathToFile(this.pathToMigration, element));
 
         await migration(deployer, logger);
       }
@@ -51,7 +51,7 @@ export class Migrations {
       const verifier = new Verifier(this.hre, this.attempts, this.skipVerificationErrors);
 
       for (const element of migrationFiles) {
-        const migration = require(this.resolvePathToFile(fs.realpathSync(this.pathToMigration), element));
+        const migration = require(this.resolvePathToFile(this.pathToMigration, element));
 
         await migration(verifier);
       }
@@ -121,13 +121,13 @@ export class Migrations {
     return [this.verify, this.confirmations, this.attempts];
   }
 
-  private resolvePathToFile(path_: string, file: string = ""): string {
+  private resolvePathToFile(path_: string, file_: string = ""): string {
     let pathToFile = fs.realpathSync(path_);
 
     if (pathToFile.substring(pathToFile.length - 1, pathToFile.length) === "/") {
-      return pathToFile + file;
+      return pathToFile + file_;
     }
 
-    return pathToFile + "/" + file;
+    return pathToFile + "/" + file_;
   }
 }
