@@ -24,6 +24,12 @@ Next, run the *deploy* migration with the following command:
 npx hardhat migrate --network goerli --only 1
 ```
 
+Also, if you want to automatically verify the contract during the deployment, you could use the following command: 
+
+```shell
+npx hardhat migrate --network goerli --only 1 --verify --confirmations 5
+```
+
 Or, if you want to verify multiple contracts manually, configure them in `100_tokens.verify.migration.js` file and run the *verify* migration with the following command: 
 
 ```shell

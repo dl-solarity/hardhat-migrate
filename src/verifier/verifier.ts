@@ -5,6 +5,7 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
 import { pluginName } from "../constants";
 import { checkExclusion } from "../utils/exclude-error";
+import { callEtherscanApi, EtherscanAPIConfig, getEtherscanAPIConfig, RESPONSE_OK } from "./etherscan-api";
 
 type VerificationItem = {
   instance: TruffleContract;
@@ -37,6 +38,21 @@ export class Verifier {
     await this.attemptVerification(contract, ...args);
   }
 
+  async linkProxyToImplementation(proxyAddress: string, implAddress: string) {
+    try {
+      const etherscanApi = await getEtherscanAPIConfig(this.hre);
+
+      await this.linkProxyWithImplementationAbi(etherscanApi, proxyAddress, implAddress);
+    } catch (e: any) {
+      if (e.message.includes(`{"message":"Unknown action","result":null,"status":"0"}`)) {
+        // TODO: set proper error
+        console.log(`Possibly you are trying to verify a contract on a blockscout!`);
+      } else {
+        throw new NomicLabsHardhatPluginError(pluginName, e.message);
+      }
+    }
+  }
+
   private async attemptVerification(contract: TruffleContract, ...args: any) {
     let counter: number = 0;
 
@@ -60,6 +76,64 @@ export class Verifier {
 
       counter += 1;
     }
+  }
+
+  /**
+   * Calls the Etherscan API to link a proxy with its implementation ABI.
+   *
+   * @param etherscanApi The Etherscan API config
+   * @param proxyAddress The proxy address
+   * @param implAddress The implementation address
+   *
+   * Source: https://github.com/OpenZeppelin/openzeppelin-upgrades
+   */
+  private async linkProxyWithImplementationAbi(
+    etherscanApi: EtherscanAPIConfig,
+    proxyAddress: string,
+    implAddress: string
+  ) {
+    console.log(`Linking proxy ${proxyAddress} with implementation`);
+    const params = {
+      module: "contract",
+      action: "verifyproxycontract",
+      address: proxyAddress,
+      expectedimplementation: implAddress,
+    };
+    let responseBody = await callEtherscanApi(etherscanApi, params);
+
+    if (responseBody.status === RESPONSE_OK) {
+      // initial call was OK, but need to send a status request using the returned guid to get the actual verification status
+      const guid = responseBody.result;
+      responseBody = await this.checkProxyVerificationStatus(etherscanApi, guid);
+
+      while (responseBody.result === "Pending in queue") {
+        await delay(3000);
+        responseBody = await this.checkProxyVerificationStatus(etherscanApi, guid);
+      }
+    }
+
+    if (responseBody.status === RESPONSE_OK) {
+      console.log("Successfully linked proxy to implementation.");
+    } else {
+      console.log(`Failed to link proxy ${proxyAddress} with its implementation. Reason: ${responseBody.result}`);
+    }
+
+    async function delay(ms: number): Promise<void> {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+  }
+
+  /**
+   * Source: https://github.com/OpenZeppelin/openzeppelin-upgrades
+   */
+  private async checkProxyVerificationStatus(etherscanApi: EtherscanAPIConfig, guid: string) {
+    const checkProxyVerificationParams = {
+      module: "contract",
+      action: "checkproxyverification",
+      apikey: etherscanApi.key,
+      guid: guid,
+    };
+    return await callEtherscanApi(etherscanApi, checkProxyVerificationParams);
   }
 
   private async verificationTask(contract: TruffleContract, ...args: any) {
