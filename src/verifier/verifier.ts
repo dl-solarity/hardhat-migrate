@@ -114,7 +114,10 @@ export class Verifier {
     if (responseBody.status === RESPONSE_OK) {
       console.log("Successfully linked proxy to implementation.");
     } else {
-      throw new NomicLabsHardhatPluginError(pluginName, `Failed to link proxy ${proxyAddress} with its implementation. Reason: ${responseBody.result}`);
+      throw new NomicLabsHardhatPluginError(
+        pluginName,
+        `Failed to link proxy ${proxyAddress} with its implementation. Reason: ${responseBody.result}`
+      );
     }
 
     async function delay(ms: number): Promise<void> {

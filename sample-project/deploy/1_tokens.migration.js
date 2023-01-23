@@ -24,6 +24,7 @@ module.exports = async (deployer, logger, verifier) => {
   // Next step is to deploy the token with the linked library.
   const token = await deployer.deploy(ERC20);
   // Finally, let's deploy TransparentUpgradeableProxy for this token
+  // Comment out the following line to run the example with verifier.verifyProxy().
   const proxy = await deployer.deployProxy(
     TransparentUpgradeableProxy,
     token.address,
@@ -32,19 +33,23 @@ module.exports = async (deployer, logger, verifier) => {
     []
   );
 
-  // TODO: finalize message
   /*
    * Under the hood the `deployer.deployProxy(...)` function will call `verifyProxy`
    * function, to automatically verify that this contract is a proxy on etherscan.
-   * If you deploy the contract with this function on blockscout, you will get the following message:
-   * -- Possibly you are trying to verify a contract on a blockscout! --
+   * If you deploy the contract with this function on BlockScout, you will get the following message:
+   * -- Perhaps you are trying to verify a contract on the BlockScout. Proxy verification failed! --
    * */
 
   // If you do not want to use `deployer.deployProxy(...)` function, you could use the
   // `verifier.verifyProxy()` function individually.
   // Example:
-  // const proxy = await deployer.deploy(TransparentUpgradeableProxy, token.address, proxyAdmin, []);
-  // await deployer.verifyProxy(proxy.address, token.address);
+  // const proxy = await deployer.deploy(
+  //   TransparentUpgradeableProxy,
+  //   token.address,
+  //   proxyAdmin,
+  //   []
+  // );
+  // await verifier.verifyProxy(proxy.address, token.address);
 
   // An example of the transaction that the user wants to execute exactly after deployment
 
