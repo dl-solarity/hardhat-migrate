@@ -34,17 +34,17 @@ module.exports = async (deployer, logger, verifier) => {
 
   // TODO: finalize message
   /*
-   * Under the hood the `deployer.deployProxy(...)` function will call `linkProxyToImplementation`
+   * Under the hood the `deployer.deployProxy(...)` function will call `verifyProxy`
    * function, to automatically verify that this contract is a proxy on etherscan.
    * If you deploy the contract with this function on blockscout, you will get the following message:
    * -- Possibly you are trying to verify a contract on a blockscout! --
    * */
 
   // If you do not want to use `deployer.deployProxy(...)` function, you could use the
-  // `verifier.linkProxyToImplementation()` function individually.
+  // `verifier.verifyProxy()` function individually.
   // Example:
   // const proxy = await deployer.deploy(TransparentUpgradeableProxy, token.address, proxyAdmin, []);
-  // await deployer.linkProxyToImplementation(proxy.address, token.address);
+  // await deployer.verifyProxy(proxy.address, token.address);
 
   // An example of the transaction that the user wants to execute exactly after deployment
 

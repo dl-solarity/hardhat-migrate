@@ -102,7 +102,7 @@ export class Deployer {
 
       if (this.verifier) {
         await this.verifier.verifySingle(instance, ...args);
-        await this.verifier.linkProxyToImplementation(instance.address, implementationAddress);
+        await this.verifier.verifyProxy(instance.address, implementationAddress);
       }
 
       return instance;

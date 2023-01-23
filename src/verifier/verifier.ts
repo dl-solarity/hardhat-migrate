@@ -38,15 +38,14 @@ export class Verifier {
     await this.attemptVerification(contract, ...args);
   }
 
-  async linkProxyToImplementation(proxyAddress: string, implAddress: string) {
+  async verifyProxy(proxyAddress: string, implAddress: string) {
     try {
       const etherscanApi = await getEtherscanAPIConfig(this.hre);
 
       await this.linkProxyWithImplementationAbi(etherscanApi, proxyAddress, implAddress);
     } catch (e: any) {
       if (e.message.includes(`{"message":"Unknown action","result":null,"status":"0"}`)) {
-        // TODO: set proper error
-        console.log(`Possibly you are trying to verify a contract on a blockscout!`);
+        console.log(`Perhaps you are trying to verify a contract on the BlockScout. Proxy verification failed!`);
       } else {
         throw new NomicLabsHardhatPluginError(pluginName, e.message);
       }
@@ -115,7 +114,7 @@ export class Verifier {
     if (responseBody.status === RESPONSE_OK) {
       console.log("Successfully linked proxy to implementation.");
     } else {
-      console.log(`Failed to link proxy ${proxyAddress} with its implementation. Reason: ${responseBody.result}`);
+      throw new NomicLabsHardhatPluginError(pluginName, `Failed to link proxy ${proxyAddress} with its implementation. Reason: ${responseBody.result}`);
     }
 
     async function delay(ms: number): Promise<void> {

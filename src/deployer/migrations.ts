@@ -123,12 +123,6 @@ export class Migrations {
   }
 
   private resolvePathToFile(path_: string, file_: string = ""): string {
-    let pathToFile = fs.realpathSync(path_);
-
-    if (pathToFile.substring(pathToFile.length - 1, pathToFile.length) === "/") {
-      return pathToFile + file_;
-    }
-
-    return pathToFile + "/" + file_;
+    return path.normalize(fs.realpathSync(path_) + "/" + file_);
   }
 }
