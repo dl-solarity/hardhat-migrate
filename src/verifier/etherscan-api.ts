@@ -1,3 +1,7 @@
+/**
+ * Source: https://github.com/OpenZeppelin/openzeppelin-upgrades
+ */
+
 import { resolveEtherscanApiKey } from "@nomiclabs/hardhat-etherscan/dist/src/resolveEtherscanApiKey";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -7,10 +11,6 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { request } from "undici";
 
 import { pluginName } from "../constants";
-
-/**
- * Source: https://github.com/OpenZeppelin/openzeppelin-upgrades
- */
 
 /**
  * Call the configured Etherscan API with the given parameters.

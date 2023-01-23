@@ -77,14 +77,26 @@ export class Verifier {
     }
   }
 
+  private async verificationTask(contract: TruffleContract, ...args: any) {
+    const fileName = contract.constructor._hArtifact.sourceName;
+    const contractName = contract.constructor._hArtifact.contractName;
+
+    await this.hre.run("verify:verify", {
+      address: contract.address,
+      constructorArguments: args,
+      contract: fileName + ":" + contractName,
+      noCompile: true,
+    });
+  }
+
   /**
    * Calls the Etherscan API to link a proxy with its implementation ABI.
+   *
+   * Source: https://github.com/OpenZeppelin/openzeppelin-upgrades
    *
    * @param etherscanApi The Etherscan API config
    * @param proxyAddress The proxy address
    * @param implAddress The implementation address
-   *
-   * Source: https://github.com/OpenZeppelin/openzeppelin-upgrades
    */
   private async linkProxyWithImplementationAbi(
     etherscanApi: EtherscanAPIConfig,
@@ -125,9 +137,6 @@ export class Verifier {
     }
   }
 
-  /**
-   * Source: https://github.com/OpenZeppelin/openzeppelin-upgrades
-   */
   private async checkProxyVerificationStatus(etherscanApi: EtherscanAPIConfig, guid: string) {
     const checkProxyVerificationParams = {
       module: "contract",
@@ -136,17 +145,5 @@ export class Verifier {
       guid: guid,
     };
     return await callEtherscanApi(etherscanApi, checkProxyVerificationParams);
-  }
-
-  private async verificationTask(contract: TruffleContract, ...args: any) {
-    const fileName = contract.constructor._hArtifact.sourceName;
-    const contractName = contract.constructor._hArtifact.contractName;
-
-    await this.hre.run("verify:verify", {
-      address: contract.address,
-      constructorArguments: args,
-      contract: fileName + ":" + contractName,
-      noCompile: true,
-    });
   }
 }
