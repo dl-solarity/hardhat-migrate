@@ -101,7 +101,6 @@ export class Deployer {
       Instance.setAsDeployed(instance);
 
       if (this.verifier) {
-        await this.verifier.verifySingle(instance, ...args);
         await this.verifier.verifyProxy(instance.address, implementationAddress);
       }
 

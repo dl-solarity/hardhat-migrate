@@ -39,6 +39,8 @@ export class Verifier {
   }
 
   async verifyProxy(proxyAddress: string, implAddress: string) {
+    console.log();
+
     try {
       const etherscanApi = await getEtherscanAPIConfig(this.hre);
 
