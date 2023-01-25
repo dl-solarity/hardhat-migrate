@@ -42,7 +42,7 @@ import "@dlsl/hardhat-migrate";
 The `@nomiclabs/hardhat-web3` and `@nomiclabs/hardhat-truffle5` are necessary,
 as these plugins are used to work with migration files.
 
-See [How it works](https://github.com/distributedlab-solidity-library/hardhat-migrate#how-it-works) for further information.
+See [How it works](https://github.com/dl-solidity-library/hardhat-migrate#how-it-works) for further information.
 
 ## Naming convention
 
@@ -183,7 +183,7 @@ package is used to link external libraries to a contract.
 ### Verifier
 
 If the `verify` flag is set, automatic verification will start immediately after the contract is deployed. 
-For a list of parameters that affect the verification process, see [Parameter Explanation](https://github.com/distributedlab-solidity-library/hardhat-migrate#parameter-explanation).
+For a list of parameters that affect the verification process, see [Parameter Explanation](https://github.com/dl-solidity-library/hardhat-migrate#parameter-explanation).
 
 If verification fails, the `attempts` parameter indicates how many additional requests will be made before the migration process is terminated.   
 
