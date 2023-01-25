@@ -37,7 +37,7 @@ module.exports = async (deployer, logger, verifier) => {
    * Under the hood the `deployer.deployProxy(...)` function will call `verifyProxy`
    * function, to automatically verify that this contract is a proxy on etherscan.
    * If you deploy the contract with this function on BlockScout, you will get the following message:
-   * -- Perhaps you are trying to verify a contract on the BlockScout. Proxy verification failed! --
+   * -- Perhaps you are trying to verify a contract on BlockScout. Proxy verification failed! --
    * */
 
   // If you do not want to use `deployer.deployProxy(...)` function, you could use the

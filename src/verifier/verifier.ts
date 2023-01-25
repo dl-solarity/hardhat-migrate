@@ -47,7 +47,7 @@ export class Verifier {
       await this.linkProxyWithImplementationAbi(etherscanApi, proxyAddress, implAddress);
     } catch (e: any) {
       if (e.message.includes(`{"message":"Unknown action","result":null,"status":"0"}`)) {
-        console.log(`Perhaps you are trying to verify a contract on the BlockScout. Proxy verification failed!`);
+        console.log(`Perhaps you are trying to verify a contract on BlockScout. Proxy verification failed!`);
       } else {
         throw new NomicLabsHardhatPluginError(pluginName, e.message);
       }
