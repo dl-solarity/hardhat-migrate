@@ -4,6 +4,9 @@ This project demonstrates a basic use case of [Hardhat migrate](https://www.npmj
 
 It comes with a sample contract and an external library, a test for that contract, and a script that deploys that contract.
 
+> When starting the project for the first time, don't forget to run the following command `npm run build-local` 
+> in the plugin root to compile all the necessary files.
+
 Try running some of the following tasks:
 
 ```shell
