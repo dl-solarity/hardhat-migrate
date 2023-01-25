@@ -2,6 +2,7 @@ require("@nomiclabs/hardhat-etherscan");
 
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 
+import "./type-extensions";
 import { extendConfig, task, types } from "hardhat/config";
 import { ActionType } from "hardhat/types";
 
