@@ -1,18 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+// Include this import to this file to build the artifact for the deployment script.
+import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
 import "./libs/TokenBalance.sol";
 
-contract ERC20Mock is ERC20 {
+contract ERC20Mock is ERC20Upgradeable {
     using TokenBalance for address;
 
-    constructor(
-        string memory name,
-        string memory symbol,
-        uint8 decimalPlaces
-    ) ERC20(name, symbol) {}
+    function initialize(string memory name_, string memory symbol_) external initializer {
+        __ERC20_init(name_, symbol_);
+    }
 
     function mint(address to, uint256 _amount) public {
         _mint(to, _amount);

@@ -3,6 +3,9 @@ const { assert } = require("chai");
 
 const ERC20Mock = artifacts.require("ERC20Mock");
 const TokenBalance = artifacts.require("TokenBalance");
+const TransparentUpgradeableProxy = artifacts.require(
+  "TransparentUpgradeableProxy"
+);
 
 describe("ERC20Mock", () => {
   let OWNER;
@@ -19,7 +22,14 @@ describe("ERC20Mock", () => {
   });
 
   beforeEach("setup", async () => {
-    token = await ERC20Mock.new("Mock", "Mock", 18);
+    token = await ERC20Mock.new();
+    const proxy = await TransparentUpgradeableProxy.new(
+      token.address,
+      "0xDAFEA492D9c6733ae3d56b7Ed1ADB60692c98Bc5",
+      []
+    );
+    token = await ERC20Mock.at(proxy.address);
+    token.initialize("Mock", "Mock");
   });
 
   describe("constructor", () => {

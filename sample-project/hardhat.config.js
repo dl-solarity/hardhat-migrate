@@ -25,6 +25,11 @@ module.exports = {
       accounts: privateKey(),
       gasMultiplier: 1.2,
     },
+    fuji: {
+      url: `https://endpoints.omniatech.io/v1/avax/fuji/public`,
+      accounts: privateKey(),
+      gasMultiplier: 1.2,
+    },
   },
   solidity: {
     version: "0.8.9",
@@ -38,6 +43,7 @@ module.exports = {
   etherscan: {
     apiKey: {
       goerli: `${process.env.ETHERSCAN_KEY}`,
+      avalancheFujiTestnet: `${process.env.FUJI_KEY}`,
     },
   },
   migrate: {

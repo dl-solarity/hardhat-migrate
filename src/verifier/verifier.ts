@@ -5,6 +5,7 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
 import { pluginName } from "../constants";
 import { checkExclusion } from "../utils/exclude-error";
+import { callEtherscanApi, EtherscanAPIConfig, getEtherscanAPIConfig, RESPONSE_OK } from "./etherscan-api";
 
 type VerificationItem = {
   instance: TruffleContract;
@@ -35,6 +36,22 @@ export class Verifier {
     console.log();
 
     await this.attemptVerification(contract, ...args);
+  }
+
+  async verifyProxy(proxyAddress: string, implAddress: string) {
+    console.log();
+
+    try {
+      const etherscanApi = await getEtherscanAPIConfig(this.hre);
+
+      await this.linkProxyWithImplementationAbi(etherscanApi, proxyAddress, implAddress);
+    } catch (e: any) {
+      if (e.message.includes(`{"message":"Unknown action","result":null,"status":"0"}`)) {
+        console.log(`Perhaps you are trying to verify a contract on BlockScout. Proxy verification failed!`);
+      } else {
+        throw new NomicLabsHardhatPluginError(pluginName, e.message);
+      }
+    }
   }
 
   private async attemptVerification(contract: TruffleContract, ...args: any) {
@@ -72,5 +89,63 @@ export class Verifier {
       contract: fileName + ":" + contractName,
       noCompile: true,
     });
+  }
+
+  /**
+   * Calls the Etherscan API to link a proxy with its implementation ABI.
+   *
+   * Source: https://github.com/OpenZeppelin/openzeppelin-upgrades
+   *
+   * @param etherscanApi The Etherscan API config
+   * @param proxyAddress The proxy address
+   * @param implAddress The implementation address
+   */
+  private async linkProxyWithImplementationAbi(
+    etherscanApi: EtherscanAPIConfig,
+    proxyAddress: string,
+    implAddress: string
+  ) {
+    console.log(`Linking proxy ${proxyAddress} with implementation`);
+    const params = {
+      module: "contract",
+      action: "verifyproxycontract",
+      address: proxyAddress,
+      expectedimplementation: implAddress,
+    };
+    let responseBody = await callEtherscanApi(etherscanApi, params);
+
+    if (responseBody.status === RESPONSE_OK) {
+      // initial call was OK, but need to send a status request using the returned guid to get the actual verification status
+      const guid = responseBody.result;
+      responseBody = await this.checkProxyVerificationStatus(etherscanApi, guid);
+
+      while (responseBody.result === "Pending in queue") {
+        await delay(3000);
+        responseBody = await this.checkProxyVerificationStatus(etherscanApi, guid);
+      }
+    }
+
+    if (responseBody.status === RESPONSE_OK) {
+      console.log("Successfully linked proxy to implementation.");
+    } else {
+      throw new NomicLabsHardhatPluginError(
+        pluginName,
+        `Failed to link proxy ${proxyAddress} with its implementation. Reason: ${responseBody.result}`
+      );
+    }
+
+    async function delay(ms: number): Promise<void> {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+  }
+
+  private async checkProxyVerificationStatus(etherscanApi: EtherscanAPIConfig, guid: string) {
+    const checkProxyVerificationParams = {
+      module: "contract",
+      action: "checkproxyverification",
+      apikey: etherscanApi.key,
+      guid: guid,
+    };
+    return await callEtherscanApi(etherscanApi, checkProxyVerificationParams);
   }
 }

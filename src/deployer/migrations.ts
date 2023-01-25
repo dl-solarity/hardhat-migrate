@@ -27,14 +27,15 @@ export class Migrations {
     try {
       const migrationFiles = this.getMigrationFiles();
       const deployer = new Deployer(this.hre, this.skipVerificationErrors);
+      const verifier = new Verifier(this.hre, this.attempts, this.skipVerificationErrors);
       const logger = new Logger();
 
       await deployer.startMigration(...this.getParams());
 
       for (const element of migrationFiles) {
-        const migration = require(this.resolvePathToFile(fs.realpathSync(this.pathToMigration), element));
+        const migration = require(this.resolvePathToFile(this.pathToMigration, element));
 
-        await migration(deployer, logger);
+        await migration(deployer, logger, verifier);
       }
 
       await deployer.finishMigration(logger);
@@ -51,7 +52,7 @@ export class Migrations {
       const verifier = new Verifier(this.hre, this.attempts, this.skipVerificationErrors);
 
       for (const element of migrationFiles) {
-        const migration = require(this.resolvePathToFile(fs.realpathSync(this.pathToMigration), element));
+        const migration = require(this.resolvePathToFile(this.pathToMigration, element));
 
         await migration(verifier);
       }
@@ -121,13 +122,7 @@ export class Migrations {
     return [this.verify, this.confirmations, this.attempts];
   }
 
-  private resolvePathToFile(path_: string, file: string = ""): string {
-    let pathToFile = fs.realpathSync(path_);
-
-    if (pathToFile.substring(pathToFile.length - 1, pathToFile.length) === "/") {
-      return pathToFile + file;
-    }
-
-    return pathToFile + "/" + file;
+  private resolvePathToFile(path_: string, file_: string = ""): string {
+    return path.normalize(fs.realpathSync(path_) + "/" + file_);
   }
 }

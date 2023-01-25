@@ -92,6 +92,24 @@ export class Deployer {
     }
   }
 
+  async deployProxy(Instance: any, implementationAddress: string, ...args: any) {
+    let instance;
+
+    try {
+      instance = await this.deployer.deploy(Instance, ...args);
+
+      Instance.setAsDeployed(instance);
+
+      if (this.verifier) {
+        await this.verifier.verifyProxy(instance.address, implementationAddress);
+      }
+
+      return instance;
+    } catch (e: any) {
+      throw new NomicLabsHardhatPluginError(pluginName, e.message);
+    }
+  }
+
   async finishMigration(logger: Logger) {
     try {
       this.reporter.postMigrate({
