@@ -10,6 +10,10 @@ import { deployConfigExtender } from "./config";
 import { TASK_MIGRATE, TASK_MIGRATE_VERIFY } from "./constants";
 import { Migrations } from "./deployer/migrations";
 
+export { Deployer } from "./deployer/deployer";
+export { Verifier } from "./verifier/verifier";
+export { Logger } from "./logger/logger";
+
 interface MigrationArgs {
   // The migration number from which the migration will be applied.
   from?: number;
