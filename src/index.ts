@@ -1,8 +1,7 @@
-require("@nomiclabs/hardhat-etherscan");
+require("@nomiclabs/hardhat-etherscan/dist/src/type-extensions");
 
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 
-import "@nomiclabs/hardhat-etherscan/src/type-extensions";
 import "./type-extensions";
 
 import { extendConfig, task, types } from "hardhat/config";
