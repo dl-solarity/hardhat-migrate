@@ -1,12 +1,16 @@
 import "hardhat/types/config";
-import { DlDeployConfig, DlDeployUserConfig } from "./types";
+
+import { MigrateConfig, MigrateUserConfig } from "./types";
+import { EtherscanConfig, EtherscanUserConfig } from "@nomiclabs/hardhat-etherscan/src/types";
 
 declare module "hardhat/types/config" {
   interface HardhatConfig {
-    migrate: DlDeployConfig;
+    migrate: MigrateConfig;
+    etherscan: EtherscanConfig;
   }
 
   interface HardhatUserConfig {
-    migrate?: DlDeployUserConfig;
+    migrate?: MigrateUserConfig;
+    etherscan?: EtherscanUserConfig;
   }
 }

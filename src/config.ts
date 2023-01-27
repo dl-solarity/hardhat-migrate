@@ -1,6 +1,6 @@
 import { ConfigExtender } from "hardhat/types";
 
-export const deployConfigExtender: ConfigExtender = (resolvedConfig, config) => {
+export const migrateConfigExtender: ConfigExtender = (resolvedConfig, config) => {
   const defaultConfig = {
     from: -1,
     to: -1,

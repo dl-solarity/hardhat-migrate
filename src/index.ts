@@ -1,12 +1,13 @@
-require("@nomiclabs/hardhat-etherscan");
+import "@nomiclabs/hardhat-etherscan";
 
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 
 import "./type-extensions";
+
 import { extendConfig, task, types } from "hardhat/config";
 import { ActionType } from "hardhat/types";
 
-import { deployConfigExtender } from "./config";
+import { migrateConfigExtender } from "./config";
 import { TASK_MIGRATE, TASK_MIGRATE_VERIFY } from "./constants";
 import { Migrations } from "./deployer/migrations";
 
@@ -35,7 +36,7 @@ interface MigrationArgs {
   force: boolean;
 }
 
-extendConfig(deployConfigExtender);
+extendConfig(migrateConfigExtender);
 
 const getMigrationConfig: ActionType<MigrationArgs> = async (
   { from, to, only, skip, confirmations, attempts, pathToMigrations, verify, force },
