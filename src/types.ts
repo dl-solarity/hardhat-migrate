@@ -1,4 +1,4 @@
-export interface DlDeployConfig {
+export interface MigrateConfig {
   from: number;
   to: number;
   only: number;
@@ -10,7 +10,7 @@ export interface DlDeployConfig {
   skipVerificationErrors: string[];
 }
 
-export interface DlDeployUserConfig {
+export interface MigrateUserConfig {
   from?: number;
   to?: number;
   only?: number;
