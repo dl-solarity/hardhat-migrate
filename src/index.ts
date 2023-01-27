@@ -1,4 +1,4 @@
-require("@nomiclabs/hardhat-etherscan");
+import "@nomiclabs/hardhat-etherscan";
 
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 
