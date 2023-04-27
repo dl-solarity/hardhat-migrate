@@ -22,9 +22,12 @@ export class Deployer {
       const chainId = await web3.eth.getChainId();
       const networkType = await web3.eth.net.getNetworkType();
 
+      const logger = new Logger(this.hre);
+      await logger.init();
+
       this.reporter = new TruffleReporter();
       this.deployer = new TruffleDeployer({
-        logger: console,
+        logger: logger,
         confirmations: confirmations,
         provider: web3.currentProvider,
         networks: { chainId: networkType },
