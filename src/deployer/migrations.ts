@@ -32,7 +32,7 @@ export class Migrations {
 
       await logger.init();
 
-      await deployer.startMigration(...this.getParams());
+      await deployer.startMigration(logger, ...this.getParams());
 
       for (const element of migrationFiles) {
         const migration = require(this.resolvePathToFile(this.pathToMigration, element));

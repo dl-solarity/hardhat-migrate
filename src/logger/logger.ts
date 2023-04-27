@@ -34,6 +34,7 @@ export class Logger {
     let logs = "";
 
     output += `   + ${"transactionHash:".padEnd(20)} ${tx.receipt.transactionHash}\n`;
+
     for (const [key, value] of Object.entries(tx.receipt)) {
       if (excludedKeys.includes(key)) {
         continue;
@@ -124,7 +125,7 @@ export class Logger {
 
     const chain = await this.filterChainsByChainId(chainId);
 
-    if (chain) {
+    if (chain && chainId !== 31337 && chainId !== 1337) {
       return chain.nativeCurrency.symbol;
     }
 

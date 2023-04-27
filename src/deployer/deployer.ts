@@ -16,14 +16,11 @@ export class Deployer {
 
   constructor(private hre: HardhatRuntimeEnvironment, private skipVerificationErrors: string[]) {}
 
-  async startMigration(verify: boolean, confirmations: number, attempts: number) {
+  async startMigration(logger: Logger, verify: boolean, confirmations: number, attempts: number) {
     try {
       const web3 = new Web3(this.hre.network.provider);
       const chainId = await web3.eth.getChainId();
       const networkType = await web3.eth.net.getNetworkType();
-
-      const logger = new Logger(this.hre);
-      await logger.init();
 
       this.reporter = new TruffleReporter();
       this.deployer = new TruffleDeployer({
