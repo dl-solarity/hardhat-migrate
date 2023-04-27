@@ -16,7 +16,7 @@ export class Deployer {
 
   constructor(private hre: HardhatRuntimeEnvironment, private skipVerificationErrors: string[]) {}
 
-  async startMigration(verify: boolean, confirmations: number, attempts: number) {
+  async startMigration(logger: Logger, verify: boolean, confirmations: number, attempts: number) {
     try {
       const web3 = new Web3(this.hre.network.provider);
       const chainId = await web3.eth.getChainId();
@@ -24,7 +24,7 @@ export class Deployer {
 
       this.reporter = new TruffleReporter();
       this.deployer = new TruffleDeployer({
-        logger: console,
+        logger: logger,
         confirmations: confirmations,
         provider: web3.currentProvider,
         networks: { chainId: networkType },

@@ -28,9 +28,11 @@ export class Migrations {
       const migrationFiles = this.getMigrationFiles();
       const deployer = new Deployer(this.hre, this.skipVerificationErrors);
       const verifier = new Verifier(this.hre, this.attempts, this.skipVerificationErrors);
-      const logger = new Logger();
+      const logger = new Logger(this.hre);
 
-      await deployer.startMigration(...this.getParams());
+      await logger.init();
+
+      await deployer.startMigration(logger, ...this.getParams());
 
       for (const element of migrationFiles) {
         const migration = require(this.resolvePathToFile(this.pathToMigration, element));
