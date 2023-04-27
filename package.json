@@ -1,6 +1,6 @@
 {
   "name": "@dlsl/hardhat-migrate",
-  "version": "1.5.4",
+  "version": "1.5.5",
   "description": "This package facilitates automatic deployment and verification of Solidity Smart Contracts",
   "scripts": {
     "install": "npx husky install",
