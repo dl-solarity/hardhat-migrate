@@ -1,4 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@dlsl/hardhat-migrate.svg)](https://www.npmjs.com/package/@dlsl/hardhat-migrate) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@solarity/hardhat-migrate.svg)](https://www.npmjs.com/package/@solarity/hardhat-migrate) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # Hardhat migrate
 
@@ -18,7 +18,7 @@ This is a fairly simple and rather straightforward Hardhat plugin:
 ## Installation
 
 ```bash
-npm install --save-dev @dlsl/hardhat-migrate
+npm install --save-dev @solarity/hardhat-migrate
 ```
 
 And add the following statement to your `hardhat.config.js`:
@@ -26,7 +26,7 @@ And add the following statement to your `hardhat.config.js`:
 ```js
 require("@nomiclabs/hardhat-web3");
 require("@nomiclabs/hardhat-truffle5");
-require("@dlsl/hardhat-migrate");
+require("@solarity/hardhat-migrate");
 ```
 
 Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
@@ -34,7 +34,7 @@ Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 ```ts
 import "@nomiclabs/hardhat-web3";
 import "@nomiclabs/hardhat-truffle5";
-import "@dlsl/hardhat-migrate";
+import "@solarity/hardhat-migrate";
 ```
 
 > **Important**.
@@ -42,7 +42,7 @@ import "@dlsl/hardhat-migrate";
 The `@nomiclabs/hardhat-web3` and `@nomiclabs/hardhat-truffle5` are necessary,
 as these plugins are used to work with migration files.
 
-See [How it works](https://github.com/dl-solidity-library/hardhat-migrate#how-it-works) for further information.
+See [How it works](https://github.com/dl-solarity/hardhat-migrate#how-it-works) for further information.
 
 ## Naming convention
 
@@ -62,7 +62,7 @@ plugin.
 
 > :warning: **Hardhat Config**: Make sure they are follow the docs from `@nomiclabs/hardhat-etherscan`. 
 
-Do not import `@dlsl/hardhat-migrate` and `@nomiclabs/hardhat-etherscan` together, the etherscan plugin is already included in the migrate plugin.
+Do not import `@solarity/hardhat-migrate` and `@nomiclabs/hardhat-etherscan` together, the etherscan plugin is already included in the migrate plugin.
 
 To view the available options, run the command (help command):
 
@@ -183,7 +183,7 @@ package is used to link external libraries to a contract.
 ### Verifier
 
 If the `verify` flag is set, automatic verification will start immediately after the contract is deployed. 
-For a list of parameters that affect the verification process, see [Parameter Explanation](https://github.com/dl-solidity-library/hardhat-migrate#parameter-explanation).
+For a list of parameters that affect the verification process, see [Parameter Explanation](https://github.com/dl-solarity/hardhat-migrate#parameter-explanation).
 
 If verification fails, the `attempts` parameter indicates how many additional requests will be made before the migration process is terminated.   
 
