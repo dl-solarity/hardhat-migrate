@@ -1,6 +1,6 @@
 {
   "name": "@solarity/hardhat-migrate",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "description": "Automatic deployment and verification of smart contracts",
   "scripts": {
     "install": "npx husky install",

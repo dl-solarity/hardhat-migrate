@@ -123,10 +123,16 @@ export class Logger {
     const web3 = new Web3(this.hre.network.provider);
     const chainId = await web3.eth.getChainId();
 
-    const chain = await this.filterChainsByChainId(chainId);
+    if (chainId !== 31337 && chainId !== 1337) {
+      try {
+        const chain = await this.filterChainsByChainId(chainId);
 
-    if (chain && chainId !== 31337 && chainId !== 1337) {
-      return chain.nativeCurrency.symbol;
+        if (chain) {
+          return chain.nativeCurrency.symbol;
+        }
+      } catch (e) {
+        console.warn(`   Unable to get native symbol for chainId ${chainId}.`, e);
+      }
     }
 
     return "ETH";
