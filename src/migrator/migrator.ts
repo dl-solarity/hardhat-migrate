@@ -37,35 +37,18 @@ export class Migrator {
       .filter((file) => {
         let migrationNumber = parseInt(path.basename(file));
 
-        return !isNaN(migrationNumber) && migrationNumber > 0;
-      })
-      .filter((file) => fs.statSync(migrationsDir + file).isFile())
-      .filter((file) => {
-        let migrationNumber = parseInt(path.basename(file));
-
-        if (this._config.from > migrationNumber || (this._config.to < migrationNumber && this._config.to != -1)) {
+        if (
+          isNaN(migrationNumber) ||
+          migrationNumber <= 0 ||
+          this._config.from > migrationNumber ||
+          (this._config.to < migrationNumber && this._config.to !== -1) ||
+          (this._config.only !== migrationNumber && this._config.only !== -1) ||
+          this._config.skip === migrationNumber
+        ) {
           return false;
         }
 
-        return true;
-      })
-      .filter((file) => {
-        let migrationNumber = parseInt(path.basename(file));
-
-        if (this._config.only != migrationNumber && this._config.only != -1) {
-          return false;
-        }
-
-        return true;
-      })
-      .filter((file) => {
-        let migrationNumber = parseInt(path.basename(file));
-
-        if (this._config.skip == migrationNumber) {
-          return false;
-        }
-
-        return true;
+        return fs.statSync(migrationsDir + file).isFile();
       })
       .sort((a, b) => {
         return parseInt(path.basename(a)) - parseInt(path.basename(b));
