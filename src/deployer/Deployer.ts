@@ -8,17 +8,6 @@ export class Deployer {
     this._ethersProvider = new BrowserProvider(this._provider);
   }
 
-  // @dev contractByteCode is more specifically the initcode
-  public async deploy(contractAbi: any[], contractByteCode: string, deployArgs: any[]) {
-    console.log("Deploying...");
-
-    const factory = new ContractFactory(contractAbi, contractByteCode);
-
-    const contract = await factory.deploy(deployArgs);
-
-    return contract;
-  }
-
   public async createDeployTransaction(
     abi: any[],
     byteCode: string,
