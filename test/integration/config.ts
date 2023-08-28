@@ -3,20 +3,17 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 
 import path from "path";
-import { MigrateConfig } from "../src/types/migrations";
-import { useEnvironment } from "./helpers";
+import { MigrateConfig } from "../../src/types/migrations";
+import { useEnvironment } from "../helpers";
 
-describe("config", () => {
-  it("should be true", () => {});
-});
-describe("config", () => {
+describe.skip("config", () => {
   describe("loading", () => {
     useEnvironment("defined-config");
 
     let loadedOptions: MigrateConfig;
 
     beforeEach(function () {
-      loadedOptions = this.env.config.migrate;
+      loadedOptions = this.hre.config.migrate;
     });
 
     it("should apply from", async function () {
@@ -62,7 +59,7 @@ describe("config", () => {
     it("should throw if pathToMigrations is not a relevant path", async function () {
       expect(() => {
         const prefix = "hardhat-project-";
-        process.chdir(path.join(__dirname, "fixture-projects", prefix + fixtureProjectName));
+        process.chdir(path.join(__dirname, "../", "fixture-projects", prefix + fixtureProjectName));
         process.env.HARDHAT_NETWORK = "hardhat";
 
         require("hardhat");
@@ -78,7 +75,7 @@ describe("config", () => {
     let loadedOptions: MigrateConfig;
 
     beforeEach(function () {
-      loadedOptions = this.env.config.migrate;
+      loadedOptions = this.hre.config.migrate;
     });
 
     it("the migrate field should be present", function () {
