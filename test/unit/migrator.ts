@@ -22,7 +22,8 @@ function getMigratorInstance(from: number = -1, to: number = -1, only: number = 
     },
   } as any);
 }
-describe("migrator", function () {
+
+describe("Migrator", function () {
   describe("getMigrationFiles()", function () {
     before("Loading chdir", function () {
       process.chdir(__dirname);
@@ -33,7 +34,7 @@ describe("migrator", function () {
         const instance = getMigratorInstance(3, 5, -1, -1);
         const migrationFiles = instance._migrationFiles;
 
-        const expectedFiles = ["3_mock.migration.js", "4_mock.migration.js", "5_mock.migration.js"];
+        const expectedFiles = ["3_mock.migration.ts", "4_mock.migration.ts", "5_mock.migration.ts"];
 
         assert.deepStrictEqual(migrationFiles, expectedFiles);
       });
@@ -44,7 +45,7 @@ describe("migrator", function () {
         const instance = getMigratorInstance(3, 5, 4, -1);
         const migrationFiles = instance._migrationFiles;
 
-        assert.deepStrictEqual(migrationFiles, ["4_mock.migration.js"]);
+        assert.deepStrictEqual(migrationFiles, ["4_mock.migration.ts"]);
       });
 
       it("should return no migration if only specified out of from/to range", () => {
@@ -58,10 +59,10 @@ describe("migrator", function () {
         const migrationFiles = instance._migrationFiles;
 
         const expectedFiles = [
-          "1_mock.migration.js",
-          "3_mock.migration.js",
-          "4_mock.migration.js",
-          "5_mock.migration.js",
+          "1_mock.migration.ts",
+          "3_mock.migration.ts",
+          "4_mock.migration.ts",
+          "5_mock.migration.ts",
         ];
 
         assert.deepStrictEqual(migrationFiles, expectedFiles);
@@ -71,7 +72,7 @@ describe("migrator", function () {
         const instance = getMigratorInstance(3, 4, 4, 3);
         const migrationFiles = instance._migrationFiles;
 
-        assert.deepStrictEqual(migrationFiles, ["4_mock.migration.js"]);
+        assert.deepStrictEqual(migrationFiles, ["4_mock.migration.ts"]);
       });
 
       it("should skip all migrations with only parameter specified", () => {
@@ -81,6 +82,31 @@ describe("migrator", function () {
       it("should skip all migrations without only parameter specified", () => {
         assert.throw(() => getMigratorInstance(3, 3, -1, 3), "No migration files were found.");
       });
+    });
+  });
+
+  describe.only("migrate()", () => {
+    before("Loading chdir", function () {
+      process.chdir(__dirname);
+    });
+
+    it("should call all migrations", async () => {
+      const instance = getMigratorInstance();
+      const migrationFiles = instance._migrationFiles;
+
+      let migrationsCalled = 0;
+
+      for (const element of migrationFiles) {
+        const migration = require(`./deploy-files/${element}`);
+
+        migration.migrate = () => {
+          migrationsCalled++;
+        };
+
+        await migration(instance._deployer);
+      }
+
+      assert.equal(migrationsCalled, migrationFiles.length);
     });
   });
 });
