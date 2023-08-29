@@ -58,7 +58,7 @@ export class Migrator {
           return false;
         }
 
-        return fs.statSync(migrationsDir + file).isFile();
+        return fs.statSync(resolvePathToFile(this._config.pathToMigrations, file)).isFile();
       })
       .sort((a, b) => {
         return parseInt(path.basename(a)) - parseInt(path.basename(b));
