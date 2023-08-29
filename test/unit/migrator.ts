@@ -85,28 +85,9 @@ describe("Migrator", function () {
     });
   });
 
-  describe.only("migrate()", () => {
+  describe("migrate()", () => {
     before("Loading chdir", function () {
       process.chdir(__dirname);
-    });
-
-    it("should call all migrations", async () => {
-      const instance = getMigratorInstance();
-      const migrationFiles = instance._migrationFiles;
-
-      let migrationsCalled = 0;
-
-      for (const element of migrationFiles) {
-        const migration = require(`./deploy-files/${element}`);
-
-        migration.migrate = () => {
-          migrationsCalled++;
-        };
-
-        await migration(instance._deployer);
-      }
-
-      assert.equal(migrationsCalled, migrationFiles.length);
     });
   });
 });

@@ -23,9 +23,14 @@ export class Migrator {
 
   public async migrate() {
     for (const element of this._migrationFiles) {
-      const migration = require(resolvePathToFile(this._config.pathToMigrations, element));
+      try {
+        const migration = require(resolvePathToFile(this._config.pathToMigrations, element));
 
-      await migration(this._deployer);
+        await migration(this._deployer);
+      } catch (e: any) {
+        console.log(e);
+        throw new NomicLabsHardhatPluginError(pluginName, e.message);
+      }
     }
   }
 

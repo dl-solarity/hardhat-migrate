@@ -6,7 +6,7 @@ import path from "path";
 import { MigrateConfig } from "../../src/types/migrations";
 import { useEnvironment } from "../helpers";
 
-describe.skip("config", () => {
+describe("config", () => {
   describe("loading", () => {
     useEnvironment("defined-config");
 
