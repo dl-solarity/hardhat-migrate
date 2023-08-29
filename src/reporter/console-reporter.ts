@@ -1,4 +1,4 @@
-import { DeployContractMessage, Reporter, ReportMessage } from "./types/reporter";
+import { DeployContractMessage, Reporter, ReportMessage } from "../types/reporter";
 
 export class ConsoleReporter implements Reporter {
   constructor(private _verbose: boolean = false) {}

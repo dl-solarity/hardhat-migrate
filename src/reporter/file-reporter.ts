@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
-import { DeployContractMessage, Reporter, ReportMessage } from "./types/reporter";
+import { DeployContractMessage, Reporter, ReportMessage } from "../types/reporter";
 
 export class FileReporter implements Reporter {
   constructor(private _filePath: string, private _verbose: boolean = false) {}
