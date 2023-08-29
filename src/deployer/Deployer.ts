@@ -1,5 +1,6 @@
 import { BrowserProvider, ContractFactory, Signer, TransactionRequest } from "ethers";
 import { EthereumProvider } from "hardhat/types";
+import { MigrateError } from "../errors";
 
 export class Deployer {
   private _ethersProvider: BrowserProvider;
@@ -7,6 +8,34 @@ export class Deployer {
   constructor(private _provider: EthereumProvider) {
     this._ethersProvider = new BrowserProvider(this._provider);
   }
+
+  public async deploy(abi: any[], byteCode: string, args: any[], value: bigint, from: string): Promise<string> {
+    try {
+      const tx = await this.createDeployTransaction(abi, byteCode, args, value, from);
+
+      const hash = this.sendTransaction(tx, from);
+
+      return hash;
+    } catch (e: any) {
+      console.log(e);
+      throw new MigrateError(e.message);
+    }
+  }
+
+  // public async link(libraryName: string, address: string): Promise<void> {
+  //   try {
+  //     const signer: Signer = await this._getSigner(address);
+
+  //     const factory = new ContractFactory([], "", signer);
+
+  //     factory.attach(address);
+
+  //     factory.link(libraryName, address);
+  //   } catch (e: any) {
+  //     console.log(e);
+  //     throw new MigrateError(e.message);
+  //   }
+  // }
 
   public async createDeployTransaction(
     abi: any[],

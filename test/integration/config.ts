@@ -1,5 +1,5 @@
 import { assert, expect } from "chai";
-import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { HardhatPluginError } from "hardhat/plugins";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 
 import path from "path";
@@ -63,7 +63,7 @@ describe("config", () => {
         process.env.HARDHAT_NETWORK = "hardhat";
 
         require("hardhat");
-      }).to.throw(NomicLabsHardhatPluginError, "config.migrate.pathToMigrations must be a relative path");
+      }).to.throw(HardhatPluginError, "config.migrate.pathToMigrations must be a relative path");
 
       resetHardhatContext();
     });

@@ -4,7 +4,7 @@ pragma solidity >=0.7.0 <0.9.0;
 contract Contract {}
 
 contract ContractWithPayableConstructor {
-    constructor() public payable {}
+    constructor() payable {}
 }
 
 contract ContractWithConstructorArguments {
@@ -13,4 +13,8 @@ contract ContractWithConstructorArguments {
     constructor(string memory _name) {
         name = _name;
     }
+}
+
+library Library {
+    function lib() external pure {}
 }

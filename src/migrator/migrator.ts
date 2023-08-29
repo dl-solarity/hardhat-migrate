@@ -1,8 +1,9 @@
 import fs = require("fs");
-import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { pluginName } from "../constants";
 import { Deployer } from "../deployer/Deployer";
+import { MigrateError } from "../errors";
 import { MigrateConfig } from "../types/migrations";
 import { resolvePathToFile } from "../utils/files";
 import path = require("path");
@@ -28,8 +29,12 @@ export class Migrator {
 
         await migration(this._deployer);
       } catch (e: any) {
-        console.log(e);
-        throw new NomicLabsHardhatPluginError(pluginName, e.message);
+        if (e instanceof MigrateError) {
+          console.log(e);
+          throw new HardhatPluginError(pluginName, e.message);
+        }
+
+        throw e;
       }
     }
   }
@@ -60,7 +65,7 @@ export class Migrator {
       });
 
     if (files.length === 0) {
-      throw new NomicLabsHardhatPluginError(pluginName, "No migration files were found.");
+      throw new HardhatPluginError(pluginName, "No migration files were found.");
     }
 
     return files;

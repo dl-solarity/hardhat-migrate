@@ -1,4 +1,4 @@
-import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { HardhatPluginError } from "hardhat/plugins";
 import { ConfigExtender } from "hardhat/types";
 import { isAbsolute } from "path";
 import { pluginName } from "./constants";
@@ -30,7 +30,7 @@ export const mergeConfigs = (
   }
 
   if (!isRelativePath(config.pathToMigrations)) {
-    throw new NomicLabsHardhatPluginError(pluginName, "config.migrate.pathToMigrations must be a relative path");
+    throw new HardhatPluginError(pluginName, "config.migrate.pathToMigrations must be a relative path");
   }
 
   const { cloneDeep } = require("lodash");
