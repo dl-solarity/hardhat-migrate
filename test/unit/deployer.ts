@@ -24,7 +24,7 @@ describe("deployer", () => {
     );
     libraryArtifact = await this.hre.artifacts.readArtifact("Library");
 
-    deployer = new Deployer(this.hre.network.provider);
+    deployer = new Deployer(this.hre);
 
     const accounts = (await this.hre.network.provider.request({
       method: "eth_accounts",
@@ -70,10 +70,7 @@ describe("deployer", () => {
 
     assert.equal(receipt.status, 1);
 
-    const balance = await this.hre.network.provider.request({
-      method: "eth_getBalance",
-      params: [receipt.contractAddress],
-    });
+    const balance = await this.hre.ethers.provider.getBalance(receipt.contractAddress);
 
     assert.equal(balance, BigInt(1));
   });

@@ -16,8 +16,7 @@ export class Migrator {
   constructor(private _hre: HardhatRuntimeEnvironment) {
     this._config = _hre.config.migrate;
 
-    const provider = this._hre.network.provider;
-    this._deployer = new Deployer(provider);
+    this._deployer = new Deployer(_hre);
 
     this._migrationFiles = this.getMigrationFiles();
   }
