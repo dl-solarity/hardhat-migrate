@@ -1,10 +1,15 @@
 import fs = require("fs");
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { EthersAdapter } from "../adapters/EthersAdapter";
+import { PureAdapter } from "../adapters/PureAdapter";
+import { TruffleAdapter } from "../adapters/TruffleAdapter";
+import { TypeChainAdapter } from "../adapters/TypeChainAdapter";
 import { pluginName } from "../constants";
 import { Deployer } from "../deployer/Deployer";
 import { MigrateError } from "../errors";
-import { MigrateConfig } from "../types/migrations";
+import { Adapter } from "../types/adapter";
+import { MigrateConfig, PluginName } from "../types/migrations";
 import { resolvePathToFile } from "../utils/files";
 import path = require("path");
 
@@ -16,7 +21,23 @@ export class Migrator {
   constructor(private _hre: HardhatRuntimeEnvironment) {
     this._config = _hre.config.migrate;
 
-    this._deployer = new Deployer(_hre);
+    let adapter: Adapter;
+
+    switch (this._config.pluginNames) {
+      case PluginName.ETHERS:
+        adapter = new EthersAdapter();
+        break;
+      case PluginName.TRUFFLE:
+        adapter = new TruffleAdapter();
+        break;
+      case PluginName.TYPECHAIN:
+        adapter = new TypeChainAdapter();
+        break;
+      case PluginName.PURE:
+      default:
+        adapter = new PureAdapter();
+    }
+    this._deployer = new Deployer(_hre, adapter);
 
     this._migrationFiles = this.getMigrationFiles();
   }

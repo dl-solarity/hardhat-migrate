@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { BrowserProvider, Contract, TransactionReceipt } from "ethers";
+import { BrowserProvider, Contract, Signer, TransactionReceipt } from "ethers";
 import { Artifact } from "hardhat/types";
 import { Deployer } from "../../src/deployer/Deployer";
 import { useEnvironment } from "../helpers";
@@ -9,8 +9,9 @@ describe("deployer", () => {
   let contractWithPayableConstructorArtifact: Artifact;
   let contractWithConstructorArgumentsArtifact: Artifact;
   let libraryArtifact: Artifact;
-  let deployer: Deployer;
+  let deployer: any;
   let from: string;
+  let signer: Signer;
 
   useEnvironment("minimal");
 
@@ -24,9 +25,11 @@ describe("deployer", () => {
     );
     libraryArtifact = await this.hre.artifacts.readArtifact("Library");
 
+    // @ts-ignore
     deployer = new Deployer(this.hre);
 
-    from = (await this.hre.ethers.getSigners())[0].address;
+    signer = (await this.hre.ethers.getSigners())[0];
+    from = await signer.getAddress();
   });
 
   it("should deploy contract", async function () {
@@ -38,7 +41,7 @@ describe("deployer", () => {
       from
     );
 
-    const hash = await deployer.sendTransaction(tx, from);
+    const hash = await deployer.sendTransaction(tx, signer);
 
     const receipt: TransactionReceipt = await this.hre.ethers.provider.getTransactionReceipt(hash);
 
@@ -54,7 +57,7 @@ describe("deployer", () => {
       from
     );
 
-    const hash = await deployer.sendTransaction(tx, from);
+    const hash = await deployer.sendTransaction(tx, signer);
 
     const receipt: TransactionReceipt = await this.hre.ethers.provider.getTransactionReceipt(hash);
 
@@ -74,17 +77,13 @@ describe("deployer", () => {
       from
     );
 
-    const hash = await deployer.sendTransaction(tx, from);
+    const hash = await deployer.sendTransaction(tx, signer);
 
     const receipt: TransactionReceipt = await this.hre.ethers.provider.getTransactionReceipt(hash);
 
     assert.equal(receipt.status, 1);
 
-    const contract = new Contract(
-      receipt.contractAddress!!,
-      contractWithConstructorArgumentsArtifact.abi,
-      await new BrowserProvider(this.hre.network.provider).getSigner(from)
-    );
+    const contract = new Contract(receipt.contractAddress!!, contractWithConstructorArgumentsArtifact.abi, signer);
 
     const name = await contract.name();
 
@@ -100,7 +99,7 @@ describe("deployer", () => {
       from
     );
 
-    const hash = await deployer.sendTransaction(tx, from);
+    const hash = await deployer.sendTransaction(tx, signer);
 
     const receipt: TransactionReceipt = await this.hre.ethers.provider.getTransactionReceipt(hash);
 

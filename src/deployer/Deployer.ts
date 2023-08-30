@@ -1,15 +1,22 @@
 import { Signer, TransactionRequest } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { MigrateError } from "../errors";
+import { Adapter } from "../types/adapter";
 
 export class Deployer {
-  constructor(private _hre: HardhatRuntimeEnvironment) {}
+  constructor(private _hre: HardhatRuntimeEnvironment, private _adapter: Adapter) {}
 
-  public async deploy(abi: any[], byteCode: string, args: any[], value: bigint, from: string): Promise<string> {
+  public async deploy(instance: any, args: any[], value: bigint, from?: string): Promise<string> {
+    const abi = this._adapter.getABI(instance);
+
+    const bytecode = this._adapter.getByteCode(instance);
+
     try {
-      const tx = await this.createDeployTransaction(abi, byteCode, args, value, from);
+      const signer: Signer = await this._getSigner(from);
 
-      const hash = this.sendTransaction(tx, from);
+      const tx = await this.createDeployTransaction(abi, bytecode, args, value, signer);
+
+      const hash = this.sendTransaction(tx, signer);
 
       return hash;
     } catch (e: any) {
@@ -17,31 +24,13 @@ export class Deployer {
       throw new MigrateError(e.message);
     }
   }
-
-  // public async link(libraryName: string, address: string): Promise<void> {
-  //   try {
-  //     const signer: Signer = await this._getSigner(address);
-
-  //     const factory = new ContractFactory([], "", signer);
-
-  //     factory.attach(address);
-
-  //     factory.link(libraryName, address);
-  //   } catch (e: any) {
-  //     console.log(e);
-  //     throw new MigrateError(e.message);
-  //   }
-  // }
-
-  public async createDeployTransaction(
+  protected async createDeployTransaction(
     abi: any[],
     byteCode: string,
     args: any[],
     value: bigint,
-    from: string
+    signer: Signer
   ): Promise<TransactionRequest> {
-    const signer: Signer = await this._getSigner(from);
-
     const factory = new this._hre.ethers.ContractFactory(abi, byteCode, signer);
 
     const tx = factory.getDeployTransaction(...args, {
@@ -51,9 +40,7 @@ export class Deployer {
     return tx;
   }
 
-  public async sendTransaction(tx: TransactionRequest, from: string): Promise<string> {
-    const signer: Signer = await this._getSigner(from);
-
+  protected async sendTransaction(tx: TransactionRequest, signer: Signer): Promise<string> {
     const response = await signer.sendTransaction(tx);
 
     const hash = response.hash;
@@ -61,9 +48,7 @@ export class Deployer {
     return hash;
   }
 
-  private async _getSigner(from: string): Promise<Signer> {
-    const signer: Signer = await this._hre.ethers.getSigner(from);
-
-    return signer;
+  private async _getSigner(from?: string): Promise<Signer> {
+    return from ? await this._getSigner(from) : (await this._hre.ethers.getSigners())[0];
   }
 }

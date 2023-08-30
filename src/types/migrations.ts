@@ -52,4 +52,16 @@ export interface MigrateConfig {
    * The flag indicating whether the compilation is forced.
    */
   force: boolean;
+
+  /*
+   * The user can specify plugins that was used to compile to write deploy scripts.
+   */
+  pluginNames: PluginName;
+}
+
+export enum PluginName {
+  ETHERS = "ethers",
+  TRUFFLE = "truffle",
+  PURE = "pure",
+  TYPECHAIN = "typechain",
 }
