@@ -34,10 +34,10 @@ describe("deployer", () => {
 
   it("should deploy contract", async function () {
     const tx = await deployer.createDeployTransaction(
-      contractArtifact.abi,
-      contractArtifact.bytecode,
       [],
       BigInt(0),
+      contractArtifact.abi,
+      contractArtifact.bytecode,
       from
     );
 
@@ -50,10 +50,10 @@ describe("deployer", () => {
 
   it("should deploy contract with value", async function () {
     const tx = await deployer.createDeployTransaction(
-      contractWithPayableConstructorArtifact.abi,
-      contractWithPayableConstructorArtifact.bytecode,
       [],
       BigInt(1),
+      contractWithPayableConstructorArtifact.abi,
+      contractWithPayableConstructorArtifact.bytecode,
       from
     );
 
@@ -70,10 +70,10 @@ describe("deployer", () => {
 
   it("should deploy contract with constructor arguments", async function () {
     const tx = await deployer.createDeployTransaction(
-      contractWithConstructorArgumentsArtifact.abi,
-      contractWithConstructorArgumentsArtifact.bytecode,
       ["Hello, world!"],
       BigInt(0),
+      contractWithConstructorArgumentsArtifact.abi,
+      contractWithConstructorArgumentsArtifact.bytecode,
       from
     );
 
@@ -92,10 +92,10 @@ describe("deployer", () => {
 
   it("should deploy external library", async function () {
     const tx = await deployer.createDeployTransaction(
-      libraryArtifact.abi,
-      libraryArtifact.bytecode,
       [],
       BigInt(0),
+      libraryArtifact.abi,
+      libraryArtifact.bytecode,
       from
     );
 

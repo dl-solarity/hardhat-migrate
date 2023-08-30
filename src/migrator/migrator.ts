@@ -1,11 +1,11 @@
 import fs = require("fs");
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { EthersAdapter } from "../adapters/EthersAdapter";
-import { PureAdapter } from "../adapters/PureAdapter";
-import { TruffleAdapter } from "../adapters/TruffleAdapter";
-import { TypeChainAdapter } from "../adapters/TypeChainAdapter";
 import { pluginName } from "../constants";
+import { EthersAdapter } from "../deployer/adapters/EthersAdapter";
+import { PureAdapter } from "../deployer/adapters/PureAdapter";
+import { TruffleAdapter } from "../deployer/adapters/TruffleAdapter";
+import { TypeChainAdapter } from "../deployer/adapters/TypeChainAdapter";
 import { Deployer } from "../deployer/Deployer";
 import { MigrateError } from "../errors";
 import { Adapter } from "../types/adapter";

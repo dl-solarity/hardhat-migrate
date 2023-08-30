@@ -21,6 +21,24 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
   await new Migrator(env).migrate();
 };
 
+// TODO: Do we need this?
+// if (tryRequire("@nomiclabs/hardhat-etherscan")) {
+//   task("verify").setAction(async (args, hre, runSuper) => {
+//     const { verify } = await import("./verify-proxy");
+//     return await verify(args, hre, runSuper);
+//   });
+// }
+
+// function tryRequire(id: string) {
+//   try {
+//     require(id);
+//     return true;
+//   } catch (e: any) {
+//     // do nothing
+//   }
+//   return false;
+// }
+
 task(TASK_MIGRATE, "Deploy contracts via migration files")
   .addOptionalParam("from", "The migration number from which the migration will be applied.", undefined, types.int)
   .addOptionalParam("to", "The migration number up to which the migration will be applied.", undefined, types.int)

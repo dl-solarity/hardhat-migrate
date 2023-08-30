@@ -1,7 +1,8 @@
-import { Adapter } from "../types/adapter";
+import { Adapter } from "../../types/adapter";
+import { abi } from "../../types/deployer";
 
 export class PureAdapter implements Adapter {
-  public getABI(obj: { abi: any[] }): any[] {
+  public getABI(obj: { abi: any[] }): abi {
     return obj.abi;
   }
 

@@ -1,9 +1,10 @@
 import { Contract } from "typechain";
-import { MigrateError } from "../errors";
-import { Adapter } from "../types/adapter";
+import { MigrateError } from "../../errors";
+import { Adapter } from "../../types/adapter";
+import { abi } from "../../types/deployer";
 
 export class TypeChainAdapter implements Adapter {
-  public getABI(instance: Contract): any[] {
+  public getABI(instance: Contract): abi {
     throw new MigrateError("Method not implemented.");
   }
 

@@ -1,12 +1,13 @@
-import { Signer, TransactionRequest } from "ethers";
+import { ContractFactory, Signer, TransactionRequest } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { MigrateError } from "../errors";
 import { Adapter } from "../types/adapter";
+import { args, deployFactoryParams } from "../types/deployer";
 
 export class Deployer {
   constructor(private _hre: HardhatRuntimeEnvironment, private _adapter: Adapter) {}
 
-  public async deploy(instance: any, args: any[], value: bigint, from?: string): Promise<string> {
+  public async deploy(instance: any, args: args, value: bigint, from?: string): Promise<string> {
     const abi = this._adapter.getABI(instance);
 
     const bytecode = this._adapter.getByteCode(instance);
@@ -14,7 +15,7 @@ export class Deployer {
     try {
       const signer: Signer = await this._getSigner(from);
 
-      const tx = await this.createDeployTransaction(abi, bytecode, args, value, signer);
+      const tx = await this.createDeployTransaction(args, value, abi, bytecode, signer);
 
       const hash = this.sendTransaction(tx, signer);
 
@@ -24,14 +25,13 @@ export class Deployer {
       throw new MigrateError(e.message);
     }
   }
+
   protected async createDeployTransaction(
-    abi: any[],
-    byteCode: string,
-    args: any[],
+    args: args,
     value: bigint,
-    signer: Signer
+    ...contractParams: deployFactoryParams
   ): Promise<TransactionRequest> {
-    const factory = new this._hre.ethers.ContractFactory(abi, byteCode, signer);
+    const factory = new this._hre.ethers.ContractFactory(...contractParams);
 
     const tx = factory.getDeployTransaction(...args, {
       value,
