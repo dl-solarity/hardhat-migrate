@@ -26,11 +26,7 @@ describe("deployer", () => {
 
     deployer = new Deployer(this.hre);
 
-    const accounts = (await this.hre.network.provider.request({
-      method: "eth_accounts",
-    })) as string[];
-
-    from = accounts[0];
+    from = (await this.hre.ethers.getSigners())[0].address;
   });
 
   it("should deploy contract", async function () {
@@ -44,10 +40,7 @@ describe("deployer", () => {
 
     const hash = await deployer.sendTransaction(tx, from);
 
-    const receipt: TransactionReceipt = await this.hre.network.provider.request({
-      method: "eth_getTransactionReceipt",
-      params: [hash],
-    });
+    const receipt: TransactionReceipt = await this.hre.ethers.provider.getTransactionReceipt(hash);
 
     assert.equal(receipt.status, 1);
   });
@@ -63,10 +56,7 @@ describe("deployer", () => {
 
     const hash = await deployer.sendTransaction(tx, from);
 
-    const receipt: TransactionReceipt = await this.hre.network.provider.request({
-      method: "eth_getTransactionReceipt",
-      params: [hash],
-    });
+    const receipt: TransactionReceipt = await this.hre.ethers.provider.getTransactionReceipt(hash);
 
     assert.equal(receipt.status, 1);
 
@@ -86,10 +76,7 @@ describe("deployer", () => {
 
     const hash = await deployer.sendTransaction(tx, from);
 
-    const receipt: TransactionReceipt = await this.hre.network.provider.request({
-      method: "eth_getTransactionReceipt",
-      params: [hash],
-    });
+    const receipt: TransactionReceipt = await this.hre.ethers.provider.getTransactionReceipt(hash);
 
     assert.equal(receipt.status, 1);
 
@@ -115,10 +102,7 @@ describe("deployer", () => {
 
     const hash = await deployer.sendTransaction(tx, from);
 
-    const receipt: TransactionReceipt = await this.hre.network.provider.request({
-      method: "eth_getTransactionReceipt",
-      params: [hash],
-    });
+    const receipt: TransactionReceipt = await this.hre.ethers.provider.getTransactionReceipt(hash);
 
     assert.equal(receipt.status, 1);
   });
