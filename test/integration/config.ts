@@ -3,7 +3,7 @@ import { HardhatPluginError } from "hardhat/plugins";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 
 import path from "path";
-import { MigrateConfig } from "../../src/types/migrations";
+import { MigrateConfig, PluginName } from "../../src/types/migrations";
 import { useEnvironment } from "../helpers";
 
 describe("config", () => {
@@ -50,6 +50,10 @@ describe("config", () => {
 
     it("should apply skipVerificationErrors", async function () {
       assert.deepEqual(loadedOptions.skipVerificationErrors, ["already verified"]);
+    });
+
+    it("should apply pluginName", async function () {
+      assert.equal(loadedOptions.pluginName, PluginName.TRUFFLE);
     });
   });
 
@@ -116,6 +120,10 @@ describe("config", () => {
 
     it("should set to default skipVerificationErrors", async function () {
       assert.deepEqual(loadedOptions.skipVerificationErrors, ["already verified"]);
+    });
+
+    it("should set to default pluginName", async function () {
+      assert.equal(loadedOptions.pluginName, PluginName.ETHERS);
     });
   });
 });

@@ -23,7 +23,7 @@ export class Migrator {
 
     let adapter: Adapter;
 
-    switch (this._config.pluginNames) {
+    switch (this._config.pluginName) {
       case PluginName.ETHERS:
         adapter = new EthersAdapter();
         break;

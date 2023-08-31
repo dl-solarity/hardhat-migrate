@@ -15,6 +15,10 @@ export class Verifier {
         constructorArguments: args,
         contract: contractName,
         noCompile: true,
+        // TOOD: If your contract has libraries with undetectable addresses, you may pass the libraries parameter with a dictionary specifying them:
+        // libraries: {
+        //   SomeLibrary: "0x...",
+        // },
       });
     } catch (e: any) {
       throw new MigrateError(`Error verifying contract: ${e.message}`);

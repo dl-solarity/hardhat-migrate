@@ -15,7 +15,7 @@ const defaultConfig: MigrateConfig = {
   pathToMigrations: "./deploy",
   skipVerificationErrors: ["already verified"],
   force: false,
-  pluginNames: PluginName.ETHERS,
+  pluginName: PluginName.ETHERS,
 };
 
 export const migrateConfigExtender: ConfigExtender = (resolvedConfig, config) => {

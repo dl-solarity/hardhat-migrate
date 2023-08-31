@@ -56,7 +56,7 @@ export interface MigrateConfig {
   /*
    * The user can specify plugins that was used to compile to write deploy scripts.
    */
-  pluginNames: PluginName;
+  pluginName: PluginName;
 }
 
 export enum PluginName {

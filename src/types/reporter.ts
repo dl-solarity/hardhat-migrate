@@ -1,8 +1,3 @@
-export interface Reporter {
-  report: (message: ReportMessage) => void;
-  read: () => Promise<ReportMessage>;
-}
-
 export type ReportMessage = DeployContractMessage;
 
 export interface DeployContractMessage {

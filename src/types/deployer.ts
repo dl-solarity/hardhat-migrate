@@ -1,7 +1,5 @@
 import { ContractFactory } from "ethers";
 
-export interface Deployer {}
-
 export type deployFactoryParams = ConstructorParameters<typeof ContractFactory>;
 
 export type abi = deployFactoryParams[0];

@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import { BrowserProvider, Contract, Signer, TransactionReceipt } from "ethers";
+import { artifacts } from "hardhat";
 import { Artifact } from "hardhat/types";
 import { Deployer } from "../../src/deployer/Deployer";
 import { useEnvironment } from "../helpers";
