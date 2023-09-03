@@ -8,7 +8,7 @@ export class Storage {
 
   private static instance: Storage;
 
-  private _path = "";
+  private _path?: string;
 
   private storage: { [key: string]: any };
 
@@ -27,7 +27,7 @@ export class Storage {
   public loadFromDisk(path: string) {
     this._path = resolvePathToFile(path, this.fileName);
 
-    if (existsSync(this._path)) {
+    if (path && existsSync(this._path)) {
       try {
         this.storage = JSON.parse(readFileSync(this._path, { encoding: "utf8", flag: "r" }));
       } catch (e: any) {

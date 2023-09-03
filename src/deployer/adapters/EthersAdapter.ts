@@ -1,4 +1,4 @@
-import { BaseContract, Contract, ContractFactory } from "ethers";
+import { BaseContract, Contract, ContractFactory, ContractTransactionResponse } from "ethers";
 import { MigrateError } from "../../errors";
 import { Adapter } from "../../types/adapter";
 import { abi } from "../../types/deployer";
@@ -18,5 +18,9 @@ export class EthersAdapter implements Adapter {
 
   public getByteCodeFactory(instance: ContractFactory): string {
     throw new MigrateError("Method not implemented.");
+  }
+
+  toInstance(contract: BaseContract) {
+    return contract.getAddress();
   }
 }

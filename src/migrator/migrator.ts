@@ -8,6 +8,7 @@ import { TruffleAdapter } from "../deployer/adapters/TruffleAdapter";
 import { TypeChainAdapter } from "../deployer/adapters/TypeChainAdapter";
 import { Deployer } from "../deployer/Deployer";
 import { MigrateError } from "../errors";
+import { Reporter } from "../tools/Reporter";
 import { Adapter } from "../types/adapter";
 import { MigrateConfig, PluginName } from "../types/migrations";
 import { resolvePathToFile } from "../utils/files";
@@ -16,10 +17,12 @@ import path = require("path");
 export class Migrator {
   private _config: MigrateConfig;
   private _deployer: Deployer;
+  private _reporter: Reporter;
   private _migrationFiles: string[];
 
   constructor(private _hre: HardhatRuntimeEnvironment) {
     this._config = _hre.config.migrate;
+    this._reporter = new Reporter();
 
     let adapter: Adapter;
 
@@ -37,7 +40,7 @@ export class Migrator {
       default:
         adapter = new PureAdapter();
     }
-    this._deployer = new Deployer(_hre, adapter);
+    this._deployer = new Deployer(_hre, adapter, this._reporter);
 
     this._migrationFiles = this.getMigrationFiles();
   }

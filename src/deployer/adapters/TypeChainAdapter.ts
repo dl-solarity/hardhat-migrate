@@ -1,3 +1,4 @@
+import { BaseContract, ContractTransactionResponse } from "ethers";
 import { Contract } from "typechain";
 import { MigrateError } from "../../errors";
 import { Adapter } from "../../types/adapter";
@@ -10,5 +11,9 @@ export class TypeChainAdapter implements Adapter {
 
   public getByteCode(instance: Contract): string {
     throw new MigrateError("Method not implemented.");
+  }
+
+  toInstance(contract: BaseContract) {
+    return contract.getAddress();
   }
 }

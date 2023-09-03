@@ -11,7 +11,6 @@ describe("deployer", () => {
   let contractWithConstructorArgumentsArtifact: Artifact;
   let libraryArtifact: Artifact;
   let deployer: any;
-  let from: string;
   let signer: Signer;
 
   useEnvironment("minimal");
@@ -29,20 +28,13 @@ describe("deployer", () => {
     // @ts-ignore
     deployer = new Deployer(this.hre);
 
-    signer = (await this.hre.ethers.getSigners())[0];
-    from = await signer.getAddress();
+    signer = await this.hre.ethers.provider.getSigner(0);
   });
 
   it("should deploy contract", async function () {
-    const tx = await deployer.createDeployTransaction(
-      [],
-      BigInt(0),
-      contractArtifact.abi,
-      contractArtifact.bytecode,
-      from
-    );
+    const tx = await deployer.createDeployTransaction([], BigInt(0), contractArtifact.abi, contractArtifact.bytecode);
 
-    const hash = await deployer.sendTransaction(tx, signer);
+    const hash = (await signer.sendTransaction(tx)).hash;
 
     const receipt: TransactionReceipt = await this.hre.ethers.provider.getTransactionReceipt(hash);
 
@@ -54,11 +46,10 @@ describe("deployer", () => {
       [],
       BigInt(1),
       contractWithPayableConstructorArtifact.abi,
-      contractWithPayableConstructorArtifact.bytecode,
-      from
+      contractWithPayableConstructorArtifact.bytecode
     );
 
-    const hash = await deployer.sendTransaction(tx, signer);
+    const hash = (await signer.sendTransaction(tx)).hash;
 
     const receipt: TransactionReceipt = await this.hre.ethers.provider.getTransactionReceipt(hash);
 
@@ -74,11 +65,10 @@ describe("deployer", () => {
       ["Hello, world!"],
       BigInt(0),
       contractWithConstructorArgumentsArtifact.abi,
-      contractWithConstructorArgumentsArtifact.bytecode,
-      from
+      contractWithConstructorArgumentsArtifact.bytecode
     );
 
-    const hash = await deployer.sendTransaction(tx, signer);
+    const hash = (await signer.sendTransaction(tx)).hash;
 
     const receipt: TransactionReceipt = await this.hre.ethers.provider.getTransactionReceipt(hash);
 
@@ -92,17 +82,11 @@ describe("deployer", () => {
   });
 
   it("should deploy external library", async function () {
-    const tx = await deployer.createDeployTransaction(
-      [],
-      BigInt(0),
-      libraryArtifact.abi,
-      libraryArtifact.bytecode,
-      from
-    );
+    const tx = await deployer.createDeployTransaction([], BigInt(0), libraryArtifact.abi, libraryArtifact.bytecode);
 
-    const hash = await deployer.sendTransaction(tx, signer);
+    const sentTx = await signer.sendTransaction(tx);
 
-    const receipt: TransactionReceipt = await this.hre.ethers.provider.getTransactionReceipt(hash);
+    const receipt: TransactionReceipt = await this.hre.ethers.provider.getTransactionReceipt(sentTx.hash);
 
     assert.equal(receipt.status, 1);
   });
