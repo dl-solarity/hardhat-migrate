@@ -1,5 +1,5 @@
 #!/usr/bin/bash
 
-cp -r ./README.md ./LICENSE ./dist ./src ./publish
+cp -r ./package.json ./README.md ./LICENSE ./dist ./src ./publish
 npm publish ./publish/ --access public
-rm -r ./publish/README.md ./publish/LICENSE ./publish/dist ./publish/src
+rm -r ./publish/package.json ./publish/README.md ./publish/LICENSE ./publish/dist ./publish/src
