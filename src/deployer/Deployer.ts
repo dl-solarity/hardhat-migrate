@@ -1,10 +1,14 @@
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import { AddressLike, getCreateAddress, Overrides, Signer, TransactionRequest, TransactionResponse } from "ethers";
+
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { AddressLike, getCreateAddress, Overrides, Signer, TransactionRequest, TransactionResponse } from "ethers";
+
 import { MigrateError } from "../errors";
-import { Reporter } from "../tools/Reporter";
+
 import { Adapter } from "../types/adapter";
-import { Args, ContractDeployParams, DeployFactoryParams } from "../types/deployer";
+import { Args, ContractDeployParams } from "../types/deployer";
+
+import { Reporter } from "../tools/reporter/Reporter";
 
 export class Deployer {
   constructor(private _hre: HardhatRuntimeEnvironment, private _adapter: Adapter, private _reporter: Reporter) {}
@@ -49,9 +53,7 @@ export class Deployer {
   ): Promise<TransactionRequest> {
     const factory = new this._hre.ethers.ContractFactory(contractParams.abi, contractParams.bytecode);
 
-    const tx = factory.getDeployTransaction(...args, txOverrides);
-
-    return tx;
+    return factory.getDeployTransaction(...args, txOverrides);
   }
 
   private async _getSigner(from?: null | AddressLike): Promise<HardhatEthersSigner> {

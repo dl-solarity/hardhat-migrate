@@ -3,6 +3,10 @@ import path from "path";
 import { MigrateError } from "../errors";
 import { resolvePathToFile } from "../utils";
 
+// 1. Manual save
+// 2. Load config
+// 3. Types. -- *
+
 export class Storage {
   private fileName = ".storage.json";
 

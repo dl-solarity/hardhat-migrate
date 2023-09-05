@@ -1,5 +1,5 @@
 import { BaseContract, ContractFactory } from "ethers";
-import { MigrateError } from "../../errors";
+
 import { Adapter } from "../../types/adapter";
 import { Abi, ContractDeployParams } from "../../types/deployer";
 

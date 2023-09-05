@@ -1,8 +1,8 @@
 import axios from "axios";
-import { TransactionRequest, TransactionResponse } from "ethers";
+import { TransactionResponse } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { ChainRecord, defaultCurrencySymbol, predefinedChains } from "../types/chain-id-api";
-import { ReportMessage } from "../types/reporter";
+import { ChainRecord, defaultCurrencySymbol, predefinedChains } from "../../types/chain-id-api";
+import { ReportMessage } from "../../types/reporter";
 
 export class Reporter {
   public nativeSymbol = defaultCurrencySymbol;

@@ -7,8 +7,7 @@ import { assert, BaseContract, Contract } from "ethers";
 import { Artifact } from "hardhat/types";
 import { EthersAdapter } from "../../src/deployer/adapters/EthersAdapter";
 import { TruffleAdapter } from "../../src/deployer/adapters/TruffleAdapter";
-import { TypeChainAdapter } from "../../src/deployer/adapters/TypeChainAdapter";
-import { Reporter } from "../../src/tools/Reporter";
+import { Reporter } from "../../src/tools/reporter/Reporter";
 import { ContractWithConstructorArguments } from "../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
 
 describe("deployer", () => {

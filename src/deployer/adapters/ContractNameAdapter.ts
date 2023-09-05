@@ -1,6 +1,5 @@
-import { BaseContract, ContractFactory } from "ethers";
-import { Artifact, HardhatRuntimeEnvironment } from "hardhat/types";
-import { MigrateError } from "../../errors";
+import { BaseContract } from "ethers";
+
 import { Adapter } from "../../types/adapter";
 import { Abi, ContractDeployParams } from "../../types/deployer";
 

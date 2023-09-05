@@ -1,5 +1,5 @@
-import { artifacts } from "hardhat";
 import { Artifact, HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { Abi, ContractDeployParams } from "./deployer";
 
 export abstract class Adapter {
@@ -14,6 +14,8 @@ export abstract class Adapter {
     };
   }
 
+  public abstract toInstance(address: string, params: ContractDeployParams): any;
+
   protected getArtifact(contractName: string): Artifact {
     if (this._artifacts.has(contractName)) {
       return this._artifacts.get(contractName)!;
@@ -26,9 +28,11 @@ export abstract class Adapter {
     return artifact;
   }
 
-  public abstract toInstance(address: string, params: ContractDeployParams): any;
-
   protected abstract _getABI(instance: any): Abi;
 
   protected abstract _getBytecode(instance: any): string;
+
+  protected _linkLib(): void;
+
+  private _validateBytecode(bytecode: string): boolean;
 }

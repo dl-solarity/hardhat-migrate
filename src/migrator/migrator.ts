@@ -5,10 +5,9 @@ import { pluginName } from "../constants";
 import { EthersAdapter } from "../deployer/adapters/EthersAdapter";
 import { PureAdapter } from "../deployer/adapters/PureAdapter";
 import { TruffleAdapter } from "../deployer/adapters/TruffleAdapter";
-import { TypeChainAdapter } from "../deployer/adapters/TypeChainAdapter";
 import { Deployer } from "../deployer/Deployer";
 import { MigrateError } from "../errors";
-import { Reporter } from "../tools/Reporter";
+import { Reporter } from "../tools/reporter/Reporter";
 import { Adapter } from "../types/adapter";
 import { MigrateConfig, PluginName } from "../types/migrations";
 import { resolvePathToFile } from "../utils";
@@ -32,9 +31,6 @@ export class Migrator {
         break;
       case PluginName.TRUFFLE:
         adapter = new TruffleAdapter(this._hre);
-        break;
-      case PluginName.TYPECHAIN:
-        adapter = new TypeChainAdapter(this._hre);
         break;
       case PluginName.PURE:
       default:
