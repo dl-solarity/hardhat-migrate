@@ -3,6 +3,7 @@ import { BytesLike, ContractFactory, Interface, InterfaceAbi } from "ethers";
 export interface ContractDeployParams {
   abi: Interface | InterfaceAbi;
   bytecode: BytesLike | { object: string };
+  contractName?: string;
 }
 
 export type DeployFactoryParams = ConstructorParameters<typeof ContractFactory>;

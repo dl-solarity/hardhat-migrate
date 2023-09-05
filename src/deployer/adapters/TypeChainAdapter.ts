@@ -13,7 +13,7 @@ export class TypeChainAdapter extends Adapter {
     throw new MigrateError("Method not implemented.");
   }
 
-  public toInstance(address: string, abi: Abi): any {
+  public toInstance(address: string, params: ContractDeployParams): any {
     return address;
   }
 }

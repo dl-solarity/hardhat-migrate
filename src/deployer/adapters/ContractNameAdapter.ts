@@ -5,8 +5,8 @@ import { Adapter } from "../../types/adapter";
 import { Abi, ContractDeployParams } from "../../types/deployer";
 
 export class ContractNameAdapter extends Adapter {
-  public toInstance(address: string, abi: Abi): BaseContract {
-    return new BaseContract(address, abi);
+  public toInstance(address: string, params: ContractDeployParams): BaseContract {
+    return new BaseContract(address, params.abi);
   }
 
   protected _getABI(contractName: string): Abi {

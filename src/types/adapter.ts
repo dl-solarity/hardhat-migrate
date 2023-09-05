@@ -26,7 +26,7 @@ export abstract class Adapter {
     return artifact;
   }
 
-  public abstract toInstance(address: string, abi: Abi): any;
+  public abstract toInstance(address: string, params: ContractDeployParams): any;
 
   protected abstract _getABI(instance: any): Abi;
 

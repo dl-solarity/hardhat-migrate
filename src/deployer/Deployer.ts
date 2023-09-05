@@ -23,7 +23,7 @@ export class Deployer {
 
       await this._waitForDeployment(sentTx);
 
-      return this._adapter.toInstance(getCreateAddress(sentTx), deployParams.abi);
+      return this._adapter.toInstance(getCreateAddress(sentTx), deployParams);
     } catch (e: any) {
       throw new MigrateError(e.message);
     }

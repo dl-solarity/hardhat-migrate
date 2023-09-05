@@ -11,7 +11,7 @@ export class PureAdapter extends Adapter {
     return obj.bytecode;
   }
 
-  toInstance(address: string, abi: Abi): any {
+  toInstance(address: string, params: ContractDeployParams): any {
     return address;
   }
 }
