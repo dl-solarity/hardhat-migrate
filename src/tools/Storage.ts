@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
 import { MigrateError } from "../errors";
-import { resolvePathToFile } from "../utils/files";
+import { resolvePathToFile } from "../utils";
 
 export class Storage {
   private fileName = ".storage.json";

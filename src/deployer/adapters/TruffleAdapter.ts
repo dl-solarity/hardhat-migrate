@@ -1,18 +1,18 @@
 import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
-import { BaseContract, ContractTransactionResponse } from "ethers";
+import { BaseContract } from "ethers";
 import { Adapter } from "../../types/adapter";
-import { abi } from "../../types/deployer";
+import { Abi, ContractDeployParams } from "../../types/deployer";
 
-export class TruffleAdapter implements Adapter {
-  public getABI(instance: TruffleContract): abi {
+export class TruffleAdapter extends Adapter {
+  protected _getABI(instance: TruffleContract): Abi {
     return instance.abi;
   }
 
-  public getByteCode(instance: TruffleContract): string {
+  protected _getBytecode(instance: TruffleContract): string {
     return instance.bytecode;
   }
 
-  toInstance(contract: BaseContract) {
-    return contract.getAddress();
+  public toInstance(address: string, abi: Abi): any {
+    return address;
   }
 }

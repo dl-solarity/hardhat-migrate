@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { Storage } from "../../src/tools/Storage";
-import { resolvePathToFile } from "../../src/utils/files";
+import { resolvePathToFile } from "../../src/utils";
 
 describe("Storage", () => {
   let path: string;

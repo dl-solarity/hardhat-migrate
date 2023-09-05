@@ -1,9 +1,14 @@
-import { ContractFactory } from "ethers";
+import { BytesLike, ContractFactory, Interface, InterfaceAbi } from "ethers";
 
-export type deployFactoryParams = ConstructorParameters<typeof ContractFactory>;
+export interface ContractDeployParams {
+  abi: Interface | InterfaceAbi;
+  bytecode: BytesLike | { object: string };
+}
 
-export type abi = deployFactoryParams[0];
+export type DeployFactoryParams = ConstructorParameters<typeof ContractFactory>;
 
-export type bytecode = deployFactoryParams[1];
+export type Abi = DeployFactoryParams[0];
 
-export type args = Parameters<ContractFactory["getDeployTransaction"]>;
+export type Bytecode = DeployFactoryParams[1];
+
+export type Args = Parameters<ContractFactory["getDeployTransaction"]>;

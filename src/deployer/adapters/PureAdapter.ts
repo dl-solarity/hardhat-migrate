@@ -1,17 +1,17 @@
-import { BaseContract, ContractTransactionResponse } from "ethers";
+import { BaseContract } from "ethers";
 import { Adapter } from "../../types/adapter";
-import { abi } from "../../types/deployer";
+import { Abi, ContractDeployParams } from "../../types/deployer";
 
-export class PureAdapter implements Adapter {
-  public getABI(obj: { abi: any[] }): abi {
+export class PureAdapter extends Adapter {
+  protected _getABI(obj: { abi: any[] }): Abi {
     return obj.abi;
   }
 
-  public getByteCode(obj: { bytecode: string }): string {
+  protected _getBytecode(obj: { bytecode: string }): string {
     return obj.bytecode;
   }
 
-  toInstance(contract: BaseContract) {
-    return contract.getAddress();
+  toInstance(address: string, abi: Abi): any {
+    return address;
   }
 }

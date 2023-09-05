@@ -32,7 +32,14 @@ describe("deployer", () => {
   });
 
   it("should deploy contract", async function () {
-    const tx = await deployer.createDeployTransaction([], BigInt(0), contractArtifact.abi, contractArtifact.bytecode);
+    const tx = await deployer._createDeployTransaction(
+      {
+        abi: contractArtifact.abi,
+        bytecode: contractArtifact.bytecode,
+      },
+      [],
+      {}
+    );
 
     const hash = (await signer.sendTransaction(tx)).hash;
 
@@ -42,11 +49,13 @@ describe("deployer", () => {
   });
 
   it("should deploy contract with value", async function () {
-    const tx = await deployer.createDeployTransaction(
+    const tx = await deployer._createDeployTransaction(
+      {
+        abi: contractWithPayableConstructorArtifact.abi,
+        bytecode: contractWithPayableConstructorArtifact.bytecode,
+      },
       [],
-      BigInt(1),
-      contractWithPayableConstructorArtifact.abi,
-      contractWithPayableConstructorArtifact.bytecode
+      { value: BigInt(1) }
     );
 
     const hash = (await signer.sendTransaction(tx)).hash;
@@ -61,11 +70,13 @@ describe("deployer", () => {
   });
 
   it("should deploy contract with constructor arguments", async function () {
-    const tx = await deployer.createDeployTransaction(
+    const tx = await deployer._createDeployTransaction(
+      {
+        abi: contractWithConstructorArgumentsArtifact.abi,
+        bytecode: contractWithConstructorArgumentsArtifact.bytecode,
+      },
       ["Hello, world!"],
-      BigInt(0),
-      contractWithConstructorArgumentsArtifact.abi,
-      contractWithConstructorArgumentsArtifact.bytecode
+      {}
     );
 
     const hash = (await signer.sendTransaction(tx)).hash;
@@ -82,7 +93,11 @@ describe("deployer", () => {
   });
 
   it("should deploy external library", async function () {
-    const tx = await deployer.createDeployTransaction([], BigInt(0), libraryArtifact.abi, libraryArtifact.bytecode);
+    const tx = await deployer._createDeployTransaction(
+      { abi: libraryArtifact.abi, bytecode: libraryArtifact.bytecode },
+      [],
+      {}
+    );
 
     const sentTx = await signer.sendTransaction(tx);
 
@@ -92,7 +107,7 @@ describe("deployer", () => {
   });
 
   // it("should deploy contract with external library", async function () {
-  //   const libraryTx = await deployer.createDeployTransaction(
+  //   const libraryTx = await deployer._createDeployTransaction(
   //     libraryArtifact.abi,
   //     libraryArtifact.bytecode,
   //     [],
@@ -111,7 +126,7 @@ describe("deployer", () => {
 
   //   const libraryAddress = libraryReceipt.contractAddress!!;
 
-  //   const contractTx = await deployer.createDeployTransaction(
+  //   const contractTx = await deployer._createDeployTransaction(
   //     contractArtifact.abi,
   //     contractArtifact.bytecode,
   //     [],

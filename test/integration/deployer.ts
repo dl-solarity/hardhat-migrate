@@ -51,7 +51,7 @@ describe("deployer", () => {
       let deployer: Deployer;
 
       beforeEach("setup", async function () {
-        adapter = new TruffleAdapter();
+        adapter = new TruffleAdapter(this.hre);
 
         deployer = new Deployer(this.hre, adapter, new Reporter(this.hre));
 
@@ -61,26 +61,26 @@ describe("deployer", () => {
 
       describe("adapter", () => {
         it("should get abi", async () => {
-          const abi = adapter.getABI(contractWithConstructorArtifact);
+          const abi = (adapter as any)._getABI(contractWithConstructorArtifact);
 
           expect(abi).to.deep.equal(contractWithConstructorABI);
         });
 
         it("should get bytecode", async () => {
-          const bytecode = adapter.getByteCode(contractWithConstructorArtifact);
+          const bytecode = (adapter as any)._getBytecode(contractWithConstructorArtifact);
 
           expect(bytecode).to.equal(contractWithConstructorBytecode);
         });
       });
 
       it("should deploy contract", async function () {
-        const contractAddress = await deployer.deploy(contractArtifact, [], BigInt(0));
+        const contractAddress = await deployer.deploy(contractArtifact, [], {});
 
         expect(contractAddress).to.be.a("string");
       });
 
       it("should deploy contract with constructor arguments", async function () {
-        const contractAddress = await deployer.deploy(contractWithConstructorArtifact, ["test"], BigInt(0));
+        const contractAddress = await deployer.deploy(contractWithConstructorArtifact, ["test"], {});
 
         const contract = new this.hre.ethers.Contract(
           contractAddress,
@@ -94,7 +94,7 @@ describe("deployer", () => {
       });
 
       it("should revert if artifact is not a contract", async function () {
-        await expect(deployer.deploy(null, [], BigInt(0))).to.eventually.be.rejected;
+        await expect(deployer.deploy(null, [], {})).to.eventually.be.rejected;
       });
     });
 
@@ -108,7 +108,7 @@ describe("deployer", () => {
       let deployer: Deployer;
 
       beforeEach("setup", async function () {
-        adapter = new EthersAdapter();
+        adapter = new EthersAdapter(this.hre);
 
         deployer = new Deployer(this.hre, adapter, null as any);
 
@@ -119,20 +119,20 @@ describe("deployer", () => {
 
       describe("adapter", () => {
         it("should get abi", async () => {
-          const abi = adapter.getABI(contractWithConstructorArtifact);
+          const abi = (adapter as any)._getABI(contractWithConstructorArtifact);
 
           expect(abi).to.deep.equal(contractWithConstructorABI);
         });
 
         it("should get bytecode", async () => {
-          const bytecode = adapter.getByteCode(contractWithConstructorArtifact);
+          const bytecode = (adapter as any)._getBytecode(contractWithConstructorArtifact);
 
           expect(bytecode).to.equal(contractWithConstructorBytecode);
         });
       });
 
       it("should deploy contract", async function () {
-        const hash = await deployer.deploy(contractArtifact, [], BigInt(0));
+        const hash = await deployer.deploy(contractArtifact, [], {});
 
         expect(hash).to.be.a("string");
 
@@ -142,7 +142,7 @@ describe("deployer", () => {
       });
 
       it("should deploy contract with constructor arguments", async function () {
-        const hash = await deployer.deploy(contractWithConstructorArtifact, ["test"], BigInt(0));
+        const hash = await deployer.deploy(contractWithConstructorArtifact, ["test"], {});
 
         const receipt = await this.hre.ethers.provider.getTransactionReceipt(hash);
 
@@ -158,7 +158,7 @@ describe("deployer", () => {
       });
 
       it("should revert if artifact is not a contract", async function () {
-        await expect(deployer.deploy(null, [], BigInt(0))).to.eventually.be.rejected;
+        await expect(deployer.deploy(null, [], {})).to.eventually.be.rejected;
       });
     });
   });

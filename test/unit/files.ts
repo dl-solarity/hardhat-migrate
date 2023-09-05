@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { resolvePathToFile } from "../../src/utils/files";
+import { resolvePathToFile } from "../../src/utils";
 
 describe("ResolvePathToFile()", () => {
   it("should correctly resolve paths with and without slash", () => {

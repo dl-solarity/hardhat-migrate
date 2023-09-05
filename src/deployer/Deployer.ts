@@ -1,46 +1,39 @@
-import {
-  BaseContract,
-  ContractFactory,
-  ContractTransactionResponse,
-  getCreateAddress,
-  Signer,
-  TransactionRequest,
-  TransactionResponse,
-} from "ethers";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import { AddressLike, getCreateAddress, Overrides, Signer, TransactionRequest, TransactionResponse } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { MigrateError } from "../errors";
 import { Reporter } from "../tools/Reporter";
 import { Adapter } from "../types/adapter";
-import { args, deployFactoryParams } from "../types/deployer";
+import { Args, ContractDeployParams, DeployFactoryParams } from "../types/deployer";
 
 export class Deployer {
   constructor(private _hre: HardhatRuntimeEnvironment, private _adapter: Adapter, private _reporter: Reporter) {}
 
-  public async deploy(instance: any, args: args, value: bigint, from?: string): Promise<string> {
-    const abi = this._adapter.getABI(instance);
-
-    const bytecode = this._adapter.getByteCode(instance);
-
+  public async deploy(instance: any, args: Args, txOverrides: Overrides = {}): Promise<any> {
     try {
-      const signer: Signer = await this._getSigner(from);
+      const deployParams = this._adapter.getContractDeployParams(instance);
 
-      const tx = await this.createDeployTransaction(args, value, abi, bytecode, signer);
+      const signer: Signer = await this._getSigner(txOverrides.from);
+
+      const tx = await this._createDeployTransaction(deployParams, args, txOverrides);
 
       const sentTx = await signer.sendTransaction(tx);
 
       await this._reportContractDeploy(sentTx);
 
-      const address = getCreateAddress(sentTx);
+      await this._waitForDeployment(sentTx);
 
-      const contract: BaseContract = new (<any>BaseContract)(address, abi, signer, sentTx);
-
-      await contract.waitForDeployment();
-
-      return this._adapter.toInstance(contract);
+      return this._adapter.toInstance(getCreateAddress(sentTx), deployParams.abi);
     } catch (e: any) {
-      console.log(e);
       throw new MigrateError(e.message);
     }
+  }
+
+  public async deploy2<T>(args: Args, txOverrides: Overrides = {}): Promise<any> {}
+
+  protected async _waitForDeployment(tx: TransactionResponse): Promise<void> {
+    // TODO: is that OK?
+    await tx.wait(this._hre.config.migrate.confirmations);
   }
 
   protected async _reportContractDeploy(tx: TransactionResponse): Promise<void> {
@@ -49,21 +42,27 @@ export class Deployer {
     // TODO: save to storage
   }
 
-  protected async createDeployTransaction(
-    args: args,
-    value: bigint,
-    ...contractParams: deployFactoryParams
+  protected async _createDeployTransaction(
+    contractParams: ContractDeployParams,
+    args: Args,
+    txOverrides: Overrides
   ): Promise<TransactionRequest> {
-    const factory = new this._hre.ethers.ContractFactory(...contractParams);
+    const factory = new this._hre.ethers.ContractFactory(contractParams.abi, contractParams.bytecode);
 
-    const tx = factory.getDeployTransaction(...args, {
-      value,
-    });
+    const tx = factory.getDeployTransaction(...args, txOverrides);
 
     return tx;
   }
 
-  private async _getSigner(from?: string): Promise<Signer> {
-    return from ? await this._getSigner(from) : (await this._hre.ethers.getSigners())[0];
+  private async _getSigner(from?: null | AddressLike): Promise<HardhatEthersSigner> {
+    if (!from) {
+      return await this._hre.ethers.provider.getSigner();
+    }
+    const address = await this._hre.ethers.resolveAddress(from, this._hre.ethers.provider);
+
+    return this._hre.ethers.provider.getSigner(address);
+
+    // TODO: find difference between this and above
+    // return this._hre.ethers.getSigner(address);
   }
 }

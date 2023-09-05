@@ -11,7 +11,7 @@ import { MigrateError } from "../errors";
 import { Reporter } from "../tools/Reporter";
 import { Adapter } from "../types/adapter";
 import { MigrateConfig, PluginName } from "../types/migrations";
-import { resolvePathToFile } from "../utils/files";
+import { resolvePathToFile } from "../utils";
 import path = require("path");
 
 export class Migrator {
@@ -22,23 +22,23 @@ export class Migrator {
 
   constructor(private _hre: HardhatRuntimeEnvironment) {
     this._config = _hre.config.migrate;
-    this._reporter = new Reporter();
+    this._reporter = new Reporter(this._hre);
 
     let adapter: Adapter;
 
     switch (this._config.pluginName) {
       case PluginName.ETHERS:
-        adapter = new EthersAdapter();
+        adapter = new EthersAdapter(this._hre);
         break;
       case PluginName.TRUFFLE:
-        adapter = new TruffleAdapter();
+        adapter = new TruffleAdapter(this._hre);
         break;
       case PluginName.TYPECHAIN:
-        adapter = new TypeChainAdapter();
+        adapter = new TypeChainAdapter(this._hre);
         break;
       case PluginName.PURE:
       default:
-        adapter = new PureAdapter();
+        adapter = new PureAdapter(this._hre);
     }
     this._deployer = new Deployer(_hre, adapter, this._reporter);
 

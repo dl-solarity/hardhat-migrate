@@ -1,19 +1,19 @@
-import { BaseContract, ContractTransactionResponse } from "ethers";
+import { BaseContract } from "ethers";
 import { Contract } from "typechain";
 import { MigrateError } from "../../errors";
 import { Adapter } from "../../types/adapter";
-import { abi } from "../../types/deployer";
+import { Abi, ContractDeployParams } from "../../types/deployer";
 
-export class TypeChainAdapter implements Adapter {
-  public getABI(instance: Contract): abi {
+export class TypeChainAdapter extends Adapter {
+  protected _getABI(instance: Contract): Abi {
     throw new MigrateError("Method not implemented.");
   }
 
-  public getByteCode(instance: Contract): string {
+  protected _getBytecode(instance: Contract): string {
     throw new MigrateError("Method not implemented.");
   }
 
-  toInstance(contract: BaseContract) {
-    return contract.getAddress();
+  public toInstance(address: string, abi: Abi): any {
+    return address;
   }
 }
