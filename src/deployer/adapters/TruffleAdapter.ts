@@ -5,11 +5,7 @@ import { Abi, ContractDeployParams } from "../../types/deployer";
 
 export class TruffleAdapter extends Adapter {
   public override getContractDeployParams(instance: any): ContractDeployParams {
-    return {
-      abi: this._getABI(instance),
-      bytecode: this._getBytecode(instance),
-      contractName: instance.contractName,
-    };
+    return { ...super.getContractDeployParams(instance), contractName: instance.contractName };
   }
   protected _getABI(instance: TruffleContract): Abi {
     return instance.abi;
