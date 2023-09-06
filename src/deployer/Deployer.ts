@@ -1,6 +1,6 @@
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
-import { AddressLike, getCreateAddress, Overrides, Signer, TransactionRequest, TransactionResponse } from "ethers";
+import { AddressLike, Overrides, Signer, TransactionRequest, TransactionResponse } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { catchError } from "../utils";
@@ -9,6 +9,7 @@ import { Adapter } from "../types/adapter";
 import { Args, ContractDeployParams } from "../types/deployer";
 import { MigrateConfig } from "../types/migrations";
 
+import { MigrateError } from "../errors";
 import { Reporter } from "../tools/reporter/Reporter";
 
 export class Deployer {
@@ -26,9 +27,9 @@ export class Deployer {
 
     await this._reportContractDeployTransactionSent(tx);
 
-    await this._waitForDeployment(tx);
+    const contractAddress = await this._waitForDeployment(tx);
 
-    return this._adapter.toInstance(getCreateAddress(tx), deployParams);
+    return this._adapter.toInstance(contractAddress, deployParams);
   }
 
   // eslint-disable-next-line
@@ -48,8 +49,14 @@ export class Deployer {
   }
 
   @catchError
-  protected async _waitForDeployment(tx: TransactionResponse): Promise<void> {
-    await tx.wait(this._config.confirmations);
+  protected async _waitForDeployment(tx: TransactionResponse): Promise<string> {
+    const receipt = await tx.wait(this._config.confirmations);
+
+    if (receipt) {
+      return receipt.contractAddress!;
+    }
+
+    throw new MigrateError("Contract deployment failed. Please check your network configuration (confirmations).");
   }
 
   protected async _reportContractDeployTransactionSent(tx: TransactionResponse): Promise<void> {
