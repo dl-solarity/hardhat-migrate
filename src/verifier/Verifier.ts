@@ -1,9 +1,11 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+
+import { callEtherscanApi, RESPONSE_OK } from "./etherscan-api";
+
 import { pluginName } from "../constants";
 import { MigrateError } from "../errors";
 import { EtherscanAPIConfig } from "../types/etherscan-api";
-import { callEtherscanApi, RESPONSE_OK } from "./etherscan-api";
 
 export class Verifier {
   constructor(private _hre: HardhatRuntimeEnvironment) {}

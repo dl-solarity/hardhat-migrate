@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { Storage } from "../../src/tools/Storage";
+import { Storage } from "../../src/tools/storage/Storage";
 import { resolvePathToFile } from "../../src/utils";
 
 describe("Storage", () => {

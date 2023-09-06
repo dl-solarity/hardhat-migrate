@@ -1,17 +1,24 @@
-import fs = require("fs");
+import { readdirSync, statSync } from "fs";
+import { basename } from "path";
+
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { pluginName } from "../constants";
+import { resolvePathToFile } from "../utils";
+
+import { MigrateError } from "../errors";
+
+import { Adapter } from "../types/adapter";
+import { MigrateConfig, PluginName } from "../types/migrations";
+
+import { Deployer } from "../deployer/Deployer";
+
 import { EthersAdapter } from "../deployer/adapters/EthersAdapter";
 import { PureAdapter } from "../deployer/adapters/PureAdapter";
 import { TruffleAdapter } from "../deployer/adapters/TruffleAdapter";
-import { Deployer } from "../deployer/Deployer";
-import { MigrateError } from "../errors";
+
 import { Reporter } from "../tools/reporter/Reporter";
-import { Adapter } from "../types/adapter";
-import { MigrateConfig, PluginName } from "../types/migrations";
-import { resolvePathToFile } from "../utils";
-import path = require("path");
 
 export class Migrator {
   private _config: MigrateConfig;
@@ -61,11 +68,11 @@ export class Migrator {
 
   private getMigrationFiles() {
     const migrationsDir = resolvePathToFile(this._config.pathToMigrations);
-    const directoryContents = fs.readdirSync(migrationsDir);
+    const directoryContents = readdirSync(migrationsDir);
 
     const files = directoryContents
       .filter((file) => {
-        const migrationNumber = parseInt(path.basename(file));
+        const migrationNumber = parseInt(basename(file));
 
         if (
           isNaN(migrationNumber) ||
@@ -78,10 +85,10 @@ export class Migrator {
           return false;
         }
 
-        return fs.statSync(resolvePathToFile(this._config.pathToMigrations, file)).isFile();
+        return statSync(resolvePathToFile(this._config.pathToMigrations, file)).isFile();
       })
       .sort((a, b) => {
-        return parseInt(path.basename(a)) - parseInt(path.basename(b));
+        return parseInt(basename(a)) - parseInt(basename(b));
       });
 
     if (files.length === 0) {

@@ -1,9 +1,10 @@
-import fs = require("fs");
+import { realpathSync } from "fs";
+import { join } from "path";
+
 import { MigrateError } from "./errors";
-import path = require("path");
 
 export function resolvePathToFile(path_: string, file_: string = ""): string {
-  return path.join(fs.realpathSync(path_), file_);
+  return join(realpathSync(path_), file_);
 }
 
 export function catchError(target: any, propertyName: string, descriptor: PropertyDescriptor) {

@@ -1,6 +1,9 @@
 import axios from "axios";
+
 import { TransactionResponse } from "ethers";
+
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { ChainRecord, defaultCurrencySymbol, predefinedChains } from "../../types/chain-id-api";
 import { ReportMessage } from "../../types/reporter";
 

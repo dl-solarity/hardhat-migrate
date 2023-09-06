@@ -1,6 +1,8 @@
+import { isAbsolute } from "path";
+
 import { HardhatPluginError } from "hardhat/plugins";
 import { ConfigExtender } from "hardhat/types";
-import { isAbsolute } from "path";
+
 import { pluginName } from "./constants";
 import { MigrateConfig, PluginName } from "./types/migrations";
 

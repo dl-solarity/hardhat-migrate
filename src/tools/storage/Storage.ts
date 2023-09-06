@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from "fs";
-import { MigrateError } from "../errors";
-import { resolvePathToFile } from "../utils";
+
+import { MigrateError } from "../../errors";
+import { resolvePathToFile } from "../../utils";
 
 // 1. Manual save
 // 2. Load config

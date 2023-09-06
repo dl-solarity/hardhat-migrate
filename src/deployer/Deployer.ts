@@ -5,11 +5,12 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { catchError } from "../utils";
 
+import { MigrateError } from "../errors";
+
 import { Adapter } from "../types/adapter";
 import { Args, ContractDeployParams } from "../types/deployer";
 import { MigrateConfig } from "../types/migrations";
 
-import { MigrateError } from "../errors";
 import { Reporter } from "../tools/reporter/Reporter";
 
 export class Deployer {
