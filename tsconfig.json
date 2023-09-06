@@ -11,7 +11,8 @@
     "skipDefaultLibCheck": true,
     "skipLibCheck": true,
     "outDir": "./dist",
-    "composite": true
+    "composite": true,
+    "experimentalDecorators": true, 
   },
   "exclude": ["./dist", "./node_modules", "./test/**/hardhat.config.ts", "./publish"]
 }

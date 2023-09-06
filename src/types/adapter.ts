@@ -32,7 +32,7 @@ export abstract class Adapter {
 
   protected abstract _getBytecode(instance: any): string;
 
-  protected _linkLib(): void;
+  // protected abstract _linkLib(): void;
 
-  private _validateBytecode(bytecode: string): boolean;
+  // protected abstract _validateBytecode(bytecode: string): boolean;
 }

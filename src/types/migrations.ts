@@ -63,5 +63,4 @@ export enum PluginName {
   ETHERS = "ethers",
   TRUFFLE = "truffle",
   PURE = "pure",
-  TYPECHAIN = "typechain",
 }
