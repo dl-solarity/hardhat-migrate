@@ -11,7 +11,7 @@ export class TruffleAdapter extends Adapter {
   }
 
   public async toInstance(address: string, params: TruffleDeployParams): Promise<TruffleContract> {
-    const Contract = this._hre.artifacts.require(params.contractName!!);
+    const Contract = this._hre.artifacts.require(params.contractName!);
 
     return Contract.at(address);
   }

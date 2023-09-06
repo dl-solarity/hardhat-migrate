@@ -21,7 +21,7 @@ describe("deployer", () => {
     contractArtifact = await this.hre.artifacts.readArtifact("Contract");
     contractWithPayableConstructorArtifact = await this.hre.artifacts.readArtifact("ContractWithPayableConstructor");
     contractWithConstructorArgumentsArtifact = await this.hre.artifacts.readArtifact(
-      "ContractWithConstructorArguments"
+      "ContractWithConstructorArguments",
     );
     libraryArtifact = await this.hre.artifacts.readArtifact("Library");
 
@@ -38,7 +38,7 @@ describe("deployer", () => {
         bytecode: contractArtifact.bytecode,
       },
       [],
-      {}
+      {},
     );
 
     const hash = (await signer.sendTransaction(tx)).hash;
@@ -55,7 +55,7 @@ describe("deployer", () => {
         bytecode: contractWithPayableConstructorArtifact.bytecode,
       },
       [],
-      { value: BigInt(1) }
+      { value: BigInt(1) },
     );
 
     const hash = (await signer.sendTransaction(tx)).hash;
@@ -76,7 +76,7 @@ describe("deployer", () => {
         bytecode: contractWithConstructorArgumentsArtifact.bytecode,
       },
       ["Hello, world!"],
-      {}
+      {},
     );
 
     const hash = (await signer.sendTransaction(tx)).hash;
@@ -96,7 +96,7 @@ describe("deployer", () => {
     const tx = await deployer._createDeployTransaction(
       { abi: libraryArtifact.abi, bytecode: libraryArtifact.bytecode },
       [],
-      {}
+      {},
     );
 
     const sentTx = await signer.sendTransaction(tx);

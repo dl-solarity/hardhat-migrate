@@ -33,7 +33,7 @@ export async function callEtherscanApi(etherscanApi: EtherscanAPIConfig, params:
     const responseBodyText = await response.body.text();
     throw new NomicLabsHardhatPluginError(
       pluginName,
-      `Etherscan API call failed with status ${response.statusCode}, response: ${responseBodyText}`
+      `Etherscan API call failed with status ${response.statusCode}, response: ${responseBodyText}`,
     );
   }
 

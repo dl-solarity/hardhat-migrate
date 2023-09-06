@@ -1,5 +1,4 @@
 import fs = require("fs");
-import { FunctionFragment } from "ethers";
 import { MigrateError } from "./errors";
 import path = require("path");
 

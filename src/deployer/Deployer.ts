@@ -31,13 +31,14 @@ export class Deployer {
     return this._adapter.toInstance(getCreateAddress(tx), deployParams);
   }
 
+  // eslint-disable-next-line
   public async deploy2<T>(args: Args, txOverrides: Overrides = {}): Promise<any> {}
 
   @catchError
   protected async _deploy(
     deployParams: ContractDeployParams,
     args: Args,
-    txOverrides: Overrides
+    txOverrides: Overrides,
   ): Promise<TransactionResponse> {
     const signer: Signer = await this._getSigner(txOverrides.from);
 
@@ -61,7 +62,7 @@ export class Deployer {
   protected async _createDeployTransaction(
     contractParams: ContractDeployParams,
     args: Args,
-    txOverrides: Overrides
+    txOverrides: Overrides,
   ): Promise<TransactionRequest> {
     const factory = new this._hre.ethers.ContractFactory(contractParams.abi, contractParams.bytecode);
 

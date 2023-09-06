@@ -3,19 +3,24 @@ import { Storage } from "../../src/tools/Storage";
 import { resolvePathToFile } from "../../src/utils";
 
 describe("Storage", () => {
-  let path: string;
-
+  const path = resolvePathToFile(__dirname, "storage");
   let storage: Storage;
 
   before(() => {
-    process.chdir(__dirname);
+    storage = Storage.getInstance();
 
-    path = resolvePathToFile(__dirname, "storage");
+    process.chdir(__dirname);
   });
 
   beforeEach(() => {
-    storage = Storage.getInstance();
     storage.clear();
+  });
+
+  describe("get()/set()", () => {
+    it("should correctly set and get a value", () => {
+      storage.set("test", "test");
+      assert.strictEqual(storage.get("test"), "test");
+    });
   });
 
   describe("saveToDisk()/loadFromDisk()", () => {
@@ -32,13 +37,6 @@ describe("Storage", () => {
 
       storage.set("test", "test");
       storage.saveToDisk();
-    });
-  });
-
-  describe("get()/set()", () => {
-    it("should correctly set and get a value", () => {
-      storage.set("test", "test");
-      assert.strictEqual(storage.get("test"), "test");
     });
   });
 

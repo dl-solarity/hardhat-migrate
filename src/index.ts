@@ -46,7 +46,7 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
     "only",
     "The number of the migration that will be applied. Overrides from and to parameters.",
     undefined,
-    types.int
+    types.int,
   )
   .addOptionalParam("skip", "The number of migration to skip. Overrides only parameter.", undefined, types.int)
   .addFlag("verify", "The flag indicating whether the verification of the contract is needed.")
@@ -55,13 +55,13 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
     "confirmations",
     "The number defining after how many blocks the verification should start.",
     undefined,
-    types.int
+    types.int,
   )
   .addOptionalParam("attempts", "The number of attempts to verify the contract.", undefined, types.int)
   .addOptionalParam(
     "pathToMigrations",
     "The path to the folder with the specified migrations.",
     undefined,
-    types.string
+    types.string,
   )
   .setAction(migrate);

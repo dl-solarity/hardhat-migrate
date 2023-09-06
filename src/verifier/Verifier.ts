@@ -37,7 +37,7 @@ export class Verifier {
   private async linkProxyWithImplementationAbi(
     etherscanApi: EtherscanAPIConfig,
     proxyAddress: string,
-    implAddress: string
+    implAddress: string,
   ) {
     console.log(`Linking proxy ${proxyAddress} with implementation`);
     const params = {
@@ -64,7 +64,7 @@ export class Verifier {
     } else {
       throw new NomicLabsHardhatPluginError(
         pluginName,
-        `Failed to link proxy ${proxyAddress} with its implementation. Reason: ${responseBody.result}`
+        `Failed to link proxy ${proxyAddress} with its implementation. Reason: ${responseBody.result}`,
       );
     }
 

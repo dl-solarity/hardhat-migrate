@@ -7,7 +7,10 @@ import { ReportMessage } from "../../types/reporter";
 export class Reporter {
   public nativeSymbol = defaultCurrencySymbol;
   // TODO: or make class static?
-  constructor(private _hre: HardhatRuntimeEnvironment, private _verbose = false) {}
+  constructor(
+    private _hre: HardhatRuntimeEnvironment,
+    private _verbose = false,
+  ) {}
 
   public async init() {
     this.nativeSymbol = await this._getNativeSymbol();
@@ -20,7 +23,7 @@ export class Reporter {
   }
 
   public static reportDeploy(tx: TransactionResponse) {
-    console.log(`Deploying contract...`);
+    console.log("Deploying contract...");
 
     console.log(`transactionHash: ${tx.hash}`);
 

@@ -1,9 +1,8 @@
-import { BaseContract } from "ethers";
 import { Adapter } from "../../types/adapter";
-import { Abi, ContractDeployParams } from "../../types/deployer";
+import { Abi } from "../../types/deployer";
 
 export class PureAdapter extends Adapter {
-  public toInstance(address: string, params: ContractDeployParams): any {
+  public toInstance(address: string): any {
     return address;
   }
 

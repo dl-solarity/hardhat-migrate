@@ -92,19 +92,11 @@ describe("deployer", () => {
       });
 
       it("should deploy contract", async function () {
-        const contractAddress = await deployer.deploy(contractArtifact, [], {});
-
-        expect(contractAddress).to.be.a("string");
+        const contract: TruffleContract = await deployer.deploy(contractArtifact, [], {});
       });
 
       it("should deploy contract with constructor arguments", async function () {
-        const contractAddress = await deployer.deploy(contractWithConstructorArtifact, ["test"], {});
-
-        const contract = new this.hre.ethers.Contract(
-          contractAddress,
-          contractWithConstructorABI,
-          this.hre.ethers.provider
-        );
+        const contract: TruffleContract = await deployer.deploy(contractWithConstructorArtifact, ["test"], {});
 
         const name = await contract.name();
 
@@ -162,7 +154,7 @@ describe("deployer", () => {
       });
     });
 
-    describe.only("with typechain", () => {
+    describe("with typechain", () => {
       describe("ethers", () => {
         useEnvironment("minimal-typechain-ethers");
 

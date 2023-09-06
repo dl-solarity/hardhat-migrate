@@ -24,7 +24,7 @@ export const migrateConfigExtender: ConfigExtender = (resolvedConfig, config) =>
 
 export const mergeConfigs = (
   config: Partial<MigrateConfig> | undefined,
-  defaultConfig: MigrateConfig
+  defaultConfig: MigrateConfig,
 ): MigrateConfig => {
   if (config === undefined) {
     return defaultConfig;
@@ -34,10 +34,7 @@ export const mergeConfigs = (
     throw new HardhatPluginError(pluginName, "config.migrate.pathToMigrations must be a relative path");
   }
 
-  const { cloneDeep } = require("lodash");
-  const customConfig = cloneDeep(config);
-
-  return { ...defaultConfig, ...customConfig };
+  return { ...defaultConfig, ...config };
 };
 
 const isRelativePath = (path?: string): boolean => path === undefined || !isAbsolute(path);

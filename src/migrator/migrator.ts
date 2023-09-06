@@ -44,6 +44,7 @@ export class Migrator {
   public async migrate() {
     for (const element of this._migrationFiles) {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const migration = require(resolvePathToFile(this._config.pathToMigrations, element));
 
         await migration(this._deployer);
@@ -62,9 +63,9 @@ export class Migrator {
     const migrationsDir = resolvePathToFile(this._config.pathToMigrations);
     const directoryContents = fs.readdirSync(migrationsDir);
 
-    let files = directoryContents
+    const files = directoryContents
       .filter((file) => {
-        let migrationNumber = parseInt(path.basename(file));
+        const migrationNumber = parseInt(path.basename(file));
 
         if (
           isNaN(migrationNumber) ||
