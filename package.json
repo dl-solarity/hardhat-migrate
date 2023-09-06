@@ -2,16 +2,14 @@
   "name": "@solarity/hardhat-migrate",
   "version": "2.0.0",
   "description": "Automatic deployment and verification of smart contracts",
-  "scripts": {
-    "install": "npx husky install",
-    "compile": "tsc --build .",
-    "build-local": "npm run compile && npm run lint-fix && bash ./scripts/build-local.sh",
-    "clean": "bash ./scripts/clean.sh",
-    "test": "mocha --recursive 'test/**/*.ts' --exit",
-    "sol-test": "cd sample-project/ && npx hardhat test && cd ../",
-    "lint-fix": "eslint \"src/**/*.{js,ts}\" --cache --fix",
-    "publish-to-npm": "npm run compile && npm run lint-fix && bash ./scripts/publish.sh"
-  },
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "files": [
+    "dist/src/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dl-solarity/hardhat-migrate.git"
@@ -32,6 +30,20 @@
     "url": "https://github.com/dl-solarity/hardhat-migrate/issues"
   },
   "homepage": "https://github.com/dl-solarity/hardhat-migrate#readme",
+  "scripts": {
+    "postinstall": "npx husky install",
+    "prepack": "pinst --disable",
+    "postpack": "pinst --enable",
+    "build": "tsc --build .",
+    "test": "mocha --recursive 'test/**/*.ts' --exit",
+    "sol-test": "cd sample-project/ && npx hardhat test && cd ../",
+    "lint-fix": "eslint \"src/**/*.{js,ts}\" --cache --fix",
+    "publish-to-npm": "npm run build && npm run lint-fix && npm publish ./ --access public"
+  },
+  "dependencies": {
+    "@nomiclabs/hardhat-etherscan": "3.1.7",
+    "axios": "1.5.0"
+  },
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.4",
     "@nomiclabs/hardhat-etherscan": "^3.1.7",
@@ -44,7 +56,6 @@
     "@types/mocha": "^9.1.0",
     "@typescript-eslint/eslint-plugin": "^6.6.0",
     "@typescript-eslint/parser": "^6.6.0",
-    "axios": "^1.5.0",
     "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
     "eslint": "^8.48.0",
@@ -54,6 +65,7 @@
     "ethers": "^6.7.1",
     "hardhat": "^2.17.0",
     "mocha": "^10.0.0",
+    "pinst": "^3.0.0",
     "prettier": "^3.0.3",
     "ts-node": "^8.1.0",
     "typechain": "^8.3.1",
