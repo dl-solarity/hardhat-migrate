@@ -19,12 +19,12 @@ import { PureAdapter } from "../deployer/adapters/PureAdapter";
 import { TruffleAdapter } from "../deployer/adapters/TruffleAdapter";
 
 import { Reporter } from "../tools/reporter/Reporter";
+import { FileHistory } from "../tools/storage/FileHistory";
 
 export class Migrator {
   private _config: MigrateConfig;
   private _deployer: Deployer;
   private _reporter: Reporter;
-  private _migrationFiles: string[];
 
   constructor(private _hre: HardhatRuntimeEnvironment) {
     this._config = _hre.config.migrate;
@@ -44,12 +44,18 @@ export class Migrator {
         adapter = new PureAdapter(this._hre);
     }
     this._deployer = new Deployer(_hre, adapter, this._reporter);
-
-    this._migrationFiles = this.getMigrationFiles();
   }
 
   public async migrate() {
-    for (const element of this._migrationFiles) {
+    const fileHistory = new FileHistory(this._hre, this._config.pathToMigrations);
+
+    const migrationsDifferent = fileHistory.getMigrationFilesDifferent(
+      resolvePathToFile(this._config.pathToMigrations),
+    );
+
+    const migrationFiles = this.getMigrationFiles(migrationsDifferent);
+
+    for (const element of migrationFiles) {
       try {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const migration = require(resolvePathToFile(this._config.pathToMigrations, element));
@@ -57,7 +63,6 @@ export class Migrator {
         await migration(this._deployer);
       } catch (e: any) {
         if (e instanceof MigrateError) {
-          console.log(e);
           throw new HardhatPluginError(pluginName, e.message);
         }
 
@@ -66,7 +71,8 @@ export class Migrator {
     }
   }
 
-  private getMigrationFiles() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private getMigrationFiles(filesToInclude?: string[]) {
     const migrationsDir = resolvePathToFile(this._config.pathToMigrations);
     const directoryContents = readdirSync(migrationsDir);
 

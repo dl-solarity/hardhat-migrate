@@ -7,10 +7,10 @@ import { resolvePathToFile } from "../../utils";
 // 2. Load config
 // 3. Types. -- *
 
-export class Storage {
+export class ManualStorage {
   private fileName = ".storage.json";
 
-  private static instance: Storage;
+  private static instance: ManualStorage;
 
   private _path?: string;
 
@@ -20,12 +20,12 @@ export class Storage {
     this._storage = {};
   }
 
-  public static getInstance(): Storage {
-    if (!Storage.instance) {
-      Storage.instance = new Storage();
+  public static getInstance(): ManualStorage {
+    if (!ManualStorage.instance) {
+      ManualStorage.instance = new ManualStorage();
     }
 
-    return Storage.instance;
+    return ManualStorage.instance;
   }
 
   public loadFromDisk(path: string) {

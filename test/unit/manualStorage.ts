@@ -1,13 +1,13 @@
 import { assert } from "chai";
-import { Storage } from "../../src/tools/storage/Storage";
+import { ManualStorage } from "../../src/tools/storage/ManualStorage";
 import { resolvePathToFile } from "../../src/utils";
 
-describe("Storage", () => {
+describe("ManualStorage", () => {
   const path = resolvePathToFile(__dirname, "storage");
-  let storage: Storage;
+  let storage: ManualStorage;
 
   before(() => {
-    storage = Storage.getInstance();
+    storage = ManualStorage.getInstance();
 
     process.chdir(__dirname);
   });

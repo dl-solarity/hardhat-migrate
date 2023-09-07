@@ -1,8 +1,10 @@
+import { join } from "path";
+
 import { assert, expect } from "chai";
+
 import { HardhatPluginError } from "hardhat/plugins";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 
-import path from "path";
 import { MigrateConfig, PluginName } from "../../src/types/migrations";
 import { useEnvironment } from "../helpers";
 
@@ -63,7 +65,7 @@ describe("config", () => {
     it("should throw if pathToMigrations is not a relevant path", async function () {
       expect(() => {
         const prefix = "hardhat-project-";
-        process.chdir(path.join(__dirname, "../", "fixture-projects", prefix + fixtureProjectName));
+        process.chdir(join(__dirname, "../", "fixture-projects", prefix + fixtureProjectName));
         process.env.HARDHAT_NETWORK = "hardhat";
 
         require("hardhat");
