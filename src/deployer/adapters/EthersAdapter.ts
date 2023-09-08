@@ -1,18 +1,28 @@
-import { BaseContract, ContractFactory } from "ethers";
+import { Signer } from "ethers";
 
-import { Adapter } from "../../types/adapter";
-import { Abi, ContractDeployParams } from "../../types/deployer";
+import { Adapter, EthersFactory } from "../../types/adapter";
+import { Abi } from "../../types/deployer";
+
+import { catchError } from "../../utils";
 
 export class EthersAdapter extends Adapter {
-  public toInstance(address: string, params: ContractDeployParams): BaseContract {
-    return new BaseContract(address, params.abi, this._hre.ethers.provider);
+  @catchError
+  public linkLibrary(library: any, instance: any): void {
+    // TODO: Implement
   }
 
-  protected _getABI(instance: ContractFactory): Abi {
-    return instance.interface.formatJson();
+  @catchError
+  public toInstance<A, I>(instance: EthersFactory<A, I>, address: string, signer?: Signer | null): I {
+    return instance.connect(address, signer);
   }
 
-  protected _getBytecode(instance: ContractFactory): string {
+  @catchError
+  protected _getABI<A, I>(instance: EthersFactory<A, I>): Abi {
+    return instance.abi;
+  }
+
+  @catchError
+  protected _getBytecode<A, I>(instance: EthersFactory<A, I>): string {
     return instance.bytecode;
   }
 }

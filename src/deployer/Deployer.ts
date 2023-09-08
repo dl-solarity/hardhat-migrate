@@ -1,90 +1,48 @@
-import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import { DeployerCore } from "./DeployerCore";
 
-import { AddressLike, Overrides, Signer, TransactionRequest, TransactionResponse } from "ethers";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { EthersAdapter } from "./adapters/EthersAdapter";
+import { TruffleAdapter } from "./adapters/TruffleAdapter";
 
 import { catchError } from "../utils";
 
-import { MigrateError } from "../errors";
-
-import { Adapter } from "../types/adapter";
-import { Args, ContractDeployParams } from "../types/deployer";
-import { MigrateConfig } from "../types/migrations";
-
-import { Reporter } from "../tools/reporter/Reporter";
+import { PluginName } from "../types/migrations";
+import { Adapter, Instance } from "../types/adapter";
 
 export class Deployer {
-  private _config: MigrateConfig;
-
-  constructor(private _hre: HardhatRuntimeEnvironment, private _adapter: Adapter, private _reporter: Reporter) {
-    this._config = _hre.config.migrate;
+  constructor(
+    private _hre: any,
+    private _deployerType: PluginName,
+    private _adapter: Adapter = new EthersAdapter(_hre),
+    private _core = new DeployerCore(_hre),
+  ) {
+    this._setAdapter();
   }
 
   @catchError
-  public async deploy(instance: any, args: Args, txOverrides: Overrides = {}): Promise<any> {
-    const deployParams = this._adapter.getContractDeployParams(instance);
+  public async deploy<A, I>(contract: Instance<A, I>, args: any[], txOverrides: any = {}): Promise<I> {
+    const deploymentArgs = this._adapter.getContractDeployParams(contract);
 
-    const tx = await this._deploy(deployParams, args, txOverrides);
+    const contractAddress = await this._core.deploy(deploymentArgs, args, txOverrides);
 
-    await this._reportContractDeployTransactionSent(tx);
-
-    const contractAddress = await this._waitForDeployment(tx);
-
-    return this._adapter.toInstance(contractAddress, deployParams);
-  }
-
-  // eslint-disable-next-line
-  public async deploy2<T>(args: Args, txOverrides: Overrides = {}): Promise<any> {}
-
-  @catchError
-  protected async _deploy(
-    deployParams: ContractDeployParams,
-    args: Args,
-    txOverrides: Overrides,
-  ): Promise<TransactionResponse> {
-    const signer: Signer = await this._getSigner(txOverrides.from);
-
-    const tx = await this._createDeployTransaction(deployParams, args, txOverrides);
-
-    return await signer.sendTransaction(tx);
+    return this._adapter.toInstance(contract, contractAddress);
   }
 
   @catchError
-  protected async _waitForDeployment(tx: TransactionResponse): Promise<string> {
-    const receipt = await tx.wait(this._config.confirmations);
+  public link(library: any, instance: any): void {
+    this._adapter.linkLibrary(library, instance);
+  }
 
-    if (receipt) {
-      return receipt.contractAddress!;
+  @catchError
+  private _setAdapter() {
+    switch (this._deployerType) {
+      case PluginName.ETHERS:
+        this._adapter = new EthersAdapter(this._hre);
+        break;
+      case PluginName.TRUFFLE:
+        this._adapter = new TruffleAdapter(this._hre);
+        break;
+      default:
+        throw new Error(`Invalid deployer type: ${this._deployerType}`);
     }
-
-    throw new MigrateError("Contract deployment failed. Please check your network configuration (confirmations).");
-  }
-
-  protected async _reportContractDeployTransactionSent(tx: TransactionResponse): Promise<void> {
-    Reporter.reportDeploy(tx);
-
-    // TODO: save to storage
-  }
-
-  @catchError
-  protected async _createDeployTransaction(
-    contractParams: ContractDeployParams,
-    args: Args,
-    txOverrides: Overrides,
-  ): Promise<TransactionRequest> {
-    const factory = new this._hre.ethers.ContractFactory(contractParams.abi, contractParams.bytecode);
-
-    return await factory.getDeployTransaction(...args, txOverrides);
-  }
-
-  @catchError
-  private async _getSigner(from?: null | AddressLike): Promise<HardhatEthersSigner> {
-    if (!from) {
-      return await this._hre.ethers.provider.getSigner();
-    }
-
-    const address = await this._hre.ethers.resolveAddress(from, this._hre.ethers.provider);
-
-    return await this._hre.ethers.provider.getSigner(address);
   }
 }
