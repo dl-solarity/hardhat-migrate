@@ -25,7 +25,7 @@ type ContractWithPayableConstructorConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ContractWithPayableConstructorConstructorParams
+  xs: ContractWithPayableConstructorConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ContractWithPayableConstructor__factory extends ContractFactory {

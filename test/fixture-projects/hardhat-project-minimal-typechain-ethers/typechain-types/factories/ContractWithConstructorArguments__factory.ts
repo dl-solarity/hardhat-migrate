@@ -44,7 +44,7 @@ type ContractWithConstructorArgumentsConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ContractWithConstructorArgumentsConstructorParams
+  xs: ContractWithConstructorArgumentsConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ContractWithConstructorArguments__factory extends ContractFactory {
@@ -58,7 +58,7 @@ export class ContractWithConstructorArguments__factory extends ContractFactory {
 
   override getDeployTransaction(
     _name: string,
-    overrides?: NonPayableOverrides & { from?: string }
+    overrides?: NonPayableOverrides & { from?: string },
   ): Promise<ContractDeployTransaction> {
     return super.getDeployTransaction(_name, overrides || {});
   }

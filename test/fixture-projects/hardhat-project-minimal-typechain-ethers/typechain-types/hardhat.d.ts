@@ -15,60 +15,60 @@ declare module "hardhat/types/runtime" {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {
     getContractFactory(
       name: "ContractWithConstructorArguments",
-      signerOrOptions?: ethers.Signer | FactoryOptions
+      signerOrOptions?: ethers.Signer | FactoryOptions,
     ): Promise<Contracts.ContractWithConstructorArguments__factory>;
     getContractFactory(
       name: "ContractWithPayableConstructor",
-      signerOrOptions?: ethers.Signer | FactoryOptions
+      signerOrOptions?: ethers.Signer | FactoryOptions,
     ): Promise<Contracts.ContractWithPayableConstructor__factory>;
     getContractFactory(
       name: "Library",
-      signerOrOptions?: ethers.Signer | FactoryOptions
+      signerOrOptions?: ethers.Signer | FactoryOptions,
     ): Promise<Contracts.Library__factory>;
 
     getContractAt(
       name: "ContractWithConstructorArguments",
       address: string | ethers.Addressable,
-      signer?: ethers.Signer
+      signer?: ethers.Signer,
     ): Promise<Contracts.ContractWithConstructorArguments>;
     getContractAt(
       name: "ContractWithPayableConstructor",
       address: string | ethers.Addressable,
-      signer?: ethers.Signer
+      signer?: ethers.Signer,
     ): Promise<Contracts.ContractWithPayableConstructor>;
     getContractAt(
       name: "Library",
       address: string | ethers.Addressable,
-      signer?: ethers.Signer
+      signer?: ethers.Signer,
     ): Promise<Contracts.Library>;
 
     deployContract(
       name: "ContractWithConstructorArguments",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
     ): Promise<Contracts.ContractWithConstructorArguments>;
     deployContract(
       name: "ContractWithPayableConstructor",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
     ): Promise<Contracts.ContractWithPayableConstructor>;
     deployContract(
       name: "Library",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
     ): Promise<Contracts.Library>;
 
     deployContract(
       name: "ContractWithConstructorArguments",
       args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
     ): Promise<Contracts.ContractWithConstructorArguments>;
     deployContract(
       name: "ContractWithPayableConstructor",
       args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
     ): Promise<Contracts.ContractWithPayableConstructor>;
     deployContract(
       name: "Library",
       args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
     ): Promise<Contracts.Library>;
 
     // default types
@@ -77,13 +77,13 @@ declare module "hardhat/types/runtime" {
     getContractAt(
       nameOrAbi: string | any[],
       address: string | ethers.Addressable,
-      signer?: ethers.Signer
+      signer?: ethers.Signer,
     ): Promise<ethers.Contract>;
     deployContract(name: string, signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<ethers.Contract>;
     deployContract(
       name: string,
       args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
     ): Promise<ethers.Contract>;
   }
 }

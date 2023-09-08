@@ -34,7 +34,7 @@ export class Library__factory extends ContractFactory {
   }
 
   override getDeployTransaction(
-    overrides?: NonPayableOverrides & { from?: string }
+    overrides?: NonPayableOverrides & { from?: string },
   ): Promise<ContractDeployTransaction> {
     return super.getDeployTransaction(overrides || {});
   }

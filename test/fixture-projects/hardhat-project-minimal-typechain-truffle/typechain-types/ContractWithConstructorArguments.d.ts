@@ -23,7 +23,7 @@ export interface ContractWithConstructorArgumentsInstance extends Truffle.Contra
   getPastEvents(
     event: string,
     options: PastEventOptions,
-    callback: (error: Error, event: EventData) => void
+    callback: (error: Error, event: EventData) => void,
   ): Promise<EventData[]>;
   getPastEvents(event: string, options: PastEventOptions): Promise<EventData[]>;
   getPastEvents(event: string, callback: (error: Error, event: EventData) => void): Promise<EventData[]>;
