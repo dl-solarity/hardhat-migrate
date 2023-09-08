@@ -9,41 +9,20 @@ import { resolvePathToFile } from "../utils";
 
 import { MigrateError } from "../errors";
 
-import { Adapter } from "../types/adapter";
-import { MigrateConfig, PluginName } from "../types/migrations";
+import { MigrateConfig } from "../types/migrations";
 
 import { Deployer } from "../deployer/Deployer";
 
-import { EthersAdapter } from "../deployer/adapters/EthersAdapter";
-import { PureAdapter } from "../deployer/adapters/PureAdapter";
-import { TruffleAdapter } from "../deployer/adapters/TruffleAdapter";
-
-import { Reporter } from "../tools/reporter/Reporter";
 import { FileHistory } from "../tools/storage/FileHistory";
 
 export class Migrator {
-  private _config: MigrateConfig;
   private _deployer: Deployer;
-  private _reporter: Reporter;
 
-  constructor(private _hre: HardhatRuntimeEnvironment) {
-    this._config = _hre.config.migrate;
-    this._reporter = new Reporter(this._hre);
-
-    let adapter: Adapter;
-
-    switch (this._config.pluginName) {
-      case PluginName.ETHERS:
-        adapter = new EthersAdapter(this._hre);
-        break;
-      case PluginName.TRUFFLE:
-        adapter = new TruffleAdapter(this._hre);
-        break;
-      case PluginName.PURE:
-      default:
-        adapter = new PureAdapter(this._hre);
-    }
-    this._deployer = new Deployer(_hre, adapter, this._reporter);
+  constructor(
+    private _hre: HardhatRuntimeEnvironment,
+    private _config: MigrateConfig = _hre.config.migrate,
+  ) {
+    this._deployer = new Deployer(_hre, _config.pluginName);
   }
 
   public async migrate() {
