@@ -54,10 +54,13 @@ export class Migrator {
     );
 
     const migrationFiles = this.getMigrationFiles(migrationsDifferent);
+    // TODO: add more logic to sort migration files starting with the first one modified
+    // Or as idea we may generate a file replacing the code of deployer with the address of already deployed contract
+    // Or we may create custom comment in the migration file that specifies the place where the migrator should start
 
     for (const element of migrationFiles) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        // eslint-disable-next-line
         const migration = require(resolvePathToFile(this._config.pathToMigrations, element));
 
         await migration(this._deployer);
@@ -71,6 +74,7 @@ export class Migrator {
     }
   }
 
+  // TODO: add files from parameter to migrationFiles forcibly
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private getMigrationFiles(filesToInclude?: string[]) {
     const migrationsDir = resolvePathToFile(this._config.pathToMigrations);
