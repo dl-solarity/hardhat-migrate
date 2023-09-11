@@ -1,8 +1,12 @@
 import { BytesLike, ContractFactory, Interface, InterfaceAbi } from "ethers";
 
+export type Abi = Interface | InterfaceAbi;
+
+export type Bytecode = BytesLike | { object: string };
+
 export interface ContractDeployParams {
-  abi: Interface | InterfaceAbi;
-  bytecode: BytesLike | { object: string };
+  abi: Abi;
+  bytecode: Bytecode;
 }
 
 export interface TruffleDeployParams extends ContractDeployParams {
@@ -10,9 +14,5 @@ export interface TruffleDeployParams extends ContractDeployParams {
 }
 
 export type DeployFactoryParams = ConstructorParameters<typeof ContractFactory>;
-
-export type Abi = DeployFactoryParams[0];
-
-export type Bytecode = DeployFactoryParams[1];
 
 export type Args = Parameters<ContractFactory["getDeployTransaction"]>;

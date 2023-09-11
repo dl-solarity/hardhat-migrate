@@ -36,7 +36,7 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
 //   try {
 //     require(id);
 //     return true;
-//   } catch (e: any) {
+//   } catch (e: unknown) {
 //     // do nothing
 //   }
 //   return false;

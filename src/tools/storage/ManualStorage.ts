@@ -34,8 +34,12 @@ export class ManualStorage {
     if (path && existsSync(this._path)) {
       try {
         this._storage = JSON.parse(readFileSync(this._path, { encoding: "utf8", flag: "r" }));
-      } catch (e: any) {
-        throw new MigrateError(`Error reading storage file: ${e.message}`);
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          throw new MigrateError(`Error reading storage file: ${e.message}`);
+        }
+
+        throw e;
       }
     }
   }
@@ -50,8 +54,12 @@ export class ManualStorage {
         flag: "w",
         encoding: "utf8",
       });
-    } catch (e: any) {
-      throw new MigrateError(`Error writing storage file: ${e.message}`);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        throw new MigrateError(`Error writing storage file: ${e.message}`);
+      }
+
+      throw e;
     }
   }
 

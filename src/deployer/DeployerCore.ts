@@ -7,9 +7,10 @@ import { catchError } from "../utils";
 
 import { MigrateError } from "../errors";
 
-import { MigrateConfig } from "../types/migrations";
 import { Args, ContractDeployParams } from "../types/deployer";
+import { MigrateConfig } from "../types/migrations";
 
+@catchError
 export class DeployerCore {
   private _config: MigrateConfig;
 
@@ -17,21 +18,20 @@ export class DeployerCore {
     this._config = _hre.config.migrate;
   }
 
-  @catchError
   public async deploy(deployParams: ContractDeployParams, args: Args, txOverrides: Overrides = {}): Promise<string> {
     const tx = await this._deploy(deployParams, args, txOverrides);
 
-    const contractAddress = (
-      await Promise.all([this._reportContractDeployTransactionSent(tx), this._waitForDeployment(tx)])
-    )[1];
+    const [, contractAddress] = await Promise.all([
+      this._reportContractDeployTransactionSent(tx),
+      this._waitForDeployment(tx),
+    ]);
 
     return contractAddress;
   }
 
-  @catchError
   public async getSigner(from?: null | AddressLike): Promise<HardhatEthersSigner> {
     if (!from) {
-      return await this._hre.ethers.provider.getSigner();
+      return this._hre.ethers.provider.getSigner();
     }
 
     const address = await this._hre.ethers.resolveAddress(from, this._hre.ethers.provider);
@@ -39,7 +39,6 @@ export class DeployerCore {
     return this._hre.ethers.provider.getSigner(address);
   }
 
-  @catchError
   protected async _deploy(
     deployParams: ContractDeployParams,
     args: Args,
@@ -52,7 +51,6 @@ export class DeployerCore {
     return signer.sendTransaction(tx);
   }
 
-  @catchError
   protected async _waitForDeployment(tx: TransactionResponse): Promise<string> {
     const receipt = await tx.wait(this._config.confirmations);
 
@@ -63,12 +61,11 @@ export class DeployerCore {
     throw new MigrateError("Contract deployment failed. Please check your network configuration (confirmations).");
   }
 
-  @catchError
+  // eslint-disable-next-line
   protected async _reportContractDeployTransactionSent(tx: TransactionResponse): Promise<void> {
     // TODO: implement when reporter is ready
   }
 
-  @catchError
   protected async _createDeployTransaction(
     contractParams: ContractDeployParams,
     args: Args,

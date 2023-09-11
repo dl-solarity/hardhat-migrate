@@ -22,7 +22,7 @@ export class Verifier {
         //   SomeLibrary: "0x...",
         // },
       });
-    } catch (e: any) {
+    } catch (e: unknown) {
       throw new MigrateError(`Error verifying contract: ${e.message}`);
     }
   }

@@ -5,35 +5,21 @@ import { TruffleAdapter } from "./adapters/TruffleAdapter";
 
 import { catchError } from "../utils";
 
-import { PluginName } from "../types/migrations";
+import { Overrides } from "ethers";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { Adapter, Instance } from "../types/adapter";
+import { Args } from "../types/deployer";
+import { PluginName } from "../types/migrations";
 
+@catchError
 export class Deployer {
+  private _adapter: Adapter;
+
   constructor(
-    private _hre: any,
+    private _hre: HardhatRuntimeEnvironment,
     private _deployerType: PluginName,
-    private _adapter: Adapter = new EthersAdapter(_hre),
     private _core = new DeployerCore(_hre),
   ) {
-    this._setAdapter();
-  }
-
-  @catchError
-  public async deploy<A, I>(contract: Instance<A, I>, args: any[], txOverrides: any = {}): Promise<I> {
-    const deploymentArgs = this._adapter.getContractDeployParams(contract);
-
-    const contractAddress = await this._core.deploy(deploymentArgs, args, txOverrides);
-
-    return this._adapter.toInstance(contract, contractAddress);
-  }
-
-  @catchError
-  public link(library: any, instance: any): void {
-    this._adapter.linkLibrary(library, instance);
-  }
-
-  @catchError
-  private _setAdapter() {
     switch (this._deployerType) {
       case PluginName.ETHERS:
         this._adapter = new EthersAdapter(this._hre);
@@ -44,5 +30,18 @@ export class Deployer {
       default:
         throw new Error(`Invalid deployer type: ${this._deployerType}`);
     }
+  }
+
+  public async deploy<A, I>(contract: Instance<A, I>, args: Args, txOverrides: Overrides = {}): Promise<I> {
+    const deploymentArgs = this._adapter.getContractDeployParams(contract);
+
+    const contractAddress = await this._core.deploy(deploymentArgs, args, txOverrides);
+
+    return this._adapter.toInstance(contract, contractAddress);
+  }
+
+  // eslint-disable-next-line
+  public link(library: any, instance: any): void {
+    this._adapter.linkLibrary(library, instance);
   }
 }

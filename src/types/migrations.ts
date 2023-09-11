@@ -62,5 +62,4 @@ export interface MigrateConfig {
 export enum PluginName {
   ETHERS = "ethers",
   TRUFFLE = "truffle",
-  PURE = "pure",
 }

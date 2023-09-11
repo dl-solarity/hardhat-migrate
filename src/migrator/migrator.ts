@@ -13,39 +13,29 @@ import { MigrateConfig } from "../types/migrations";
 
 import { Deployer } from "../deployer/Deployer";
 
-import { FileHistory } from "../tools/storage/FileHistory";
-
 export class Migrator {
   private _deployer: Deployer;
+  private _migrationFiles: string[];
 
   constructor(
-    private _hre: HardhatRuntimeEnvironment,
+    _hre: HardhatRuntimeEnvironment,
     private _config: MigrateConfig = _hre.config.migrate,
   ) {
     this._deployer = new Deployer(_hre, _config.pluginName);
+
+    this._migrationFiles = this.getMigrationFiles();
   }
 
   public async migrate() {
-    const fileHistory = new FileHistory(this._hre, this._config.pathToMigrations);
-
-    const migrationsDifferent = fileHistory.getMigrationFilesDifferent(
-      resolvePathToFile(this._config.pathToMigrations),
-    );
-
-    const migrationFiles = this.getMigrationFiles(migrationsDifferent);
-    // TODO: add more logic to sort migration files starting with the first one modified
-    // Or as idea we may generate a file replacing the code of deployer with the address of already deployed contract
-    // Or we may create custom comment in the migration file that specifies the place where the migrator should start
-
-    for (const element of migrationFiles) {
+    for (const element of this._migrationFiles) {
       try {
         // eslint-disable-next-line
         const migration = require(resolvePathToFile(this._config.pathToMigrations, element));
 
         await migration(this._deployer);
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (e instanceof MigrateError) {
-          throw new HardhatPluginError(pluginName, e.message);
+          throw new HardhatPluginError(pluginName, e.message, e);
         }
 
         throw e;
@@ -53,9 +43,7 @@ export class Migrator {
     }
   }
 
-  // TODO: add files from parameter to migrationFiles forcibly
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private getMigrationFiles(filesToInclude?: string[]) {
+  private getMigrationFiles() {
     const migrationsDir = resolvePathToFile(this._config.pathToMigrations);
     const directoryContents = readdirSync(migrationsDir);
 

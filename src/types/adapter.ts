@@ -1,7 +1,7 @@
-import { Artifact, HardhatRuntimeEnvironment } from "hardhat/types";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { Abi, ContractDeployParams } from "./deployer";
-import { ContractRunner } from "ethers";
+import { ContractFactory, ContractRunner } from "ethers";
+import { Abi, Bytecode, ContractDeployParams } from "./deployer";
 
 // TODO: rewrite through declare modules
 
@@ -20,11 +20,9 @@ export abstract class TruffleFactory<I> {
   abstract new(_name: string, meta?: any): Promise<I>;
 }
 
-export type Instance<A, I> = TruffleFactory<I> | EthersFactory<A, I>;
+export type Instance<A, I> = TruffleFactory<I> | EthersFactory<A, I> | ContractFactory<A[], I>;
 
 export abstract class Adapter {
-  protected _artifacts: Map<string, Artifact> = new Map();
-
   constructor(protected _hre: HardhatRuntimeEnvironment) {}
 
   public abstract linkLibrary(instance: any, library: any): void;
@@ -38,21 +36,9 @@ export abstract class Adapter {
 
   public abstract toInstance<A, I>(instance: Instance<A, I>, address: string, signer?: ContractRunner | null): I;
 
-  protected getArtifact(contractName: string): Artifact {
-    if (this._artifacts.has(contractName)) {
-      return this._artifacts.get(contractName)!;
-    }
-
-    const artifact = this._hre.artifacts.readArtifactSync(contractName);
-
-    this._artifacts.set(contractName, artifact);
-
-    return artifact;
-  }
-
   protected abstract _getABI(instance: any): Abi;
 
-  protected abstract _getBytecode(instance: any): string;
+  protected abstract _getBytecode(instance: any): Bytecode;
 
-  // protected abstract _validateBytecode(bytecode: string): boolean;
+  // protected abstract _validateBytecode(bytecode: Bytecode): boolean;
 }
