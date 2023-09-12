@@ -7,7 +7,7 @@ import { Abi, Bytecode, ContractDeployParams } from "./deployer";
 
 export abstract class EthersFactory<A, I> {
   abstract bytecode: any;
-  abstract abi: any;
+  abstract abi: Abi;
 
   abstract createInterface(): A;
 
@@ -34,7 +34,7 @@ export abstract class Adapter {
     };
   }
 
-  public abstract toInstance<A, I>(instance: Instance<A, I>, address: string, signer?: ContractRunner | null): I;
+  public abstract toInstance<A, I>(instance: Instance<A, I>, address: string, signer: ContractRunner | null): I;
 
   protected abstract _getABI(instance: any): Abi;
 

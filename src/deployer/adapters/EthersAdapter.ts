@@ -1,4 +1,4 @@
-import { Signer } from "ethers";
+import { Interface, Signer } from "ethers";
 
 import { Adapter, EthersFactory } from "../../types/adapter";
 import { Abi, Bytecode } from "../../types/deployer";
@@ -12,12 +12,16 @@ export class EthersAdapter extends Adapter {
     // TODO: Implement
   }
 
-  public toInstance<A, I>(instance: EthersFactory<A, I>, address: string, signer?: Signer | null): I {
+  public toInstance<A, I>(instance: EthersFactory<A, I>, address: string, signer: Signer): I {
     return instance.connect(address, signer);
   }
 
   protected _getABI<A, I>(instance: EthersFactory<A, I>): Abi {
-    return instance.abi;
+    if (instance.abi) {
+      return Interface.from(instance.abi);
+    }
+
+    return (instance as any).interface;
   }
 
   protected _getBytecode<A, I>(instance: EthersFactory<A, I>): Bytecode {

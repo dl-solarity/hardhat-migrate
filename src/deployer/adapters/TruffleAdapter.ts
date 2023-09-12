@@ -1,4 +1,5 @@
 import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
+import { Interface } from "ethers";
 
 import { Adapter, TruffleFactory } from "../../types/adapter";
 import { Abi, TruffleDeployParams } from "../../types/deployer";
@@ -23,7 +24,7 @@ export class TruffleAdapter extends Adapter {
   }
 
   protected _getABI(instance: TruffleContract): Abi {
-    return instance.abi;
+    return Interface.from(instance.abi);
   }
 
   protected _getBytecode(instance: TruffleContract): string {

@@ -30,21 +30,28 @@ export function catchError(target: any, propertyName?: string, descriptor?: Prop
 function _generateDescriptor(propertyName: string, descriptor: PropertyDescriptor): PropertyDescriptor {
   const method = descriptor.value;
 
-  descriptor.value = async function ___ErrorCatcher(...args: any[]) {
+  descriptor.value = function ___ErrorCatcher(...args: any[]) {
     try {
-      return await method.apply(this, args);
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        _handleError(propertyName, e);
+      const result = method.apply(this, args);
+
+      // Check if method is asynchronous
+      if (result && result instanceof Promise) {
+        // Return promise
+        return result.catch((e: any) => {
+          _handleError(propertyName, e);
+        });
       }
 
-      throw e;
+      // Return actual result
+      return result;
+    } catch (e: any) {
+      _handleError(propertyName, e);
     }
   };
 
   return descriptor;
 }
 
-function _handleError(propertyName: string, error: Error) {
-  throw new MigrateError(`${propertyName}(): ${error.message}`, { cause: error });
+function _handleError(propertyName: string, error: any) {
+  throw new MigrateError(`${propertyName}(): ${error.message ?? error}`, { cause: error });
 }

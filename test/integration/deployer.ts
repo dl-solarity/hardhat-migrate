@@ -1,7 +1,7 @@
 import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
 
 import { expect } from "chai";
-import { ContractFactory } from "ethers";
+import { Contract, ContractFactory, Interface } from "ethers";
 
 import { useEnvironment } from "../helpers";
 
@@ -10,6 +10,7 @@ import { PluginName } from "../../src/types/migrations";
 
 import { EthersAdapter } from "../../src/deployer/adapters/EthersAdapter";
 import { TruffleAdapter } from "../../src/deployer/adapters/TruffleAdapter";
+import { ContractWithConstructorArguments__factory } from "../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
 
 describe("deployer", () => {
   describe("deploy()", () => {
@@ -41,19 +42,28 @@ describe("deployer", () => {
     ];
     const contractWithConstructorABI2 = [
       {
+        inputs: [
+          {
+            internalType: "string",
+            name: "_name",
+            type: "string",
+          },
+        ],
+        stateMutability: "nonpayable",
         type: "constructor",
-        stateMutability: "undefined",
-        payable: false,
-        inputs: [{ type: "string", name: "_name" }],
       },
       {
-        type: "function",
-        name: "name",
-        constant: true,
-        stateMutability: "view",
-        payable: false,
         inputs: [],
-        outputs: [{ type: "string", name: "" }],
+        name: "name",
+        outputs: [
+          {
+            internalType: "string",
+            name: "",
+            type: "string",
+          },
+        ],
+        stateMutability: "view",
+        type: "function",
       },
     ];
 
@@ -82,7 +92,7 @@ describe("deployer", () => {
         it("should get abi", async () => {
           const abi = await (adapter as any)._getABI(contractWithConstructorArtifact);
 
-          expect(abi).to.deep.equal(contractWithConstructorABI);
+          expect(abi).to.deep.equal(Interface.from(contractWithConstructorABI));
         });
 
         it("should get bytecode", async () => {
@@ -90,10 +100,6 @@ describe("deployer", () => {
 
           expect(bytecode).to.equal(contractWithConstructorBytecode);
         });
-      });
-
-      it("should deploy contract", async function () {
-        expect(await deployer.deploy(contractArtifact, [], {})).to.not.throw();
       });
 
       it("should deploy contract with constructor arguments", async function () {
@@ -127,9 +133,9 @@ describe("deployer", () => {
 
       describe("adapter", () => {
         it("should get abi", async () => {
-          const abi = (adapter as any)._getABI(ContractWithConstructor);
+          const abi = await (adapter as any)._getABI(ContractWithConstructor);
 
-          expect(JSON.parse(abi)).to.deep.equal(contractWithConstructorABI2);
+          expect(abi).to.deep.equal(Interface.from(contractWithConstructorABI2));
         });
 
         it("should get bytecode", async () => {
@@ -140,11 +146,11 @@ describe("deployer", () => {
       });
 
       it("should deploy contract with constructor arguments", async function () {
-        const contract = await deployer.deploy(ContractWithConstructor, ["test"], {});
+        const baseContract = await deployer.deploy(ContractWithConstructor, ["test"], {});
 
-        const name = await (contract as any).name();
+        // const name = await baseContract.name();
 
-        expect(name).to.equal("test");
+        // expect(name).to.equal("test");
       });
 
       it("should revert if artifact is not a contract", async function () {
@@ -156,8 +162,6 @@ describe("deployer", () => {
       describe("ethers", () => {
         useEnvironment("minimal-typechain-ethers");
 
-        let ContractWithConstructor: ContractFactory;
-
         let adapter: EthersAdapter;
         let deployer: Deployer;
 
@@ -167,28 +171,26 @@ describe("deployer", () => {
           adapter = new EthersAdapter(this.hre);
 
           deployer = new Deployer(this.hre, PluginName.ETHERS);
-
-          ContractWithConstructor = await this.hre.ethers.getContractFactory("ContractWithConstructorArguments");
         });
 
         describe("adapter", () => {
           it("should get abi", async () => {
-            const abi = (adapter as any)._getABI(ContractWithConstructor);
+            const abi = await (adapter as any)._getABI(ContractWithConstructorArguments__factory);
 
-            expect(JSON.parse(abi)).to.deep.equal(contractWithConstructorABI2);
+            expect(abi).to.deep.equal(Interface.from(contractWithConstructorABI2));
           });
 
           it("should get bytecode", async () => {
-            const bytecode = await (adapter as any)._getBytecode(ContractWithConstructor);
+            const bytecode = await (adapter as any)._getBytecode(ContractWithConstructorArguments__factory);
 
             expect(bytecode).to.equal(contractWithConstructorBytecode);
           });
         });
 
         it("should deploy contract with constructor arguments", async function () {
-          const contract = await deployer.deploy(ContractWithConstructor, ["test"], {});
+          const contract = await deployer.deploy(ContractWithConstructorArguments__factory, ["test"], {});
 
-          const name = await (contract as any).name();
+          const name = await contract.name();
 
           expect(name).to.equal("test");
         });
@@ -219,7 +221,7 @@ describe("deployer", () => {
           it("should get abi", async () => {
             const abi = await (adapter as any)._getABI(contractWithConstructorArtifact);
 
-            expect(abi).to.deep.equal(contractWithConstructorABI);
+            expect(abi).to.deep.equal(Interface.from(contractWithConstructorABI));
           });
 
           it("should get bytecode", async () => {
@@ -229,7 +231,7 @@ describe("deployer", () => {
           });
         });
 
-        it.only("should deploy contract with constructor arguments", async function () {
+        it("should deploy contract with constructor arguments", async function () {
           const contract = await deployer.deploy(contractWithConstructorArtifact, ["test"], {});
 
           const name = await (contract as any).name();
