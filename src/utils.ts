@@ -7,6 +7,22 @@ export function resolvePathToFile(path_: string, file_: string = ""): string {
   return join(realpathSync(path_), file_);
 }
 
+export function contractNameFromSourceCode(code: string): string | null {
+  const regex = /class\s+(\w+)\s+/g;
+
+  const matches = regex.exec(code);
+
+  if (matches) {
+    const res = matches[1];
+
+    if (res.endsWith("__factory")) {
+      return res.slice(0, -9);
+    }
+  }
+
+  return null;
+}
+
 export function catchError(target: any, propertyName?: string, descriptor?: PropertyDescriptor) {
   // Method decorator
   if (descriptor) {

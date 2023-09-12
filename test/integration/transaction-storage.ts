@@ -74,16 +74,30 @@ describe.only("TransactionStorage", async () => {
 
   describe("via Deployer", async function () {
     let deployer: Deployer;
+    let ethersAdapter: EthersAdapter;
+
     before(async function () {
       deployer = new Deployer(this.hre, PluginName.ETHERS);
+
+      ethersAdapter = new EthersAdapter(this.hre);
     });
 
     it("should save deployment transaction", async function () {
-      await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
+      const contract = await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
 
-      console.log("type", ContractWithConstructorArguments__factory.constructor.name);
+      assert.equal(
+        transactionStorage.getDeploymentTransaction(
+          ethersAdapter.getContractDeployParams(ContractWithConstructorArguments__factory),
+          ["hello"],
+          {},
+        ),
+        await contract.getAddress(),
+      );
 
-      console.log((transactionStorage as any).state);
+      assert.equal(
+        transactionStorage.getDeploymentTransactionByName("ContractWithConstructorArguments"),
+        await contract.getAddress(),
+      );
     });
   });
 });

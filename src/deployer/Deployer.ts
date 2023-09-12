@@ -3,7 +3,7 @@ import { DeployerCore } from "./DeployerCore";
 import { EthersAdapter } from "./adapters/EthersAdapter";
 import { TruffleAdapter } from "./adapters/TruffleAdapter";
 
-import { catchError } from "../utils";
+import { catchError, contractNameFromSourceCode } from "../utils";
 
 import { Overrides } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -34,18 +34,17 @@ export class Deployer {
   }
 
   public async deploy<A, I>(contract: Instance<A, I>, args: Args, txOverrides: Overrides = {}): Promise<I> {
-    const deploymentArgs = this._adapter.getContractDeployParams(contract);
+    const deploymentParams = this._adapter.getContractDeployParams(contract);
 
-    let contractAddress = TransactionStorage.getInstance().getDeploymentTransaction(deploymentArgs, args, txOverrides);
+    let contractAddress = TransactionStorage.getInstance().getDeploymentTransaction(
+      deploymentParams,
+      args,
+      txOverrides,
+    );
     if (!contractAddress) {
-      contractAddress = await this._core.deploy(deploymentArgs, args, txOverrides);
+      contractAddress = await this._core.deploy(deploymentParams, args, txOverrides);
 
-      TransactionStorage.getInstance().saveDeploymentTransaction(deploymentArgs, args, txOverrides, contractAddress);
-
-      // print contract class name
-
-      console.log("type of contract: ", Reflect.getPrototypeOf(contract)!.constructor.name);
-      TransactionStorage.getInstance().saveDeploymentTransactionByName(contract.constructor.name, contractAddress);
+      this._cacheContractAddress(contract.toString(), deploymentParams, args, txOverrides, contractAddress);
     }
 
     return this._adapter.toInstance(contract, contractAddress, await this._core.getSigner(txOverrides.from));
@@ -56,9 +55,18 @@ export class Deployer {
     this._adapter.linkLibrary(library, instance);
   }
 
-  private _addressCached(deploymentArgs: ContractDeployParams, args: Args, txOverrides: Overrides) {
-    if (TransactionStorage.getInstance().getDeploymentTransaction(deploymentArgs, args, txOverrides)) {
-      return true;
+  private _cacheContractAddress(
+    contractSourceCode: string,
+    deployParams: ContractDeployParams,
+    args: Args,
+    txOverrides: Overrides,
+    address: string,
+  ) {
+    TransactionStorage.getInstance().saveDeploymentTransaction(deployParams, args, txOverrides, address);
+
+    const contractName = contractNameFromSourceCode(contractSourceCode);
+    if (contractName) {
+      TransactionStorage.getInstance().saveDeploymentTransactionByName(contractName, address);
     }
   }
 }
