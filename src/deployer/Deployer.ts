@@ -36,16 +36,9 @@ export class Deployer {
   public async deploy<A, I>(contract: Instance<A, I>, args: Args, txOverrides: Overrides = {}): Promise<I> {
     const deploymentParams = this._adapter.getContractDeployParams(contract);
 
-    let contractAddress = TransactionStorage.getInstance().getDeploymentTransaction(
-      deploymentParams,
-      args,
-      txOverrides,
-    );
-    if (!contractAddress) {
-      contractAddress = await this._core.deploy(deploymentParams, args, txOverrides);
+    const contractAddress = await this._core.deploy(deploymentParams, args, txOverrides);
 
-      this._cacheContractAddress(contract.toString(), deploymentParams, args, txOverrides, contractAddress);
-    }
+    this._cacheContractAddress(contract.toString(), deploymentParams, args, txOverrides, contractAddress);
 
     return this._adapter.toInstance(contract, contractAddress, await this._core.getSigner(txOverrides.from));
   }
@@ -62,11 +55,13 @@ export class Deployer {
     txOverrides: Overrides,
     address: string,
   ) {
-    TransactionStorage.getInstance().saveDeploymentTransaction(deployParams, args, txOverrides, address);
+    const transactionStorage = TransactionStorage.getInstance();
+
+    transactionStorage.saveDeploymentTransaction(deployParams, args, txOverrides, address);
 
     const contractName = contractNameFromSourceCode(contractSourceCode);
     if (contractName) {
-      TransactionStorage.getInstance().saveDeploymentTransactionByName(contractName, address);
+      transactionStorage.saveDeploymentTransactionByName(contractName, address);
     }
   }
 }

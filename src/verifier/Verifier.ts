@@ -23,7 +23,7 @@ export class Verifier {
         // },
       });
     } catch (e: unknown) {
-      throw new MigrateError(`Error verifying contract: ${e.message}`);
+      throw new MigrateError(`Error verifying contract: ${e}`);
     }
   }
 

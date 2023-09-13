@@ -3,4 +3,3 @@
 /* eslint-disable */
 export * as contractsSol from "./Contracts.sol";
 export * as contracts2Sol from "./Contracts2.sol";
-export * as anotherContracts from "./another-contracts";

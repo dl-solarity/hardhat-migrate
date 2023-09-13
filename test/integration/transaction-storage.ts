@@ -10,7 +10,7 @@ import { PluginName } from "../../src/types/migrations";
 import { ContractWithConstructorArguments__factory } from "../fixture-projects/hardhat-project-repeats-typechain-ethers/typechain-types/factories/Contracts.sol/ContractWithConstructorArguments__factory";
 import { useEnvironment } from "../helpers";
 
-describe.only("TransactionStorage", async () => {
+describe("TransactionStorage", async () => {
   let transactionStorage: TransactionStorage;
 
   useEnvironment("repeats-typechain-ethers");

@@ -3,10 +3,11 @@ import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { AddressLike, Overrides, Signer, TransactionRequest, TransactionResponse } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { catchError } from "../utils";
+import { catchError, contractNameFromSourceCode } from "../utils";
 
 import { MigrateError } from "../errors";
 
+import { TransactionStorage } from "../tools/storage/TransactionStorage";
 import { Args, ContractDeployParams } from "../types/deployer";
 import { MigrateConfig } from "../types/migrations";
 
@@ -19,12 +20,16 @@ export class DeployerCore {
   }
 
   public async deploy(deployParams: ContractDeployParams, args: Args, txOverrides: Overrides = {}): Promise<string> {
-    const tx = await this._deploy(deployParams, args, txOverrides);
+    let contractAddress = TransactionStorage.getInstance().getDeploymentTransaction(deployParams, args, txOverrides);
 
-    const [, contractAddress] = await Promise.all([
-      this._reportContractDeployTransactionSent(tx),
-      this._waitForDeployment(tx),
-    ]);
+    if (!contractAddress) {
+      const tx = await this._deploy(deployParams, args, txOverrides);
+
+      [, contractAddress] = await Promise.all([
+        this._reportContractDeployTransactionSent(tx),
+        this._waitForDeployment(tx),
+      ]);
+    }
 
     return contractAddress;
   }
@@ -74,5 +79,20 @@ export class DeployerCore {
     const factory = new this._hre.ethers.ContractFactory(contractParams.abi, contractParams.bytecode);
 
     return factory.getDeployTransaction(...args, txOverrides);
+  }
+
+  private _cacheContractAddress(
+    contractSourceCode: string,
+    deployParams: ContractDeployParams,
+    args: Args,
+    txOverrides: Overrides,
+    address: string,
+  ) {
+    TransactionStorage.getInstance().saveDeploymentTransaction(deployParams, args, txOverrides, address);
+
+    const contractName = contractNameFromSourceCode(contractSourceCode);
+    if (contractName) {
+      TransactionStorage.getInstance().saveDeploymentTransactionByName(contractName, address);
+    }
   }
 }

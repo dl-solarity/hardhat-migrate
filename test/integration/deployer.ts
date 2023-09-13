@@ -10,6 +10,7 @@ import { PluginName } from "../../src/types/migrations";
 
 import { EthersAdapter } from "../../src/deployer/adapters/EthersAdapter";
 import { TruffleAdapter } from "../../src/deployer/adapters/TruffleAdapter";
+import { TransactionStorage } from "../../src/tools/storage/TransactionStorage";
 import { ContractWithConstructorArguments__factory } from "../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
 
 describe("deployer", () => {
@@ -73,7 +74,6 @@ describe("deployer", () => {
     describe("with truffle", () => {
       useEnvironment("minimal-truffle");
 
-      let contractArtifact: TruffleContract;
       let contractWithConstructorArtifact: TruffleContract;
 
       let adapter: TruffleAdapter;
@@ -84,7 +84,9 @@ describe("deployer", () => {
 
         deployer = new Deployer(this.hre, PluginName.TRUFFLE);
 
-        contractArtifact = await this.hre.artifacts.require("Contract");
+        TransactionStorage.getInstance().init(this.hre);
+        TransactionStorage.getInstance().clear();
+
         contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
       });
 
@@ -127,6 +129,9 @@ describe("deployer", () => {
         adapter = new EthersAdapter(this.hre);
 
         deployer = new Deployer(this.hre, PluginName.ETHERS);
+
+        TransactionStorage.getInstance().init(this.hre);
+        TransactionStorage.getInstance().clear();
 
         ContractWithConstructor = await this.hre.ethers.getContractFactory("ContractWithConstructorArguments");
       });
@@ -171,6 +176,9 @@ describe("deployer", () => {
           adapter = new EthersAdapter(this.hre);
 
           deployer = new Deployer(this.hre, PluginName.ETHERS);
+
+          TransactionStorage.getInstance().init(this.hre);
+          TransactionStorage.getInstance().clear();
         });
 
         describe("adapter", () => {
@@ -213,6 +221,9 @@ describe("deployer", () => {
           adapter = new TruffleAdapter(this.hre);
 
           deployer = new Deployer(this.hre, PluginName.TRUFFLE);
+
+          TransactionStorage.getInstance().init(this.hre);
+          TransactionStorage.getInstance().clear();
 
           contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
         });

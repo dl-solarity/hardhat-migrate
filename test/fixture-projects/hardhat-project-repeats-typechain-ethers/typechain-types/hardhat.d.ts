@@ -37,6 +37,30 @@ declare module "hardhat/types/runtime" {
       name: "Library",
       signerOrOptions?: ethers.Signer | FactoryOptions,
     ): Promise<Contracts.Library__factory>;
+    getContractFactory(
+      name: "ContractWithConstructorArguments",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.ContractWithConstructorArguments__factory>;
+    getContractFactory(
+      name: "ContractWithPayableConstructor",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.ContractWithPayableConstructor__factory>;
+    getContractFactory(
+      name: "Library",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.Library__factory>;
+    getContractFactory(
+      name: "ContractWithConstructorArguments",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.ContractWithConstructorArguments__factory>;
+    getContractFactory(
+      name: "ContractWithPayableConstructor",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.ContractWithPayableConstructor__factory>;
+    getContractFactory(
+      name: "Library",
+      signerOrOptions?: ethers.Signer | FactoryOptions,
+    ): Promise<Contracts.Library__factory>;
 
     getContractAt(
       name: "ContractWithConstructorArguments",
@@ -68,6 +92,36 @@ declare module "hardhat/types/runtime" {
       address: string | ethers.Addressable,
       signer?: ethers.Signer,
     ): Promise<Contracts.Library>;
+    getContractAt(
+      name: "ContractWithConstructorArguments",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.ContractWithConstructorArguments>;
+    getContractAt(
+      name: "ContractWithPayableConstructor",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.ContractWithPayableConstructor>;
+    getContractAt(
+      name: "Library",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.Library>;
+    getContractAt(
+      name: "ContractWithConstructorArguments",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.ContractWithConstructorArguments>;
+    getContractAt(
+      name: "ContractWithPayableConstructor",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.ContractWithPayableConstructor>;
+    getContractAt(
+      name: "Library",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer,
+    ): Promise<Contracts.Library>;
 
     deployContract(
       name: "ContractWithConstructorArguments",
@@ -93,7 +147,61 @@ declare module "hardhat/types/runtime" {
       name: "Library",
       signerOrOptions?: ethers.Signer | DeployContractOptions,
     ): Promise<Contracts.Library>;
+    deployContract(
+      name: "ContractWithConstructorArguments",
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
+    ): Promise<Contracts.ContractWithConstructorArguments>;
+    deployContract(
+      name: "ContractWithPayableConstructor",
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
+    ): Promise<Contracts.ContractWithPayableConstructor>;
+    deployContract(
+      name: "Library",
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
+    ): Promise<Contracts.Library>;
+    deployContract(
+      name: "ContractWithConstructorArguments",
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
+    ): Promise<Contracts.ContractWithConstructorArguments>;
+    deployContract(
+      name: "ContractWithPayableConstructor",
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
+    ): Promise<Contracts.ContractWithPayableConstructor>;
+    deployContract(
+      name: "Library",
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
+    ): Promise<Contracts.Library>;
 
+    deployContract(
+      name: "ContractWithConstructorArguments",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
+    ): Promise<Contracts.ContractWithConstructorArguments>;
+    deployContract(
+      name: "ContractWithPayableConstructor",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
+    ): Promise<Contracts.ContractWithPayableConstructor>;
+    deployContract(
+      name: "Library",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
+    ): Promise<Contracts.Library>;
+    deployContract(
+      name: "ContractWithConstructorArguments",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
+    ): Promise<Contracts.ContractWithConstructorArguments>;
+    deployContract(
+      name: "ContractWithPayableConstructor",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
+    ): Promise<Contracts.ContractWithPayableConstructor>;
+    deployContract(
+      name: "Library",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions,
+    ): Promise<Contracts.Library>;
     deployContract(
       name: "ContractWithConstructorArguments",
       args: any[],

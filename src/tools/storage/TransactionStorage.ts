@@ -3,6 +3,8 @@ import { existsSync, readFileSync, writeFileSync } from "fs";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
+import { MigrateError } from "../../errors";
+
 import { Args, ContractDeployParams } from "../../types/deployer";
 import { catchError, resolvePathToFile } from "../../utils";
 
@@ -21,8 +23,9 @@ export class TransactionStorage {
     this._hre = _hre;
 
     this._filePath = resolvePathToFile(_hre.config.migrate.pathToMigrations, this._fileName);
-    if (existsSync(this._filePath)) {
-      this.state = JSON.parse(readFileSync(this._filePath, "utf8"));
+
+    if (this._stateExistsOnFile()) {
+      this.state = this._readStateFromFile();
     } else {
       this.clear();
     }
@@ -44,10 +47,26 @@ export class TransactionStorage {
   ) {
     const hash = this._createHash(deployParams, args, txOverrides);
 
+    if (this.state[hash]) {
+      if (this.state[hash] !== address) {
+        throw new MigrateError(`Transaction with hash ${hash} already exists in storage`);
+      }
+
+      return;
+    }
+
     this._addValueToState(hash, address);
   }
 
   public saveDeploymentTransactionByName(contractName: string, address: string) {
+    if (this.state[contractName]) {
+      if (this.state[contractName] !== address) {
+        throw new MigrateError(`Transaction with name ${contractName} already exists in storage`);
+      }
+
+      return;
+    }
+
     this._addValueToState(contractName, address);
   }
 
@@ -67,13 +86,14 @@ export class TransactionStorage {
 
   public clear() {
     this.state = {};
-    this._saveFile(JSON.stringify(this.state));
+
+    this._saveStateToFile();
   }
 
   private _addValueToState(hash: string, address: string) {
     this.state[hash] = address;
 
-    this._saveFile(JSON.stringify(this.state));
+    this._saveStateToFile();
   }
 
   private _createHash(deployParams: ContractDeployParams, args: Args, txOverrides: Overrides): string {
@@ -86,16 +106,24 @@ export class TransactionStorage {
     return this._hre.ethers.id(JSON.stringify(data));
   }
 
-  private _saveFile(fileContent: string) {
+  private _stateExistsOnFile(): boolean {
+    return existsSync(this._filePath);
+  }
+
+  private _saveStateToFile() {
+    const fileContent = JSON.stringify(this.state);
+
     writeFileSync(this._filePath, fileContent, {
       flag: "w",
       encoding: "utf8",
     });
   }
 
-  private _readFile(): string {
-    return readFileSync(this._filePath, {
+  private _readStateFromFile(): Record<string, string> {
+    const fileContent = readFileSync(this._filePath, {
       encoding: "utf8",
     });
+
+    return JSON.parse(fileContent);
   }
 }

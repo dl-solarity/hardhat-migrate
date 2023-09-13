@@ -8,6 +8,7 @@ import { mergeConfigs, migrateConfigExtender } from "./config";
 import { TASK_MIGRATE } from "./constants";
 
 import { Migrator } from "./migrator/migrator";
+import { TransactionStorage } from "./tools/storage/TransactionStorage";
 import { MigrateConfig } from "./types/migrations";
 
 extendConfig(migrateConfigExtender);
@@ -20,6 +21,8 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
     quiet: true,
     force: env.config.migrate.force,
   });
+
+  TransactionStorage.getInstance().init(env);
 
   await new Migrator(env).migrate();
 };
