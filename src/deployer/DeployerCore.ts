@@ -3,7 +3,7 @@ import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { AddressLike, Overrides, Signer, TransactionRequest, TransactionResponse } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { catchError, contractNameFromSourceCode } from "../utils";
+import { catchError } from "../utils";
 
 import { MigrateError } from "../errors";
 
@@ -79,20 +79,5 @@ export class DeployerCore {
     const factory = new this._hre.ethers.ContractFactory(contractParams.abi, contractParams.bytecode);
 
     return factory.getDeployTransaction(...args, txOverrides);
-  }
-
-  private _cacheContractAddress(
-    contractSourceCode: string,
-    deployParams: ContractDeployParams,
-    args: Args,
-    txOverrides: Overrides,
-    address: string,
-  ) {
-    TransactionStorage.getInstance().saveDeploymentTransaction(deployParams, args, txOverrides, address);
-
-    const contractName = contractNameFromSourceCode(contractSourceCode);
-    if (contractName) {
-      TransactionStorage.getInstance().saveDeploymentTransactionByName(contractName, address);
-    }
   }
 }
