@@ -23,6 +23,14 @@ export function contractNameFromSourceCode(code: string): string | null {
   return null;
 }
 
+export function JSONConvertor(key: any, value: any) {
+  if (typeof value === "bigint") {
+    return value.toString();
+  }
+
+  return value;
+}
+
 export function catchError(target: any, propertyName?: string, descriptor?: PropertyDescriptor) {
   // Method decorator
   if (descriptor) {

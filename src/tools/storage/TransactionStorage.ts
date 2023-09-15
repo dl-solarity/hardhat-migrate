@@ -1,12 +1,11 @@
-import { Overrides } from "ethers";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { MigrateError } from "../../errors";
+import { ContractDeploymentTransactionInterestedValues } from "../../types/transaction-storage";
 
-import { Args, ContractDeployParams } from "../../types/deployer";
-import { catchError, resolvePathToFile } from "../../utils";
+import { catchError, JSONConvertor, resolvePathToFile } from "../../utils";
 
 @catchError
 export class TransactionStorage {
@@ -39,13 +38,8 @@ export class TransactionStorage {
     return TransactionStorage.instance;
   }
 
-  public saveDeploymentTransaction(
-    deployParams: ContractDeployParams,
-    args: Args,
-    txOverrides: Overrides,
-    address: string,
-  ) {
-    const hash = this._createHash(deployParams, args, txOverrides);
+  public saveDeploymentTransaction(args: ContractDeploymentTransactionInterestedValues, address: string) {
+    const hash = this._createHash(args);
 
     if (this.state[hash]) {
       if (this.state[hash] !== address) {
@@ -70,12 +64,8 @@ export class TransactionStorage {
     this._addValueToState(contractName, address);
   }
 
-  public getDeploymentTransaction(
-    deployParams: ContractDeployParams,
-    args: Args,
-    txOverrides: Overrides,
-  ): string | undefined {
-    const hash = this._createHash(deployParams, args, txOverrides);
+  public getDeploymentTransaction(args: ContractDeploymentTransactionInterestedValues): string | undefined {
+    const hash = this._createHash(args);
 
     return this.state[hash];
   }
@@ -96,14 +86,9 @@ export class TransactionStorage {
     this._saveStateToFile();
   }
 
-  private _createHash(deployParams: ContractDeployParams, args: Args, txOverrides: Overrides): string {
-    const data = {
-      deployParams,
-      args,
-      txOverrides,
-    };
-
-    return this._hre.ethers.id(JSON.stringify(data));
+  private _createHash(obj: ContractDeploymentTransactionInterestedValues): string {
+    const { data, from, chainId } = obj;
+    return this._hre.ethers.id(this._toJSON({ data, from, chainId }));
   }
 
   private _stateExistsOnFile(): boolean {
@@ -111,7 +96,7 @@ export class TransactionStorage {
   }
 
   private _saveStateToFile() {
-    const fileContent = JSON.stringify(this.state);
+    const fileContent = this._toJSON(this.state);
 
     writeFileSync(this._filePath, fileContent, {
       flag: "w",
@@ -125,5 +110,9 @@ export class TransactionStorage {
     });
 
     return JSON.parse(fileContent);
+  }
+
+  private _toJSON(data: any): string {
+    return JSON.stringify(data, JSONConvertor);
   }
 }

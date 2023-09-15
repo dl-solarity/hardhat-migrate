@@ -5,11 +5,11 @@ import { TruffleAdapter } from "./adapters/TruffleAdapter";
 
 import { catchError, contractNameFromSourceCode } from "../utils";
 
-import { Overrides } from "ethers";
+import { ContractDeployTransaction, Overrides } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { TransactionStorage } from "../tools/storage/TransactionStorage";
 import { Adapter, Instance } from "../types/adapter";
-import { Args, ContractDeployParams } from "../types/deployer";
+import { Args } from "../types/deployer";
 import { PluginName } from "../types/migrations";
 
 @catchError
@@ -36,9 +36,10 @@ export class Deployer {
   public async deploy<A, I>(contract: Instance<A, I>, args: Args, txOverrides: Overrides = {}): Promise<I> {
     const deploymentParams = this._adapter.getContractDeployParams(contract);
 
-    const contractAddress = await this._core.deploy(deploymentParams, args, txOverrides);
-
-    this._cacheContractAddress(contract.toString(), deploymentParams, args, txOverrides, contractAddress);
+    const [contractAddress, tx] = await this._core.deploy(deploymentParams, args, txOverrides);
+    if (tx) {
+      this._cacheContractAddress(contract.toString(), tx, contractAddress);
+    }
 
     return this._adapter.toInstance(contract, contractAddress, await this._core.getSigner(txOverrides.from));
   }
@@ -48,16 +49,10 @@ export class Deployer {
     this._adapter.linkLibrary(library, instance);
   }
 
-  private _cacheContractAddress(
-    contractSourceCode: string,
-    deployParams: ContractDeployParams,
-    args: Args,
-    txOverrides: Overrides,
-    address: string,
-  ) {
+  private _cacheContractAddress(contractSourceCode: string, tx: ContractDeployTransaction, address: string) {
     const transactionStorage = TransactionStorage.getInstance();
 
-    transactionStorage.saveDeploymentTransaction(deployParams, args, txOverrides, address);
+    transactionStorage.saveDeploymentTransaction(tx, address);
 
     const contractName = contractNameFromSourceCode(contractSourceCode);
     if (contractName) {

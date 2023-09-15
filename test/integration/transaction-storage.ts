@@ -1,13 +1,13 @@
-import { Overrides } from "ethers";
-
 import { assert } from "chai";
+import { ContractFactory, ZeroAddress } from "ethers";
 
-import { EthersAdapter } from "../../src/deployer/adapters/EthersAdapter";
 import { Deployer } from "../../src/deployer/Deployer";
 import { TransactionStorage } from "../../src/tools/storage/TransactionStorage";
-import { Args, ContractDeployParams } from "../../src/types/deployer";
 import { PluginName } from "../../src/types/migrations";
-import { ContractWithConstructorArguments__factory } from "../fixture-projects/hardhat-project-repeats-typechain-ethers/typechain-types/factories/Contracts.sol/ContractWithConstructorArguments__factory";
+import {
+  ContractWithConstructorArguments__factory,
+  ContractWithPayableConstructor__factory,
+} from "../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
 import { useEnvironment } from "../helpers";
 
 describe("TransactionStorage", async () => {
@@ -28,35 +28,12 @@ describe("TransactionStorage", async () => {
   });
 
   describe("saveDeploymentTransaction()", () => {
-    let ethersAdapter: EthersAdapter;
-    let deployParams: ContractDeployParams;
-
-    beforeEach(async function () {
-      ethersAdapter = new EthersAdapter(this.hre);
-
-      deployParams = ethersAdapter.getContractDeployParams(ContractWithConstructorArguments__factory);
-    });
     it("should save deployment transaction", function () {
-      const args: Args = ["hello"];
+      const tx = { data: "", chainId: BigInt(0), from: "" };
 
-      const txOverrides: Overrides = {};
+      transactionStorage.saveDeploymentTransaction(tx, "123");
 
-      transactionStorage.saveDeploymentTransaction(deployParams, args, txOverrides, "123");
-
-      assert.equal(transactionStorage.getDeploymentTransaction(deployParams, args, txOverrides), "123");
-    });
-
-    it("should NOT save the similar deployment transaction with simple hash", function () {
-      const args: Args = ["hello"];
-
-      const txOverrides: Overrides = {};
-      const txOverrides2: Overrides = { value: 0 };
-
-      transactionStorage.saveDeploymentTransaction(deployParams, args, txOverrides, "123");
-
-      assert.equal(transactionStorage.getDeploymentTransaction(deployParams, args, txOverrides), "123");
-
-      assert.equal(transactionStorage.getDeploymentTransaction(deployParams, args, txOverrides2), undefined);
+      assert.equal(transactionStorage.getDeploymentTransaction(tx), "123");
     });
   });
 
@@ -72,32 +49,112 @@ describe("TransactionStorage", async () => {
     });
   });
 
-  describe("via Deployer", async function () {
+  describe("via Deployer", function () {
     let deployer: Deployer;
-    let ethersAdapter: EthersAdapter;
 
-    before(async function () {
+    before(function () {
       deployer = new Deployer(this.hre, PluginName.ETHERS);
-
-      ethersAdapter = new EthersAdapter(this.hre);
     });
 
     it("should save deployment transaction", async function () {
       const contract = await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
 
-      assert.equal(
-        transactionStorage.getDeploymentTransaction(
-          ethersAdapter.getContractDeployParams(ContractWithConstructorArguments__factory),
-          ["hello"],
-          {},
-        ),
-        await contract.getAddress(),
+      const factory = new ContractFactory(
+        ContractWithConstructorArguments__factory.abi,
+        ContractWithConstructorArguments__factory.bytecode,
       );
+
+      const tx = await factory.getDeployTransaction("hello");
+
+      assert.equal(transactionStorage.getDeploymentTransaction(tx), await contract.getAddress());
+    });
+
+    it("should save deployment transaction by name", async function () {
+      const contract = await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
 
       assert.equal(
         transactionStorage.getDeploymentTransactionByName("ContractWithConstructorArguments"),
         await contract.getAddress(),
       );
+    });
+
+    it("should save deployment transaction with transmitted ether", async function () {
+      const value = BigInt(1);
+
+      const contract = await deployer.deploy(ContractWithPayableConstructor__factory, [], { value: value });
+      const factory = new ContractFactory(
+        ContractWithPayableConstructor__factory.abi,
+        ContractWithPayableConstructor__factory.bytecode,
+      );
+
+      const tx = await factory.getDeployTransaction({ value: value });
+
+      assert.equal(transactionStorage.getDeploymentTransaction(tx), await contract.getAddress());
+    });
+
+    it("should differ contracts with chainId", async function () {
+      await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
+
+      const factory = new ContractFactory(
+        ContractWithConstructorArguments__factory.abi,
+        ContractWithConstructorArguments__factory.bytecode,
+      );
+
+      const tx = await factory.getDeployTransaction("hello", { chainId: 1 });
+
+      assert.equal(transactionStorage.getDeploymentTransaction(tx), undefined);
+    });
+
+    it("should differ contracts with chainId", async function () {
+      await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
+
+      const factory = new ContractFactory(
+        ContractWithConstructorArguments__factory.abi,
+        ContractWithConstructorArguments__factory.bytecode,
+      );
+
+      const tx = await factory.getDeployTransaction("hello", { chainId: 1 });
+
+      assert.equal(transactionStorage.getDeploymentTransaction(tx), undefined);
+    });
+
+    it("should differ contracts with from", async function () {
+      await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
+
+      const factory = new ContractFactory(
+        ContractWithConstructorArguments__factory.abi,
+        ContractWithConstructorArguments__factory.bytecode,
+      );
+
+      const tx = await factory.getDeployTransaction("hello", { from: ZeroAddress });
+
+      assert.equal(transactionStorage.getDeploymentTransaction(tx), undefined);
+    });
+
+    it("should not differ contracts with nonce", async function () {
+      const contract = await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
+
+      const factory = new ContractFactory(
+        ContractWithConstructorArguments__factory.abi,
+        ContractWithConstructorArguments__factory.bytecode,
+      );
+
+      const tx = await factory.getDeployTransaction("hello", { nonce: 0 });
+
+      assert.equal(transactionStorage.getDeploymentTransaction(tx), await contract.getAddress());
+    });
+
+    it("should differ contracts with args", async function () {
+      await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
+
+      const factory = new ContractFactory(
+        ContractWithConstructorArguments__factory.abi,
+        ContractWithConstructorArguments__factory.bytecode,
+      );
+
+      const tx = await factory.getDeployTransaction("hello2");
+
+      assert.equal(transactionStorage.getDeploymentTransaction(tx), undefined);
     });
   });
 });
