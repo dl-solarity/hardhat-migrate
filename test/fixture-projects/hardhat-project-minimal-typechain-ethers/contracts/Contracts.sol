@@ -15,6 +15,24 @@ contract ContractWithConstructorArguments {
     }
 }
 
-library Library {
-    function lib() external pure {}
+contract ContractWithExternalLibrary {
+    function lib() external returns (uint256) {
+        return Library1.lib();
+    }
+
+    function lib2() external returns (uint256) {
+        return Library2.lib();
+    }
+}
+
+library Library1 {
+    function lib() external pure returns (uint256) {
+        return 1;
+    }
+}
+
+library Library2 {
+    function lib() external pure returns (uint256) {
+        return 2;
+    }
 }

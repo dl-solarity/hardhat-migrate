@@ -6,7 +6,11 @@ import { Deployer } from "../../../src/deployer/Deployer";
 import { PluginName } from "../../../src/types/migrations";
 
 import { TransactionStorage } from "../../../src/tools/storage/TransactionStorage";
-import { ContractWithConstructorArguments__factory } from "../../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
+import {
+  ContractWithConstructorArguments__factory,
+  ContractWithExternalLibrary__factory,
+  Library1__factory,
+} from "../../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
 
 describe("deployer", () => {
   describe("deploy()", () => {
@@ -33,6 +37,18 @@ describe("deployer", () => {
 
     it("should revert if artifact is not a contract", async function () {
       await expect(deployer.deploy(null as any, [], {})).to.eventually.be.rejected;
+    });
+
+    it("should deploy library separately", async function () {
+      await expect(deployer.deploy(Library1__factory, [])).to.eventually.be.not.rejected;
+    });
+
+    it("should deploy contract with library", async function () {
+      // const library = await deployer.deploy(Library__factory, []);
+      // const contract = await deployer.deploy(ContractWithExternalLibrary__factory, []);
+      // this.hre.ethers.getContractFactory("ContractWithExternalLibrary");
+      // const value = await contract.lib();
+      // expect(value).to.equal(1);
     });
   });
 });

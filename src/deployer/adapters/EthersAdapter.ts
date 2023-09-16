@@ -9,7 +9,7 @@ import { catchError } from "../../utils";
 export class EthersAdapter extends Adapter {
   // eslint-disable-next-line
   public linkLibrary(library: any, instance: any): void {
-    // TODO: Implement
+    // this._hre.ethers.link(library, instance);
   }
 
   public toInstance<A, I>(instance: EthersFactory<A, I>, address: string, signer: Signer): I {
@@ -28,6 +28,15 @@ export class EthersAdapter extends Adapter {
   }
 
   protected _getBytecode<A, I>(instance: EthersFactory<A, I>): Bytecode {
+    const bytecode = instance.bytecode;
+    // if bytecode contains link references, throw an error
+    if (bytecode.indexOf("__") !== -1) {
+      (instance as any).linkBytecode();
+    }
+    return instance.bytecode;
+  }
+
+  protected _getRawBytecode<A, I>(instance: EthersFactory<A, I>): Bytecode {
     return instance.bytecode;
   }
 }

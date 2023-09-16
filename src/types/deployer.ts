@@ -7,6 +7,7 @@ export type Bytecode = BytesLike | { object: string };
 export interface ContractDeployParams {
   abi: Abi;
   bytecode: Bytecode;
+  contractName?: string;
 }
 
 export interface TruffleDeployParams extends ContractDeployParams {

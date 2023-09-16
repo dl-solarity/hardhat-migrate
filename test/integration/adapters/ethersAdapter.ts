@@ -4,6 +4,8 @@ import { ContractFactory, Interface } from "ethers";
 import { useEnvironment } from "../../helpers";
 
 import { EthersAdapter } from "../../../src/deployer/adapters/EthersAdapter";
+import { ArtifactsParser } from "../../../src/parser/ArtifactsParser";
+import { TemporaryStorage } from "../../../src/tools/storage/TemporaryStorage";
 import { ContractWithConstructorArguments__factory } from "../../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
 
 describe("EthersAdapter", () => {
@@ -47,6 +49,7 @@ describe("EthersAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new EthersAdapter(this.hre);
+        ArtifactsParser.parseArtifacts(this.hre);
 
         ContractWithConstructor = await this.hre.ethers.getContractFactory("ContractWithConstructorArguments");
       });
@@ -67,8 +70,9 @@ describe("EthersAdapter", () => {
     context("with typechain", () => {
       useEnvironment("minimal-typechain-ethers");
 
-      beforeEach("setup", async function () {
+      beforeEach("setup", function () {
         adapter = new EthersAdapter(this.hre);
+        ArtifactsParser.parseArtifacts(this.hre);
       });
 
       it("should get abi", async () => {

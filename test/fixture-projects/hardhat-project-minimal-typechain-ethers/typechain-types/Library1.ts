@@ -19,7 +19,7 @@ import type {
   TypedContractMethod,
 } from "./common";
 
-export interface LibraryInterface extends Interface {
+export interface Library1Interface extends Interface {
   getFunction(nameOrSignature: "lib"): FunctionFragment;
 
   encodeFunctionData(functionFragment: "lib", values?: undefined): string;
@@ -27,11 +27,11 @@ export interface LibraryInterface extends Interface {
   decodeFunctionResult(functionFragment: "lib", data: BytesLike): Result;
 }
 
-export interface Library extends BaseContract {
-  connect(runner?: ContractRunner | null): Library;
+export interface Library1 extends BaseContract {
+  connect(runner?: ContractRunner | null): Library1;
   waitForDeployment(): Promise<this>;
 
-  interface: LibraryInterface;
+  interface: Library1Interface;
 
   queryFilter<TCEvent extends TypedContractEvent>(
     event: TCEvent,
@@ -60,11 +60,11 @@ export interface Library extends BaseContract {
   listeners(eventName?: string): Promise<Array<Listener>>;
   removeAllListeners<TCEvent extends TypedContractEvent>(event?: TCEvent): Promise<this>;
 
-  lib: TypedContractMethod<[], [void], "view">;
+  lib: TypedContractMethod<[], [bigint], "view">;
 
   getFunction<T extends ContractMethod = ContractMethod>(key: string | FunctionFragment): T;
 
-  getFunction(nameOrSignature: "lib"): TypedContractMethod<[], [void], "view">;
+  getFunction(nameOrSignature: "lib"): TypedContractMethod<[], [bigint], "view">;
 
   filters: {};
 }

@@ -2,6 +2,7 @@ import { assert } from "chai";
 import { ContractFactory, ZeroAddress } from "ethers";
 
 import { Deployer } from "../../src/deployer/Deployer";
+import { ArtifactsParser } from "../../src/parser/ArtifactsParser";
 import { TransactionStorage } from "../../src/tools/storage/TransactionStorage";
 import { PluginName } from "../../src/types/migrations";
 import {
@@ -21,6 +22,8 @@ describe("TransactionStorage", async () => {
     transactionStorage = TransactionStorage.getInstance();
 
     transactionStorage.init(this.hre);
+
+    ArtifactsParser.parseArtifacts(this.hre);
   });
 
   afterEach(async function () {

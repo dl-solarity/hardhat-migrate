@@ -1,17 +1,20 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { ContractFactory, ContractRunner } from "ethers";
+import { MigrateError } from "../errors";
+import { ArtifactExtended } from "../parser/ArtifactsParser";
+import { TemporaryStorage } from "../tools/storage/TemporaryStorage";
 import { Abi, Bytecode, ContractDeployParams } from "./deployer";
 
 // TODO: rewrite through declare modules
 
-export abstract class EthersFactory<A, I> {
-  abstract bytecode: any;
-  abstract abi: Abi;
+export interface EthersFactory<A, I> {
+  bytecode: any;
+  abi: Abi;
 
-  abstract createInterface(): A;
+  createInterface(): A;
 
-  abstract connect(address: string, runner?: ContractRunner | null): I;
+  connect(address: string, runner?: ContractRunner | null): I;
 }
 
 export abstract class TruffleFactory<I> {
@@ -31,7 +34,19 @@ export abstract class Adapter {
     return {
       abi: this._getABI(instance),
       bytecode: this._getBytecode(instance),
+      contractName: this.getContractName(instance),
     };
+  }
+
+  public getContractName(instance: any): string {
+    const artifact = TemporaryStorage.getInstance().get(this._getRawBytecode(instance)) as ArtifactExtended;
+
+    if (!artifact) {
+      throw new MigrateError(`Contract name not found for instance: ${instance}`);
+      // TODO: change to warning
+    }
+
+    return artifact.contractName;
   }
 
   public abstract toInstance<A, I>(instance: Instance<A, I>, address: string, signer: ContractRunner | null): I;
@@ -40,5 +55,11 @@ export abstract class Adapter {
 
   protected abstract _getBytecode(instance: any): Bytecode;
 
-  // protected abstract _validateBytecode(bytecode: Bytecode): boolean;
+  protected abstract _getRawBytecode(instance: any): Bytecode;
+
+  protected _validateBytecode(bytecode: Bytecode): boolean {
+    const bytecodeString = bytecode.toString();
+
+    return bytecodeString.indexOf("__") === -1;
+  }
 }

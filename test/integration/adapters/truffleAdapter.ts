@@ -6,6 +6,7 @@ import { Interface } from "ethers";
 import { useEnvironment } from "../../helpers";
 
 import { TruffleAdapter } from "../../../src/deployer/adapters/TruffleAdapter";
+import { ArtifactsParser } from "../../../src/parser/ArtifactsParser";
 
 describe("TruffleAdapter", () => {
   describe("getContractDeployParams()", () => {
@@ -48,6 +49,7 @@ describe("TruffleAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new TruffleAdapter(this.hre);
+        ArtifactsParser.parseArtifacts(this.hre);
 
         contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
       });
@@ -78,6 +80,7 @@ describe("TruffleAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new TruffleAdapter(this.hre);
+        ArtifactsParser.parseArtifacts(this.hre);
 
         contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
       });

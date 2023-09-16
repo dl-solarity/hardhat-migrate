@@ -8,6 +8,7 @@ import { mergeConfigs, migrateConfigExtender } from "./config";
 import { TASK_MIGRATE } from "./constants";
 
 import { Migrator } from "./migrator/migrator";
+import { ArtifactsParser } from "./parser/ArtifactsParser";
 import { TransactionStorage } from "./tools/storage/TransactionStorage";
 import { MigrateConfig } from "./types/migrations";
 
@@ -23,6 +24,8 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
   });
 
   TransactionStorage.getInstance().init(env);
+
+  ArtifactsParser.parseArtifacts(env);
 
   await new Migrator(env).migrate();
 };
