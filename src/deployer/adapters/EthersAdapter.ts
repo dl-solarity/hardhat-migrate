@@ -1,4 +1,5 @@
 import { ContractFactory, Interface, Signer } from "ethers";
+import { MigrateError } from "../../errors";
 
 import { Adapter, EthersFactory } from "../../types/adapter";
 import { Abi, Bytecode } from "../../types/deployer";
@@ -7,9 +8,8 @@ import { catchError } from "../../utils";
 
 @catchError
 export class EthersAdapter extends Adapter {
-  // eslint-disable-next-line
-  public linkLibrary(library: any, instance: any): void {
-    // this._hre.ethers.link(library, instance);
+  public async linkLibrary(): Promise<string> {
+    throw new MigrateError("Method has deprecated. Use deploy() instead");
   }
 
   public toInstance<A, I>(instance: EthersFactory<A, I>, address: string, signer: Signer): I {
@@ -27,16 +27,7 @@ export class EthersAdapter extends Adapter {
     return (instance as any).interface;
   }
 
-  protected _getBytecode<A, I>(instance: EthersFactory<A, I>): Bytecode {
-    const bytecode = instance.bytecode;
-    // if bytecode contains link references, throw an error
-    if (bytecode.indexOf("__") !== -1) {
-      (instance as any).linkBytecode();
-    }
-    return instance.bytecode;
-  }
-
   protected _getRawBytecode<A, I>(instance: EthersFactory<A, I>): Bytecode {
-    return instance.bytecode;
+    return { object: instance.bytecode };
   }
 }

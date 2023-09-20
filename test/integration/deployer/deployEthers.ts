@@ -43,7 +43,7 @@ describe("deployer", () => {
     });
 
     it("should revert if artifact is not a contract", async function () {
-      await expect(deployer.deploy({} as any, [], {})).to.eventually.be.rejected;
+      await expect(deployer.deploy({} as any, [], {})).to.be.rejected;
     });
   });
 });

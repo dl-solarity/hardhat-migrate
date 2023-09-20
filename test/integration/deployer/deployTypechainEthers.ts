@@ -5,11 +5,14 @@ import { useEnvironment } from "../../helpers";
 import { Deployer } from "../../../src/deployer/Deployer";
 import { PluginName } from "../../../src/types/migrations";
 
+import { ZeroAddress } from "ethers";
+import { ArtifactsParser } from "../../../src/parser/ArtifactsParser";
 import { TransactionStorage } from "../../../src/tools/storage/TransactionStorage";
 import {
   ContractWithConstructorArguments__factory,
   ContractWithExternalLibrary__factory,
   Library1__factory,
+  Library2__factory,
 } from "../../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
 
 describe("deployer", () => {
@@ -19,9 +22,9 @@ describe("deployer", () => {
     let deployer: Deployer;
 
     beforeEach("setup", async function () {
-      await this.hre.run("compile", { quiet: true });
-
       deployer = new Deployer(this.hre, PluginName.ETHERS);
+
+      await new ArtifactsParser(this.hre).parseArtifacts();
 
       TransactionStorage.getInstance().init(this.hre);
       TransactionStorage.getInstance().clear();
@@ -36,19 +39,36 @@ describe("deployer", () => {
     });
 
     it("should revert if artifact is not a contract", async function () {
-      await expect(deployer.deploy(null as any, [], {})).to.eventually.be.rejected;
+      await expect(deployer.deploy(null as any, [], {})).to.be.rejected;
     });
 
     it("should deploy library separately", async function () {
-      await expect(deployer.deploy(Library1__factory, [])).to.eventually.be.not.rejected;
+      await expect(deployer.deploy(Library1__factory, [])).to.be.not.rejected;
     });
 
-    it("should deploy contract with library", async function () {
-      // const library = await deployer.deploy(Library__factory, []);
-      // const contract = await deployer.deploy(ContractWithExternalLibrary__factory, []);
-      // this.hre.ethers.getContractFactory("ContractWithExternalLibrary");
-      // const value = await contract.lib();
-      // expect(value).to.equal(1);
+    it("should deploy contract with provided libraries", async function () {
+      await expect(
+        deployer.deploy(ContractWithExternalLibrary__factory, [], {
+          libraries: {
+            "contracts/Contracts.sol:Library1": ZeroAddress,
+            "contracts/Contracts.sol:Library2": ZeroAddress,
+          },
+        }),
+      ).to.be.not.rejected;
+    });
+
+    it("should not deploy if bytecode was not linked", async function () {
+      await expect(deployer.deploy(ContractWithExternalLibrary__factory, [], {})).to.be.rejected;
+    });
+
+    it("should deploy contract with memorized libraries", async function () {
+      await expect(deployer.deploy(ContractWithExternalLibrary__factory, [], {})).to.be.rejected;
+
+      await deployer.deploy(Library1__factory, []);
+      await deployer.deploy(Library2__factory, []);
+      await deployer.deploy(ContractWithExternalLibrary__factory, [], {});
+
+      await expect(deployer.deploy(ContractWithExternalLibrary__factory, [], {})).to.be.not.rejected;
     });
   });
 });

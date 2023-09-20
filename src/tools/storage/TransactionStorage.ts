@@ -86,8 +86,7 @@ export class TransactionStorage {
     this._saveStateToFile();
   }
 
-  private _createHash(obj: ContractDeploymentTransactionInterestedValues): string {
-    const { data, from, chainId } = obj;
+  private _createHash({ data, from, chainId }: ContractDeploymentTransactionInterestedValues): string {
     return this._hre.ethers.id(this._toJSON({ data, from, chainId }));
   }
 

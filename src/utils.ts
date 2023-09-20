@@ -1,26 +1,13 @@
+import { isBytes } from "@ethersproject/bytes";
+import { hexlify, id } from "ethers";
 import { realpathSync } from "fs";
 import { join } from "path";
 
 import { MigrateError } from "./errors";
+import { Bytecode } from "./types/deployer";
 
 export function resolvePathToFile(path_: string, file_: string = ""): string {
   return join(realpathSync(path_), file_);
-}
-
-export function contractNameFromSourceCode(code: string): string | null {
-  const regex = /class\s+(\w+)\s+/g;
-
-  const matches = regex.exec(code);
-
-  if (matches) {
-    const res = matches[1];
-
-    if (res.endsWith("__factory")) {
-      return res.slice(0, -9);
-    }
-  }
-
-  return null;
 }
 
 export function JSONConvertor(key: any, value: any) {
@@ -29,6 +16,31 @@ export function JSONConvertor(key: any, value: any) {
   }
 
   return value;
+}
+
+export function bytecodeHash(bytecode: string): string {
+  return id(bytecode.toString());
+}
+
+export function bytecodeToString(bytecode: Bytecode): string {
+  let bytecodeHex: string;
+
+  if (typeof bytecode === "string") {
+    bytecodeHex = bytecode;
+  } else if (isBytes(bytecode)) {
+    bytecodeHex = hexlify(bytecode);
+  } else if (bytecode && typeof bytecode.object === "string") {
+    bytecodeHex = (<any>bytecode).object;
+  } else {
+    throw new MigrateError(`Invalid bytecode: ${bytecode}`);
+  }
+
+  // Make sure it is 0x prefixed
+  if (bytecodeHex.substring(0, 2) !== "0x") {
+    bytecodeHex = "0x" + bytecodeHex;
+  }
+
+  return bytecodeHex;
 }
 
 export function catchError(target: any, propertyName?: string, descriptor?: PropertyDescriptor) {

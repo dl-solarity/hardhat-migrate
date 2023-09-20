@@ -2,5 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { ContractWithConstructorArguments } from "./ContractWithConstructorArguments";
+export type { ContractWithExternalLibrary } from "./ContractWithExternalLibrary";
 export type { ContractWithPayableConstructor } from "./ContractWithPayableConstructor";
-export type { Library } from "./Library";
+export type { Library1 } from "./Library1";
+export type { Library2 } from "./Library2";

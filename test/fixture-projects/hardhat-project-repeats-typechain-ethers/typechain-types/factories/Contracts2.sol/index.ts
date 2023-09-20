@@ -2,5 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export { ContractWithConstructorArguments__factory } from "./ContractWithConstructorArguments__factory";
+export { ContractWithExternalLibrary__factory } from "./ContractWithExternalLibrary__factory";
 export { ContractWithPayableConstructor__factory } from "./ContractWithPayableConstructor__factory";
-export { Library__factory } from "./Library__factory";
+export { Library1__factory } from "./Library1__factory";
+export { Library2__factory } from "./Library2__factory";

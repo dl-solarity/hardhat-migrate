@@ -25,7 +25,7 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
 
   TransactionStorage.getInstance().init(env);
 
-  ArtifactsParser.parseArtifacts(env);
+  await new ArtifactsParser(env).parseArtifacts();
 
   await new Migrator(env).migrate();
 };

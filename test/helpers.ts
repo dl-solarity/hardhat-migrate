@@ -9,6 +9,11 @@ export function useEnvironment(fixtureProjectName: string, networkName = "hardha
     process.env.HARDHAT_NETWORK = networkName;
 
     this.hre = require("hardhat");
+
+    // TODO: Delete this at the end of the refactor
+    await this.hre.run("clean");
+
+    await this.hre.run("compile", { quiet: true });
   });
 
   afterEach("Resetting hardhat", function () {

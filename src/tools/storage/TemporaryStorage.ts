@@ -1,6 +1,6 @@
 export class TemporaryStorage {
   private static _instance: TemporaryStorage;
-  private _storage: Map<any, any> = new Map();
+  private _storage: Record<any, any> = {};
 
   private constructor() {}
 
@@ -13,10 +13,10 @@ export class TemporaryStorage {
   }
 
   public save(key: any, value: any): void {
-    this._storage.set(key, value);
+    this._storage[key] = value;
   }
 
   public get(key: any): any {
-    return this._storage.get(key);
+    return this._storage[key];
   }
 }

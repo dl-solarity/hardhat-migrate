@@ -5,17 +5,17 @@
 import BN from "bn.js";
 import { EventData, PastEventOptions } from "web3-eth-contract";
 
-export interface LibraryContract extends Truffle.Contract<LibraryInstance> {
-  "new"(meta?: Truffle.TransactionDetails): Promise<LibraryInstance>;
+export interface Library1Contract extends Truffle.Contract<Library1Instance> {
+  "new"(meta?: Truffle.TransactionDetails): Promise<Library1Instance>;
 }
 
 type AllEvents = never;
 
-export interface LibraryInstance extends Truffle.ContractInstance {
-  lib(txDetails?: Truffle.TransactionDetails): Promise<void>;
+export interface Library1Instance extends Truffle.ContractInstance {
+  lib(txDetails?: Truffle.TransactionDetails): Promise<BN>;
 
   methods: {
-    lib(txDetails?: Truffle.TransactionDetails): Promise<void>;
+    lib(txDetails?: Truffle.TransactionDetails): Promise<BN>;
   };
 
   getPastEvents(event: string): Promise<EventData[]>;

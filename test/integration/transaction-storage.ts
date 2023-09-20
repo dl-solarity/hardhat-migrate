@@ -17,13 +17,11 @@ describe("TransactionStorage", async () => {
   useEnvironment("repeats-typechain-ethers");
 
   beforeEach(async function () {
-    await this.hre.run("compile", { quiet: true });
-
     transactionStorage = TransactionStorage.getInstance();
 
     transactionStorage.init(this.hre);
 
-    ArtifactsParser.parseArtifacts(this.hre);
+    await new ArtifactsParser(this.hre).parseArtifacts();
   });
 
   afterEach(async function () {
@@ -76,7 +74,7 @@ describe("TransactionStorage", async () => {
       const contract = await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
 
       assert.equal(
-        transactionStorage.getDeploymentTransactionByName("ContractWithConstructorArguments"),
+        transactionStorage.getDeploymentTransactionByName("contracts/Contracts.sol:ContractWithConstructorArguments"),
         await contract.getAddress(),
       );
     });
