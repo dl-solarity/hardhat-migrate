@@ -6,6 +6,10 @@ import { Adapter, PureFactory } from "../../types/adapter";
 @catchError
 export class PureAdapter extends Adapter {
   public toInstance<I>(instance: PureFactory<I>, address: string): I {
+    if (typeof instance.contractName !== "string") {
+      throw new Error("ContractName must be a string.");
+    }
+
     return address as I;
   }
 
