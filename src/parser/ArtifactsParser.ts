@@ -15,15 +15,13 @@ export interface ArtifactExtended extends Artifact {
 }
 
 export class ArtifactsParser {
-  constructor(private _hre: HardhatRuntimeEnvironment) {}
-
-  public async parseArtifacts(): Promise<void> {
-    const names = await this._hre.artifacts.getAllFullyQualifiedNames();
+  public static async parseArtifacts(_hre: HardhatRuntimeEnvironment): Promise<void> {
+    const names = await _hre.artifacts.getAllFullyQualifiedNames();
 
     const storage = TemporaryStorage.getInstance();
 
     for (const name of names) {
-      const artifact = await this._hre.artifacts.readArtifact(name);
+      const artifact = await _hre.artifacts.readArtifact(name);
 
       const contract: ArtifactExtended = { ...artifact, neededLibraries: this._parseLibrariesOfArtifact(artifact) };
 
@@ -32,7 +30,7 @@ export class ArtifactsParser {
     }
   }
 
-  private _parseLibrariesOfArtifact(artifact: Artifact): NeededLibrary[] {
+  private static _parseLibrariesOfArtifact(artifact: Artifact): NeededLibrary[] {
     const libraries = artifact.linkReferences;
 
     const neededLibraries = [];

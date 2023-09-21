@@ -52,7 +52,7 @@ describe("EthersAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new EthersAdapter(this.hre);
-        await new ArtifactsParser(this.hre).parseArtifacts();
+        await ArtifactsParser.parseArtifacts(this.hre);
 
         ContractWithConstructor = await this.hre.ethers.getContractFactory("ContractWithConstructorArguments");
       });
@@ -81,7 +81,7 @@ describe("EthersAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new EthersAdapter(this.hre);
-        await new ArtifactsParser(this.hre).parseArtifacts();
+        await ArtifactsParser.parseArtifacts(this.hre);
       });
 
       it("should get abi", async () => {
@@ -114,7 +114,7 @@ describe("EthersAdapter", () => {
 
       beforeEach("setup", async function () {
         // adapter = new EthersAdapter(this.hre);
-        await new ArtifactsParser(this.hre).parseArtifacts();
+        await ArtifactsParser.parseArtifacts(this.hre);
 
         // TODO: how we will handle this?
         // ContractWithExternalLibrary = new ContractFactory();
@@ -134,7 +134,7 @@ describe("EthersAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new EthersAdapter(this.hre);
-        await new ArtifactsParser(this.hre).parseArtifacts();
+        await ArtifactsParser.parseArtifacts(this.hre);
       });
 
       describe("_validateBytecode()", () => {
