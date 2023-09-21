@@ -9,7 +9,7 @@ import { catchError } from "../../utils";
 
 @catchError
 export class TruffleAdapter extends Adapter {
-  public async linkLibrary(library: TruffleContract, ...instances: TruffleContract): Promise<void> {
+  public async link(library: TruffleContract, ...instances: TruffleContract): Promise<void> {
     library = library.contractName ? await library.deployed() : library;
 
     for (const instance of instances) {

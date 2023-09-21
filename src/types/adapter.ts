@@ -44,7 +44,7 @@ export abstract class Adapter {
     };
   }
 
-  public linkLibrary(instance: any, library: any): void {
+  public link(instance: any, library: any): void {
     throw new MigrateError("Linking is not supported with provided Factory.");
   }
 

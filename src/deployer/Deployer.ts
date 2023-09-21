@@ -41,7 +41,7 @@ export class Deployer {
   public link<A, I>(library: any, instance: Instance<A, I>): void {
     this._resolveAdapter(instance);
 
-    this._adapter.linkLibrary(library, instance);
+    this._adapter.link(library, instance);
   }
 
   private _resolveAdapter<A, I>(contract: Instance<A, I>): void {
