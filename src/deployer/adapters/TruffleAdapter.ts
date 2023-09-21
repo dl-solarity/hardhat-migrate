@@ -1,5 +1,6 @@
-import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
 import { Interface } from "ethers";
+
+import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
 
 import { Adapter, TruffleFactory } from "../../types/adapter";
 import { Abi, Bytecode } from "../../types/deployer";
@@ -27,6 +28,6 @@ export class TruffleAdapter extends Adapter {
   }
 
   protected _getRawBytecode(instance: TruffleContract): Bytecode {
-    return { object: instance.bytecode };
+    return instance.bytecode;
   }
 }

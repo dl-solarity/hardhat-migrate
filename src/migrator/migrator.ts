@@ -1,10 +1,11 @@
-import { readdirSync, statSync } from "fs";
 import { basename } from "path";
+import { readdirSync, statSync } from "fs";
 
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { pluginName } from "../constants";
+
 import { resolvePathToFile } from "../utils";
 
 import { MigrateError } from "../errors";
@@ -14,16 +15,16 @@ import { MigrateConfig } from "../types/migrations";
 import { Deployer } from "../deployer/Deployer";
 
 export class Migrator {
-  private _deployer: Deployer;
-  private _migrationFiles: string[];
+  private readonly _deployer: Deployer;
+  private readonly _migrationFiles: string[];
 
   constructor(
     _hre: HardhatRuntimeEnvironment,
     private _config: MigrateConfig = _hre.config.migrate,
   ) {
-    this._deployer = new Deployer(_hre, _config.pluginName);
+    this._deployer = new Deployer(_hre);
 
-    this._migrationFiles = this.getMigrationFiles();
+    this._migrationFiles = this._getMigrationFiles();
   }
 
   public async migrate() {
@@ -43,7 +44,8 @@ export class Migrator {
     }
   }
 
-  private getMigrationFiles() {
+  // TODO: check code style. Private methods should be at the bottom with underscore at the beginning.
+  private _getMigrationFiles() {
     const migrationsDir = resolvePathToFile(this._config.pathToMigrations);
     const directoryContents = readdirSync(migrationsDir);
 

@@ -1,12 +1,15 @@
 import { Artifact, HardhatRuntimeEnvironment } from "hardhat/types";
-import { TemporaryStorage } from "../tools/storage/TemporaryStorage";
+
 import { bytecodeHash } from "../utils";
+
+import { TemporaryStorage } from "../tools/storage/TemporaryStorage";
 
 interface NeededLibrary {
   sourceName: string;
   libName: string;
 }
 
+// TODO: move to types folder
 export interface ArtifactExtended extends Artifact {
   neededLibraries: NeededLibrary[];
 }
