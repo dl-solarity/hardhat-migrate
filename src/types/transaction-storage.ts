@@ -1,7 +1,6 @@
 import { ContractDeployTransaction } from "ethers";
 
-// TODO: Too long. Maybe just KeyTxFields?
-export type ContractDeploymentTransactionInterestedValues = Pick<
+export type KeyTxFields = Pick<
   ContractDeployTransaction,
   "data" | "from" | "chainId"
 >;

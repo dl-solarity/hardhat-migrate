@@ -1,4 +1,3 @@
-import { id } from "ethers";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -7,7 +6,7 @@ import { MigrateError } from "../../errors";
 
 import { catchError, JSONConvertor, resolvePathToFile } from "../../utils";
 
-import { ContractDeploymentTransactionInterestedValues } from "../../types/transaction-storage";
+import { KeyTxFields } from "../../types/transaction-storage";
 
 // TODO: add add this function to the TransactionStorage
 
@@ -57,7 +56,7 @@ export class TransactionStorage {
     }
   }
 
-  public saveDeploymentTransaction(args: ContractDeploymentTransactionInterestedValues, address: string) {
+  public saveDeploymentTransaction(args: KeyTxFields, address: string) {
     const hash = this._createHash(args);
 
     if (this.state[hash]) {
@@ -84,7 +83,7 @@ export class TransactionStorage {
     this._addValueToState(contractName, address);
   }
 
-  public getDeploymentTransaction(args: ContractDeploymentTransactionInterestedValues): string {
+  public getDeploymentTransaction(args: KeyTxFields): string {
     const hash = this._createHash(args);
 
     // TODO: if value is not found throw error.
@@ -110,9 +109,9 @@ export class TransactionStorage {
     this._saveStateToFile();
   }
 
-  private _createHash(keyTxFields: ContractDeploymentTransactionInterestedValues): string {
+  private _createHash(keyTxFields: KeyTxFields): string {
     // TODO: let's use id from ethers everywhere where we need to hash strings
-    return id(this._toJSON(keyTxFields));
+    return this._hre.ethers.id(this._toJSON(keyTxFields));
   }
 
   private _stateExistsOnFile(): boolean {
