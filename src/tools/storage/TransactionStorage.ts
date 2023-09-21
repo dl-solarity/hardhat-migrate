@@ -1,11 +1,28 @@
+import { id } from "ethers";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { MigrateError } from "../../errors";
-import { ContractDeploymentTransactionInterestedValues } from "../../types/transaction-storage";
 
 import { catchError, JSONConvertor, resolvePathToFile } from "../../utils";
+
+import { ContractDeploymentTransactionInterestedValues } from "../../types/transaction-storage";
+
+// TODO: add add this function to the TransactionStorage
+
+//   public getContractName(instance: any): string {
+//     const artifact = TemporaryStorage.getInstance().get(
+//       bytecodeHash(bytecodeToString(this._getRawBytecode(instance))),
+//     ) as ArtifactExtended;
+//
+//     if (!artifact) {
+//       throw new MigrateError(`Contract name not found for instance: ${instance}`);
+//       // TODO: change to warning
+//     }
+//
+//     return `${artifact.sourceName}:${artifact.contractName}`;
+//   }
 
 @catchError
 export class TransactionStorage {
@@ -18,6 +35,16 @@ export class TransactionStorage {
 
   private constructor() {}
 
+  // TODO: check code style. Let's move static methods to the top.
+  public static getInstance(): TransactionStorage {
+    if (!TransactionStorage.instance) {
+      TransactionStorage.instance = new TransactionStorage();
+    }
+
+    return TransactionStorage.instance;
+  }
+
+  // TODO: maybe move this to the constructor?
   public init(_hre: HardhatRuntimeEnvironment) {
     this._hre = _hre;
 
@@ -30,19 +57,12 @@ export class TransactionStorage {
     }
   }
 
-  public static getInstance(): TransactionStorage {
-    if (!TransactionStorage.instance) {
-      TransactionStorage.instance = new TransactionStorage();
-    }
-
-    return TransactionStorage.instance;
-  }
-
   public saveDeploymentTransaction(args: ContractDeploymentTransactionInterestedValues, address: string) {
     const hash = this._createHash(args);
 
     if (this.state[hash]) {
       if (this.state[hash] !== address) {
+        // TODO: Let's do not throw error when it is possible to handle it or ignore.
         throw new MigrateError(`Transaction with hash ${hash} already exists in storage`);
       }
 
@@ -64,13 +84,17 @@ export class TransactionStorage {
     this._addValueToState(contractName, address);
   }
 
-  public getDeploymentTransaction(args: ContractDeploymentTransactionInterestedValues): string | undefined {
+  public getDeploymentTransaction(args: ContractDeploymentTransactionInterestedValues): string {
     const hash = this._createHash(args);
+
+    // TODO: if value is not found throw error.
 
     return this.state[hash];
   }
 
-  public getDeploymentTransactionByName(contractName: string): string | undefined {
+  public getDeploymentTransactionByName(contractName: string): string {
+    // TODO: throw an error if value is not found.
+
     return this.state[contractName];
   }
 
@@ -86,8 +110,9 @@ export class TransactionStorage {
     this._saveStateToFile();
   }
 
-  private _createHash({ data, from, chainId }: ContractDeploymentTransactionInterestedValues): string {
-    return this._hre.ethers.id(this._toJSON({ data, from, chainId }));
+  private _createHash(keyTxFields: ContractDeploymentTransactionInterestedValues): string {
+    // TODO: let's use id from ethers everywhere where we need to hash strings
+    return id(this._toJSON(keyTxFields));
   }
 
   private _stateExistsOnFile(): boolean {

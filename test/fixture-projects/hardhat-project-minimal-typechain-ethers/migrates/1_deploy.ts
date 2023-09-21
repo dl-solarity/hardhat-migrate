@@ -7,5 +7,7 @@ export = async (deployer: Deployer) => {
     gasLimit: 1000000,
   });
 
-  await contract.name();
+  let contract2 = await deployer.deploy({ bytecode: "", abi: "", contractName: "" }, ["hello"], {});
+
+  contract.name;
 };

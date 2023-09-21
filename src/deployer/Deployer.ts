@@ -1,68 +1,64 @@
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { DeployerCore } from "./DeployerCore";
 
+import { PureAdapter } from "./adapters/PureAddapter";
 import { EthersAdapter } from "./adapters/EthersAdapter";
 import { TruffleAdapter } from "./adapters/TruffleAdapter";
 
-import { catchError } from "../utils";
+import { catchError, getSignerHelper } from "../utils";
 
-import { ContractDeployTransaction } from "ethers";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { MigrateError } from "../errors";
-import { TransactionStorage } from "../tools/storage/TransactionStorage";
-import { Adapter, Instance } from "../types/adapter";
-import { Args, ContractDeployParams, OverridesAndLibs } from "../types/deployer";
-import { PluginName } from "../types/migrations";
+
+import { Args, OverridesAndLibs } from "../types/deployer";
+import { Adapter, EthersFactory, Instance, PureFactory, TruffleFactory } from "../types/adapter";
 
 @catchError
 export class Deployer {
-  private _adapter: Adapter;
+  private _adapter: Adapter = {} as Adapter;
 
+  // TODO: delete private _deployerType: PluginName from config
   constructor(
     private _hre: HardhatRuntimeEnvironment,
-    private _deployerType: PluginName,
     private _core = new DeployerCore(_hre),
-  ) {
-    switch (this._deployerType) {
-      case PluginName.ETHERS:
-        this._adapter = new EthersAdapter(this._hre);
-        break;
-      case PluginName.TRUFFLE:
-        this._adapter = new TruffleAdapter(this._hre);
-        break;
-      default:
-        throw new MigrateError(`Invalid deployer type: ${this._deployerType}`);
-    }
-  }
+  ) {}
 
   public async deploy<A, I>(contract: Instance<A, I>, args: Args, parameters: OverridesAndLibs = {}): Promise<I> {
-    const deploymentParams = await this._adapter.getContractDeployParams(contract, parameters.libraries);
+    this._resolveAdapter(contract);
 
-    const [contractAddress, tx] = await this._core.deploy(deploymentParams, args, parameters);
-    if (tx) {
-      this._cacheContractAddress(deploymentParams, tx, contractAddress);
-    }
+    const deploymentParams = await this._adapter.getContractDeployParams(contract);
 
-    return this._adapter.toInstance(contract, contractAddress, await this._core.getSigner(parameters.from));
+    const contractAddress = await this._core.deploy(deploymentParams, args, parameters);
+
+    // TODO: Move to the core. Should not be handled here.
+    // if (tx) {
+    //   this._cacheContractAddress(deploymentParams, tx, contractAddress);
+    // }
+
+    return this._adapter.toInstance(contract, contractAddress, await getSignerHelper(this._hre, parameters.from));
   }
 
-  /**
-   * @deprecated Use `deploy` instead.
-   */
-  public link(library: any, instance: any): void {
+  public link<A, I>(library: any, instance: Instance<A, I>): void {
+    this._resolveAdapter(instance);
+
     this._adapter.linkLibrary(library, instance);
   }
 
-  private _cacheContractAddress(
-    deploymentParams: ContractDeployParams,
-    tx: ContractDeployTransaction,
-    address: string,
-  ) {
-    const transactionStorage = TransactionStorage.getInstance();
-    transactionStorage.saveDeploymentTransaction(tx, address);
-
-    const contractName = deploymentParams.contractName;
-    if (contractName) {
-      transactionStorage.saveDeploymentTransactionByName(contractName, address);
+  private _resolveAdapter<A, I>(contract: Instance<A, I>): void {
+    if (contract instanceof EthersFactory) {
+      this._adapter = new EthersAdapter(this._hre);
     }
+
+    if (contract instanceof TruffleFactory) {
+      this._adapter = new TruffleAdapter(this._hre);
+    }
+
+    if (contract instanceof PureFactory) {
+      this._adapter = new PureAdapter(this._hre);
+    }
+
+    // TODO: research how to extend this.
+
+    throw new MigrateError("Unknown Contract Factory Type");
   }
 }

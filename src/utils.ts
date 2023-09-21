@@ -1,13 +1,30 @@
-import { isBytes } from "@ethersproject/bytes";
-import { hexlify, id } from "ethers";
-import { realpathSync } from "fs";
 import { join } from "path";
+import { realpathSync } from "fs";
+import { AddressLike, hexlify, id } from "ethers";
+
+import { isBytes } from "@ethersproject/bytes";
 
 import { MigrateError } from "./errors";
-import { Bytecode } from "./types/deployer";
 
-export function resolvePathToFile(path_: string, file_: string = ""): string {
-  return join(realpathSync(path_), file_);
+import { Bytecode } from "./types/deployer";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+
+export async function getSignerHelper(
+  hre: HardhatRuntimeEnvironment,
+  from?: null | AddressLike,
+): Promise<HardhatEthersSigner> {
+  if (!from) {
+    return hre.ethers.provider.getSigner();
+  }
+
+  const address = await hre.ethers.resolveAddress(from, hre.ethers.provider);
+
+  return hre.ethers.getSigner(address);
+}
+
+export function resolvePathToFile(path: string, file: string = ""): string {
+  return join(realpathSync(path), file);
 }
 
 export function JSONConvertor(key: any, value: any) {
@@ -18,8 +35,8 @@ export function JSONConvertor(key: any, value: any) {
   return value;
 }
 
-export function bytecodeHash(bytecode: string): string {
-  return id(bytecode.toString());
+export function bytecodeHash(bytecode: any): string {
+  return id(String(bytecode));
 }
 
 export function bytecodeToString(bytecode: Bytecode): string {
