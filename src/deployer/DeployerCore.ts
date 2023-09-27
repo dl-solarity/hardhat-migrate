@@ -1,14 +1,22 @@
-import { ContractDeployTransaction, Overrides, Signer, TransactionRequest, TransactionResponse } from "ethers";
+import { ContractDeployTransaction, Overrides, Signer, TransactionResponse } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+
+import { Linker } from "./Linker";
 
 import { catchError, getSignerHelper } from "../utils";
 
 import { MigrateError } from "../errors";
 
+import {
+  Args,
+  ContractDeployParams,
+  ContractDeployTransactionWithContractName,
+  OverridesAndLibs,
+} from "../types/deployer";
 import { MigrateConfig } from "../types/migrations";
-import { Args, ContractDeployParams } from "../types/deployer";
 
+import { TemporaryStorage } from "../tools/storage/TemporaryStorage";
 import { TransactionStorage } from "../tools/storage/TransactionStorage";
 
 @catchError
@@ -19,16 +27,18 @@ export class DeployerCore {
     this._config = _hre.config.migrate;
   }
 
-  public async deploy(deployParams: ContractDeployParams, args: Args, txOverrides: Overrides = {}): Promise<string> {
-    // TODO: Add bytecode validation here. It should be implemented through Linker class.
-    const tx = await this._createDeployTransaction(deployParams, args, txOverrides);
+  public async deploy(deployParams: ContractDeployParams, args: Args, parameters: OverridesAndLibs): Promise<string> {
+    const contractName = TemporaryStorage.getInstance().getContractName(deployParams.bytecode);
 
-    // TODO: Add special flag continue to the config.
-    // If continue flag is true, only then we will use storage to recover contract addresses.
-    const mockedContinueFlag = false;
+    deployParams.bytecode = await Linker.linkBytecode(deployParams.bytecode, parameters.libraries || {});
+
+    const tx: ContractDeployTransactionWithContractName = {
+      ...(await this._createDeployTransaction(deployParams, args, parameters)),
+      contractName: contractName,
+    };
 
     let contractAddress: string;
-    if (mockedContinueFlag) {
+    if (this._config.continuePreviousDeployment) {
       contractAddress = await this._tryRecoverContractAddress(tx);
     } else {
       contractAddress = await this._processContractDeploymentTransaction(tx);
@@ -47,7 +57,7 @@ export class DeployerCore {
     return factory.getDeployTransaction(...args, txOverrides);
   }
 
-  private async _tryRecoverContractAddress(tx: ContractDeployTransaction): Promise<string> {
+  private async _tryRecoverContractAddress(tx: ContractDeployTransactionWithContractName): Promise<string> {
     try {
       return TransactionStorage.getInstance().getDeploymentTransaction(tx);
     } catch (e) {
@@ -56,7 +66,7 @@ export class DeployerCore {
     }
   }
 
-  private async _processContractDeploymentTransaction(tx: TransactionRequest): Promise<string> {
+  private async _processContractDeploymentTransaction(tx: ContractDeployTransactionWithContractName): Promise<string> {
     const signer: Signer = await getSignerHelper(this._hre, tx.from);
 
     // Send transaction
@@ -67,7 +77,7 @@ export class DeployerCore {
       this._reportContractDeployTransactionSent(txResponse),
     ]);
 
-    // TODO: Save transaction to storage. Just one function call to the Storage contract.
+    TransactionStorage.getInstance().saveDeploymentTransaction(tx, tx.contractName, contractAddress);
 
     return contractAddress;
   }
@@ -81,8 +91,7 @@ export class DeployerCore {
       return receipt.contractAddress!;
     }
 
-    // TODO: change message. It can not failed because of confirmations.
-    throw new MigrateError("Contract deployment failed. Please check your network configuration (confirmations).");
+    throw new MigrateError("Contract deployment failed.");
   }
 
   // eslint-disable-next-line

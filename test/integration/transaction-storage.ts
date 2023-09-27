@@ -1,14 +1,13 @@
-import { assert } from "chai";
+import { assert, expect } from "chai";
 import { ContractFactory, ZeroAddress } from "ethers";
 
 import { Deployer } from "../../src/deployer/Deployer";
 import { ArtifactsParser } from "../../src/parser/ArtifactsParser";
 import { TransactionStorage } from "../../src/tools/storage/TransactionStorage";
-import { PluginName } from "../../src/types/migrations";
 import {
   ContractWithConstructorArguments__factory,
   ContractWithPayableConstructor__factory,
-} from "../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
+} from "../fixture-projects/hardhat-project-repeats-typechain-ethers/typechain-types";
 import { useEnvironment } from "../helpers";
 
 describe("TransactionStorage", async () => {
@@ -21,7 +20,7 @@ describe("TransactionStorage", async () => {
 
     transactionStorage.init(this.hre);
 
-    await new ArtifactsParser(this.hre).parseArtifacts();
+    await ArtifactsParser.parseArtifacts(this.hre);
   });
 
   afterEach(async function () {
@@ -32,19 +31,19 @@ describe("TransactionStorage", async () => {
     it("should save deployment transaction", function () {
       const tx = { data: "", chainId: BigInt(0), from: "" };
 
-      transactionStorage.saveDeploymentTransaction(tx, "123");
+      transactionStorage.saveDeploymentTransaction(tx, "name", "123");
 
       assert.equal(transactionStorage.getDeploymentTransaction(tx), "123");
     });
-  });
 
-  describe("saveDeploymentTransactionByName()", () => {
     it("should save deployment transaction by name", function () {
+      const tx = { data: "", chainId: BigInt(0), from: "" };
+
       const contractName = "Bla";
 
       const contractAddress = "123";
 
-      transactionStorage.saveDeploymentTransactionByName(contractName, contractAddress);
+      transactionStorage.saveDeploymentTransaction(tx, contractName, contractAddress);
 
       assert(transactionStorage.getDeploymentTransactionByName(contractName), contractAddress);
     });
@@ -53,8 +52,8 @@ describe("TransactionStorage", async () => {
   describe("via Deployer", function () {
     let deployer: Deployer;
 
-    before(function () {
-      deployer = new Deployer(this.hre, PluginName.ETHERS);
+    beforeEach(function () {
+      deployer = new Deployer(this.hre);
     });
 
     it("should save deployment transaction", async function () {
@@ -103,7 +102,7 @@ describe("TransactionStorage", async () => {
 
       const tx = await factory.getDeployTransaction("hello", { chainId: 1 });
 
-      assert.equal(transactionStorage.getDeploymentTransaction(tx), undefined);
+      expect(() => transactionStorage.getDeploymentTransaction(tx)).to.throw("Transaction not found in storage");
     });
 
     it("should differ contracts with chainId", async function () {
@@ -116,7 +115,7 @@ describe("TransactionStorage", async () => {
 
       const tx = await factory.getDeployTransaction("hello", { chainId: 1 });
 
-      assert.equal(transactionStorage.getDeploymentTransaction(tx), undefined);
+      expect(() => transactionStorage.getDeploymentTransaction(tx)).to.throw("Transaction not found in storage");
     });
 
     it("should differ contracts with from", async function () {
@@ -129,7 +128,7 @@ describe("TransactionStorage", async () => {
 
       const tx = await factory.getDeployTransaction("hello", { from: ZeroAddress });
 
-      assert.equal(transactionStorage.getDeploymentTransaction(tx), undefined);
+      expect(() => transactionStorage.getDeploymentTransaction(tx)).to.throw("Transaction not found in storage");
     });
 
     it("should not differ contracts with nonce", async function () {
@@ -155,7 +154,7 @@ describe("TransactionStorage", async () => {
 
       const tx = await factory.getDeployTransaction("hello2");
 
-      assert.equal(transactionStorage.getDeploymentTransaction(tx), undefined);
+      expect(() => transactionStorage.getDeploymentTransaction(tx)).to.throw("Transaction not found in storage");
     });
   });
 });

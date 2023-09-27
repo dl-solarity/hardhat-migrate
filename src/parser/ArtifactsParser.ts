@@ -2,17 +2,9 @@ import { Artifact, HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { bytecodeHash } from "../utils";
 
+import { ArtifactExtended, NeededLibrary } from "../types/artifacts-parser";
+
 import { TemporaryStorage } from "../tools/storage/TemporaryStorage";
-
-interface NeededLibrary {
-  sourceName: string;
-  libName: string;
-}
-
-// TODO: move to types folder
-export interface ArtifactExtended extends Artifact {
-  neededLibraries: NeededLibrary[];
-}
 
 export class ArtifactsParser {
   public static async parseArtifacts(_hre: HardhatRuntimeEnvironment): Promise<void> {

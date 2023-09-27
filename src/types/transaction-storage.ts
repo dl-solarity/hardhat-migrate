@@ -1,6 +1,3 @@
 import { ContractDeployTransaction } from "ethers";
 
-export type KeyTxFields = Pick<
-  ContractDeployTransaction,
-  "data" | "from" | "chainId"
->;
+export type KeyTxFields = Pick<ContractDeployTransaction, "data" | "from" | "chainId">;

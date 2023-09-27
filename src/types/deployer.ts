@@ -1,4 +1,4 @@
-import { BytesLike, ContractFactory, Interface, InterfaceAbi, Overrides } from "ethers";
+import { BytesLike, ContractDeployTransaction, ContractFactory, Interface, InterfaceAbi, Overrides } from "ethers";
 
 import { Libraries } from "hardhat/types";
 
@@ -12,7 +12,9 @@ export type Args = Parameters<ContractFactory["getDeployTransaction"]>;
 
 export type OverridesAndLibs = Overrides & { libraries?: Libraries };
 
+export type ContractDeployTransactionWithContractName = ContractDeployTransaction & { contractName: string };
+
 export interface ContractDeployParams {
   abi: Abi;
-  bytecode: Bytecode;
+  bytecode: string;
 }

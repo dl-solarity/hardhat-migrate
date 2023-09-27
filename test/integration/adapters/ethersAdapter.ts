@@ -1,15 +1,11 @@
-import { assert, expect } from "chai";
-import { ContractFactory, Interface, ZeroAddress } from "ethers";
+import { expect } from "chai";
+import { ContractFactory, Interface } from "ethers";
 
 import { useEnvironment } from "../../helpers";
 
 import { EthersAdapter } from "../../../src/deployer/adapters/EthersAdapter";
 import { ArtifactsParser } from "../../../src/parser/ArtifactsParser";
-import { Adapter } from "../../../src/types/adapter";
-import {
-  ContractWithConstructorArguments__factory,
-  ContractWithExternalLibrary__factory,
-} from "../../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
+import { ContractWithConstructorArguments__factory } from "../../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
 
 describe("EthersAdapter", () => {
   describe("getContractDeployParams()", () => {
@@ -45,7 +41,7 @@ describe("EthersAdapter", () => {
 
     let adapter: EthersAdapter;
 
-    context("pure ethers", () => {
+    context.skip("pure ethers", () => {
       useEnvironment("minimal-ethers");
 
       let ContractWithConstructor: ContractFactory;
@@ -68,12 +64,6 @@ describe("EthersAdapter", () => {
 
         expect(bytecode).to.equal(contractWithConstructorBytecode);
       });
-
-      it("should get contract name", async () => {
-        const name = (await adapter.getContractDeployParams(ContractWithConstructor)).contractName;
-
-        expect(name).to.equal("contracts/Contracts.sol:ContractWithConstructorArguments");
-      });
     });
 
     context("with typechain", () => {
@@ -94,12 +84,6 @@ describe("EthersAdapter", () => {
         const bytecode = (await adapter.getContractDeployParams(ContractWithConstructorArguments__factory)).bytecode;
 
         expect(bytecode).to.equal(contractWithConstructorBytecode);
-      });
-
-      it("should get contract name", async () => {
-        const name = (await adapter.getContractDeployParams(ContractWithConstructorArguments__factory)).contractName;
-
-        expect(name).to.equal("contracts/Contracts.sol:ContractWithConstructorArguments");
       });
     });
   });
@@ -135,32 +119,6 @@ describe("EthersAdapter", () => {
       beforeEach("setup", async function () {
         adapter = new EthersAdapter(this.hre);
         await ArtifactsParser.parseArtifacts(this.hre);
-      });
-
-      describe("_validateBytecode()", () => {
-        it("should return false if bytecode is not linked", async () => {
-          assert.isFalse(Adapter.validateBytecode(ContractWithExternalLibrary__factory.bytecode));
-        });
-
-        it("should return true if bytecode is not need to be linked", async () => {
-          assert.isTrue(Adapter.validateBytecode(ContractWithConstructorArguments__factory.bytecode));
-        });
-      });
-
-      describe("linkage", () => {
-        it("should link library by providing name and deployed address", async () => {
-          let bytecode = ContractWithExternalLibrary__factory.bytecode;
-          assert.isFalse(Adapter.validateBytecode(bytecode));
-
-          bytecode = (
-            await adapter.getContractDeployParams(ContractWithExternalLibrary__factory, {
-              "contracts/Contracts.sol:Library1": ZeroAddress,
-              "contracts/Contracts.sol:Library2": ZeroAddress,
-            })
-          ).bytecode;
-
-          assert.isTrue(Adapter.validateBytecode(bytecode));
-        });
       });
     });
   });

@@ -5,7 +5,6 @@ import { expect } from "chai";
 import { useEnvironment } from "../../helpers";
 
 import { Deployer } from "../../../src/deployer/Deployer";
-import { PluginName } from "../../../src/types/migrations";
 
 import { TransactionStorage } from "../../../src/tools/storage/TransactionStorage";
 
@@ -17,7 +16,7 @@ describe("deployer", () => {
     let deployer: Deployer;
 
     beforeEach("setup", async function () {
-      deployer = new Deployer(this.hre, PluginName.TRUFFLE);
+      deployer = new Deployer(this.hre);
 
       TransactionStorage.getInstance().init(this.hre);
       TransactionStorage.getInstance().clear();

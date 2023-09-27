@@ -1,5 +1,5 @@
-import { basename } from "path";
 import { readdirSync, statSync } from "fs";
+import { basename } from "path";
 
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -44,7 +44,6 @@ export class Migrator {
     }
   }
 
-  // TODO: check code style. Private methods should be at the bottom with underscore at the beginning.
   private _getMigrationFiles() {
     const migrationsDir = resolvePathToFile(this._config.pathToMigrations);
     const directoryContents = readdirSync(migrationsDir);

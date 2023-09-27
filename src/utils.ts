@@ -1,14 +1,14 @@
-import { join } from "path";
-import { realpathSync } from "fs";
 import { AddressLike, hexlify, id } from "ethers";
+import { realpathSync } from "fs";
+import { join } from "path";
 
 import { isBytes } from "@ethersproject/bytes";
 
 import { MigrateError } from "./errors";
 
-import { Bytecode } from "./types/deployer";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { Bytecode } from "./types/deployer";
 
 export async function getSignerHelper(
   hre: HardhatRuntimeEnvironment,
@@ -46,8 +46,6 @@ export function bytecodeToString(bytecode: Bytecode): string {
     bytecodeHex = bytecode;
   } else if (isBytes(bytecode)) {
     bytecodeHex = hexlify(bytecode);
-  } else if (bytecode && typeof bytecode.object === "string") {
-    bytecodeHex = (<any>bytecode).object;
   } else {
     throw new MigrateError(`Invalid bytecode: ${bytecode}`);
   }

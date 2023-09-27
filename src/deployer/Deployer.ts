@@ -2,59 +2,51 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { DeployerCore } from "./DeployerCore";
 
-import { PureAdapter } from "./adapters/PureAddapter";
+import { Adapter } from "./adapters/Adapter";
 import { EthersAdapter } from "./adapters/EthersAdapter";
+import { PureAdapter } from "./adapters/PureAdapter";
 import { TruffleAdapter } from "./adapters/TruffleAdapter";
 
 import { catchError, getSignerHelper } from "../utils";
 
 import { MigrateError } from "../errors";
 
+import { Instance } from "../types/adapter";
 import { Args, OverridesAndLibs } from "../types/deployer";
-import { Adapter, EthersFactory, Instance, PureFactory, TruffleFactory } from "../types/adapter";
+import { isEthersFactory, isPureFactory, isTruffleFactory } from "../types/type-guards";
 
 @catchError
 export class Deployer {
-  private _adapter: Adapter = {} as Adapter;
-
-  // TODO: delete private _deployerType: PluginName from config
   constructor(
     private _hre: HardhatRuntimeEnvironment,
     private _core = new DeployerCore(_hre),
   ) {}
 
   public async deploy<A, I>(contract: Instance<A, I>, args: Args, parameters: OverridesAndLibs = {}): Promise<I> {
-    this._resolveAdapter(contract);
+    const adapter = this._resolveAdapter(contract);
 
-    const deploymentParams = await this._adapter.getContractDeployParams(contract);
+    const deploymentParams = await adapter.getContractDeployParams(contract);
 
     const contractAddress = await this._core.deploy(deploymentParams, args, parameters);
 
-    // TODO: Move to the core. Should not be handled here.
-    // if (tx) {
-    //   this._cacheContractAddress(deploymentParams, tx, contractAddress);
-    // }
-
-    return this._adapter.toInstance(contract, contractAddress, await getSignerHelper(this._hre, parameters.from));
+    return adapter.toInstance(contract, contractAddress, await getSignerHelper(this._hre, parameters.from));
   }
 
-  public link<A, I>(library: any, instance: Instance<A, I>): void {
-    this._resolveAdapter(instance);
-
-    this._adapter.link(library, instance);
+  public async link<A, I>(library: any, instance: Instance<A, I>): Promise<void> {
+    await this._resolveAdapter(instance).link(library, instance);
   }
 
-  private _resolveAdapter<A, I>(contract: Instance<A, I>): void {
-    if (contract instanceof EthersFactory) {
-      this._adapter = new EthersAdapter(this._hre);
+  private _resolveAdapter<A, I>(contract: Instance<A, I>): Adapter {
+    if (isEthersFactory(contract)) {
+      return new EthersAdapter(this._hre);
     }
 
-    if (contract instanceof TruffleFactory) {
-      this._adapter = new TruffleAdapter(this._hre);
+    if (isTruffleFactory(contract)) {
+      return new TruffleAdapter(this._hre);
     }
 
-    if (contract instanceof PureFactory) {
-      this._adapter = new PureAdapter(this._hre);
+    if (isPureFactory(contract)) {
+      return new PureAdapter(this._hre);
     }
 
     // TODO: research how to extend this.

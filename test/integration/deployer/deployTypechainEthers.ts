@@ -3,7 +3,6 @@ import { expect } from "chai";
 import { useEnvironment } from "../../helpers";
 
 import { Deployer } from "../../../src/deployer/Deployer";
-import { PluginName } from "../../../src/types/migrations";
 
 import { ZeroAddress } from "ethers";
 import { ArtifactsParser } from "../../../src/parser/ArtifactsParser";
@@ -22,9 +21,9 @@ describe("deployer", () => {
     let deployer: Deployer;
 
     beforeEach("setup", async function () {
-      deployer = new Deployer(this.hre, PluginName.ETHERS);
+      deployer = new Deployer(this.hre);
 
-      await new ArtifactsParser(this.hre).parseArtifacts();
+      await ArtifactsParser.parseArtifacts(this.hre);
 
       TransactionStorage.getInstance().init(this.hre);
       TransactionStorage.getInstance().clear();
@@ -66,7 +65,6 @@ describe("deployer", () => {
 
       await deployer.deploy(Library1__factory, []);
       await deployer.deploy(Library2__factory, []);
-      await deployer.deploy(ContractWithExternalLibrary__factory, [], {});
 
       await expect(deployer.deploy(ContractWithExternalLibrary__factory, [], {})).to.be.not.rejected;
     });

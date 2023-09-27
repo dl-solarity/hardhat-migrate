@@ -10,7 +10,6 @@ module.exports = {
     attempts: 2,
     confirmations: 5,
     pathToMigrations: "./deploy/",
-    skipVerificationErrors: ["already verified"],
-    pluginName: "truffle",
+    skipVerificationErrors: ["already verified"]
   },
 };

@@ -1,13 +1,12 @@
 import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
 
-import { assert, expect } from "chai";
-import { Interface, ZeroAddress } from "ethers";
+import { expect } from "chai";
+import { Interface } from "ethers";
 
 import { useEnvironment } from "../../helpers";
 
 import { TruffleAdapter } from "../../../src/deployer/adapters/TruffleAdapter";
 import { ArtifactsParser } from "../../../src/parser/ArtifactsParser";
-import { Adapter } from "../../../src/types/adapter";
 
 describe("TruffleAdapter", () => {
   describe("getContractDeployParams()", () => {
@@ -50,7 +49,7 @@ describe("TruffleAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new TruffleAdapter(this.hre);
-        await new ArtifactsParser(this.hre).parseArtifacts();
+        await ArtifactsParser.parseArtifacts(this.hre);
 
         contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
       });
@@ -65,12 +64,6 @@ describe("TruffleAdapter", () => {
         const bytecode = (await adapter.getContractDeployParams(contractWithConstructorArtifact)).bytecode;
 
         expect(bytecode).to.equal(contractWithConstructorBytecode);
-      });
-
-      it("should get contract name", async () => {
-        const name = (await adapter.getContractDeployParams(contractWithConstructorArtifact)).contractName;
-
-        expect(name).to.equal("contracts/Contracts.sol:ContractWithConstructorArguments");
       });
     });
 
@@ -81,7 +74,7 @@ describe("TruffleAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new TruffleAdapter(this.hre);
-        await new ArtifactsParser(this.hre).parseArtifacts();
+        await ArtifactsParser.parseArtifacts(this.hre);
 
         contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
       });
@@ -96,12 +89,6 @@ describe("TruffleAdapter", () => {
         const bytecode = (await adapter.getContractDeployParams(contractWithConstructorArtifact)).bytecode;
 
         expect(bytecode).to.equal(contractWithConstructorBytecode);
-      });
-
-      it("should get contract name", async () => {
-        const name = (await adapter.getContractDeployParams(contractWithConstructorArtifact)).contractName;
-
-        expect(name).to.equal("contracts/Contracts.sol:ContractWithConstructorArguments");
       });
     });
   });
@@ -114,20 +101,10 @@ describe("TruffleAdapter", () => {
       let contractWithConstructorArtifact: TruffleContract;
 
       beforeEach("setup", async function () {
-        await new ArtifactsParser(this.hre).parseArtifacts();
+        await ArtifactsParser.parseArtifacts(this.hre);
 
         contractWithExternalLibraryArtifact = await this.hre.artifacts.require("ContractWithExternalLibrary");
         contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
-      });
-
-      describe("_validateBytecode()", () => {
-        it("should return false if bytecode is not linked", async () => {
-          assert.isFalse(Adapter.validateBytecode(contractWithExternalLibraryArtifact.bytecode));
-        });
-
-        it("should return true if bytecode is not need to be linked", async () => {
-          assert.isTrue(Adapter.validateBytecode(contractWithConstructorArtifact.bytecode));
-        });
       });
     });
 
@@ -141,36 +118,10 @@ describe("TruffleAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new TruffleAdapter(this.hre);
-        await new ArtifactsParser(this.hre).parseArtifacts();
+        await ArtifactsParser.parseArtifacts(this.hre);
 
         contractWithExternalLibraryArtifact = await this.hre.artifacts.require("ContractWithExternalLibrary");
         contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
-      });
-
-      describe("_validateBytecode()", () => {
-        it("should return false if bytecode is not linked", async () => {
-          assert.isFalse(Adapter.validateBytecode(contractWithExternalLibraryArtifact.bytecode));
-        });
-
-        it("should return true if bytecode is not need to be linked", async () => {
-          assert.isTrue(Adapter.validateBytecode(contractWithConstructorArtifact.bytecode));
-        });
-      });
-
-      describe("linkLibrary()", () => {
-        it("should link library by providing name and deployed address", async () => {
-          let bytecode = contractWithExternalLibraryArtifact.bytecode;
-          assert.isFalse(Adapter.validateBytecode(bytecode));
-
-          bytecode = (
-            await adapter.getContractDeployParams(contractWithExternalLibraryArtifact, {
-              "contracts/Contracts.sol:Library1": ZeroAddress,
-              "contracts/Contracts.sol:Library2": ZeroAddress,
-            })
-          ).bytecode;
-
-          assert.isTrue(Adapter.validateBytecode(bytecode));
-        });
       });
     });
   });

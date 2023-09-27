@@ -1,9 +1,10 @@
 import { ContractFactory, Interface, Signer } from "ethers";
 
-import { catchError } from "../../utils";
+import { Adapter } from "./Adapter";
 
-import { Abi, Bytecode } from "../../types/deployer";
-import { Adapter, EthersFactory } from "../../types/adapter";
+import { bytecodeToString, catchError } from "../../utils";
+
+import { EthersFactory } from "../../types/adapter";
 
 @catchError
 export class EthersAdapter extends Adapter {
@@ -15,15 +16,11 @@ export class EthersAdapter extends Adapter {
     return instance.connect(address, signer);
   }
 
-  protected _getABI<A, I>(instance: EthersFactory<A, I>): Abi {
-    if (instance.abi) {
-      return Interface.from(instance.abi);
-    }
-
-    return (instance as any).interface;
+  protected _getABI<A, I>(instance: EthersFactory<A, I>): Interface {
+    return Interface.from(instance.abi);
   }
 
-  protected _getRawBytecode<A, I>(instance: EthersFactory<A, I>): Bytecode {
-    return instance.bytecode;
+  protected _getRawBytecode<A, I>(instance: EthersFactory<A, I>): string {
+    return bytecodeToString(instance.bytecode);
   }
 }

@@ -54,12 +54,7 @@ export interface MigrateConfig {
   force: boolean;
 
   /*
-   * The user can specify plugins that was used to compile to write deploy scripts.
+   * The flag indicating whether the previous deployment should be continued.
    */
-  pluginName: PluginName;
-}
-
-export enum PluginName {
-  ETHERS = "ethers",
-  TRUFFLE = "truffle",
+  continuePreviousDeployment: boolean;
 }

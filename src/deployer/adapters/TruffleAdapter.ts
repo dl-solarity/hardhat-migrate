@@ -2,10 +2,12 @@ import { Interface } from "ethers";
 
 import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
 
-import { Adapter, TruffleFactory } from "../../types/adapter";
-import { Abi, Bytecode } from "../../types/deployer";
+import { Adapter } from "./Adapter";
 
-import { catchError } from "../../utils";
+import { Abi } from "../../types/deployer";
+
+import { TruffleFactory } from "../../types/adapter";
+import { bytecodeToString, catchError } from "../../utils";
 
 @catchError
 export class TruffleAdapter extends Adapter {
@@ -27,7 +29,7 @@ export class TruffleAdapter extends Adapter {
     return Interface.from(instance.abi);
   }
 
-  protected _getRawBytecode(instance: TruffleContract): Bytecode {
-    return instance.bytecode;
+  protected _getRawBytecode(instance: TruffleContract): string {
+    return bytecodeToString(instance.bytecode);
   }
 }

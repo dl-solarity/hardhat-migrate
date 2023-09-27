@@ -9,7 +9,7 @@ import { ReportMessage } from "../../types/reporter";
 
 export class Reporter {
   public nativeSymbol = defaultCurrencySymbol;
-  // TODO: or make class static?
+
   constructor(
     private _hre: HardhatRuntimeEnvironment,
     private _verbose = false,

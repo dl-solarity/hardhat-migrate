@@ -4,7 +4,8 @@ import { HardhatPluginError } from "hardhat/plugins";
 import { ConfigExtender } from "hardhat/types";
 
 import { pluginName } from "./constants";
-import { MigrateConfig, PluginName } from "./types/migrations";
+
+import { MigrateConfig } from "./types/migrations";
 
 const defaultConfig: MigrateConfig = {
   from: -1,
@@ -17,7 +18,7 @@ const defaultConfig: MigrateConfig = {
   pathToMigrations: "./deploy",
   skipVerificationErrors: ["already verified"],
   force: false,
-  pluginName: PluginName.ETHERS,
+  continuePreviousDeployment: false,
 };
 
 export const migrateConfigExtender: ConfigExtender = (resolvedConfig, config) => {

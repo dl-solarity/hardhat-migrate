@@ -5,7 +5,7 @@ import { assert, expect } from "chai";
 import { HardhatPluginError } from "hardhat/plugins";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 
-import { MigrateConfig, PluginName } from "../../src/types/migrations";
+import { MigrateConfig } from "../../src/types/migrations";
 import { useEnvironment } from "../helpers";
 
 describe("config", () => {
@@ -54,8 +54,8 @@ describe("config", () => {
       assert.deepEqual(loadedOptions.skipVerificationErrors, ["already verified"]);
     });
 
-    it("should apply pluginName", async function () {
-      assert.equal(loadedOptions.pluginName, PluginName.TRUFFLE);
+    it("should apply continuePreviousDeployment", async function () {
+      assert.isFalse(loadedOptions.continuePreviousDeployment);
     });
   });
 
@@ -124,8 +124,8 @@ describe("config", () => {
       assert.deepEqual(loadedOptions.skipVerificationErrors, ["already verified"]);
     });
 
-    it("should set to default pluginName", async function () {
-      assert.equal(loadedOptions.pluginName, PluginName.ETHERS);
+    it("should set to default continuePreviousDeployment", async function () {
+      assert.isFalse(loadedOptions.continuePreviousDeployment);
     });
   });
 });
