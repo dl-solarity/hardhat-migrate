@@ -3,11 +3,12 @@ import { realpathSync } from "fs";
 import { join } from "path";
 
 import { isBytes } from "@ethersproject/bytes";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { MigrateError } from "./errors";
 
-import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { Bytecode } from "./types/deployer";
 
 export async function getSignerHelper(
@@ -36,7 +37,7 @@ export function JSONConvertor(key: any, value: any) {
 }
 
 export function bytecodeHash(bytecode: any): string {
-  return id(String(bytecode));
+  return id(bytecodeToString(bytecode));
 }
 
 export function bytecodeToString(bytecode: Bytecode): string {

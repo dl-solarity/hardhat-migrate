@@ -5,6 +5,7 @@ import { bytecodeHash, bytecodeToString } from "../../utils";
 
 export class TemporaryStorage {
   private static _instance: TemporaryStorage;
+
   private _storage: Record<any, any> = {};
 
   private constructor() {}
@@ -27,8 +28,7 @@ export class TemporaryStorage {
   }
 
   public getContractName(bytecode: Bytecode): string {
-    const artifact = this.get(bytecodeHash(bytecodeToString(bytecode))) as ArtifactExtended;
-
+    const artifact = this._get(bytecodeHash(bytecodeToString(bytecode))) as ArtifactExtended;
     if (!artifact) {
       throw new MigrateError(`Contract name not found`);
     }
@@ -40,7 +40,7 @@ export class TemporaryStorage {
     this._storage[key] = value;
   }
 
-  public get(key: any): any {
+  private _get(key: any): any {
     return this._storage[key];
   }
 }

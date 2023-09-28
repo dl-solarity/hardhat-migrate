@@ -3,33 +3,27 @@ import { existsSync, readFileSync, writeFileSync } from "fs";
 import { MigrateError } from "../../errors";
 import { resolvePathToFile } from "../../utils";
 
-// 1. Manual save
-// 2. Load config
-// 3. Types. -- *
-
 export class ManualStorage {
-  private fileName = ".storage.json";
+  private static _instance: ManualStorage;
 
-  private static instance: ManualStorage;
+  private readonly _fileName = ".storage.json";
 
   private _path?: string;
 
-  private _storage: { [key: string]: any };
+  private _storage: { [key: string]: any } = {};
 
-  private constructor() {
-    this._storage = {};
-  }
+  private constructor() {}
 
   public static getInstance(): ManualStorage {
-    if (!ManualStorage.instance) {
-      ManualStorage.instance = new ManualStorage();
+    if (!ManualStorage._instance) {
+      ManualStorage._instance = new ManualStorage();
     }
 
-    return ManualStorage.instance;
+    return ManualStorage._instance;
   }
 
   public loadFromDisk(path: string) {
-    this._path = resolvePathToFile(path, this.fileName);
+    this._path = resolvePathToFile(path, this._fileName);
 
     if (path && existsSync(this._path)) {
       try {

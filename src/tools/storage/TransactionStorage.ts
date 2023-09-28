@@ -13,8 +13,9 @@ export class TransactionStorage {
   private static instance: TransactionStorage;
 
   private readonly _fileName = ".transaction_storage.json";
+
   private _filePath = "";
-  private state: Record<string, string> = {};
+  private _state: Record<string, string> = {};
   private _hre: HardhatRuntimeEnvironment = {} as HardhatRuntimeEnvironment;
 
   private constructor() {}
@@ -32,8 +33,8 @@ export class TransactionStorage {
 
     this._filePath = resolvePathToFile(_hre.config.migrate.pathToMigrations, this._fileName);
 
-    if (this._stateExistsOnFile()) {
-      this.state = this._readStateFromFile();
+    if (this._stateExistsInFile()) {
+      this._state = this._readStateFromFile();
     } else {
       this.clear();
     }
@@ -47,7 +48,7 @@ export class TransactionStorage {
   public getDeploymentTransaction(args: KeyTxFields): string {
     const hash = this._createHash(args);
 
-    const value = this.state[hash];
+    const value = this._state[hash];
 
     if (!value) {
       throw new MigrateError(`Transaction not found in storage`);
@@ -57,7 +58,7 @@ export class TransactionStorage {
   }
 
   public getDeploymentTransactionByName(contractName: string): string {
-    const value = this.state[contractName];
+    const value = this._state[contractName];
 
     if (!value) {
       throw new MigrateError(`Transaction not found in storage`);
@@ -67,7 +68,7 @@ export class TransactionStorage {
   }
 
   public clear() {
-    this.state = {};
+    this._state = {};
 
     this._saveStateToFile();
   }
@@ -83,7 +84,7 @@ export class TransactionStorage {
   }
 
   private _addValueToState(hash: string, address: string) {
-    this.state[hash] = address;
+    this._state[hash] = address;
 
     this._saveStateToFile();
   }
@@ -95,12 +96,12 @@ export class TransactionStorage {
     return this._hre.ethers.id(this._toJSON(obj));
   }
 
-  private _stateExistsOnFile(): boolean {
+  private _stateExistsInFile(): boolean {
     return existsSync(this._filePath);
   }
 
   private _saveStateToFile() {
-    const fileContent = this._toJSON(this.state);
+    const fileContent = this._toJSON(this._state);
 
     writeFileSync(this._filePath, fileContent, {
       flag: "w",

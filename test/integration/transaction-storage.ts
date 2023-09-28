@@ -73,7 +73,9 @@ describe("TransactionStorage", async () => {
       const contract = await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
 
       assert.equal(
-        transactionStorage.getDeploymentTransactionByName("contracts/Contracts.sol:ContractWithConstructorArguments"),
+        transactionStorage.getDeploymentTransactionByName(
+          "contracts/another-contracts/Contracts.sol:ContractWithConstructorArguments",
+        ),
         await contract.getAddress(),
       );
     });
