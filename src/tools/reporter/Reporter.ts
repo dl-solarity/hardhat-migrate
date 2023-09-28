@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import axios from "axios";
 
 import { TransactionResponse } from "ethers";
@@ -9,6 +10,9 @@ import { ReportMessage } from "../../types/reporter";
 
 export class Reporter {
   public nativeSymbol = defaultCurrencySymbol;
+
+  private totalCost: bigint = BigInt(0);
+  private totalTransactions: number = 0;
 
   constructor(
     private _hre: HardhatRuntimeEnvironment,
@@ -25,14 +29,26 @@ export class Reporter {
     }
   }
 
-  public static reportDeploy(tx: TransactionResponse) {
-    console.log("Deploying contract...");
+  public static async reportDeploy(tx: TransactionResponse) {
+    console.log("\nDeploying contract...");
 
     console.log(`transactionHash: ${tx.hash}`);
 
     console.log(`blockNumber: ${tx.blockNumber}`);
 
-    console.log(tx);
+    console.log(`gasLimit: ${tx.gasLimit.toString()}`);
+
+    console.log(`gasPrice: ${tx.gasPrice.toString()}`);
+
+    console.log(`value: ${tx.value.toString()}`);
+  }
+
+  public summary() {
+    const output =
+      `> ${"Total transactions:".padEnd(20)} ${this.totalTransactions}\n` +
+      `> ${"Final cost:".padEnd(20)} ${this.totalCost.toString()} ${this.nativeSymbol}\n`;
+
+    console.log(output);
   }
 
   private async _getNativeSymbol(): Promise<string> {

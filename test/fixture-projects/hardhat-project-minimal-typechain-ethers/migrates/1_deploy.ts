@@ -12,10 +12,10 @@ export = async (deployer: Deployer) => {
 
   contract.name;
 };
-let contract = await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"], {
-  gasLimit: 1000000,
-});
+// let contract = await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"], {
+//   gasLimit: 1000000,
+// });
 
-let contract2 = await deployer.deploy({ bytecode: "", abi: "", contractName: "" }, ["hello"], {});
+// let contract2 = await deployer.deploy({ bytecode: "", abi: "", contractName: "" }, ["hello"], {});
 
-contract.name;
+// contract.name;

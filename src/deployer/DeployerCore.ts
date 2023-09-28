@@ -16,6 +16,7 @@ import {
 } from "../types/deployer";
 import { MigrateConfig } from "../types/migrations";
 
+import { Reporter } from "../tools/reporter/Reporter";
 import { TemporaryStorage } from "../tools/storage/TemporaryStorage";
 import { TransactionStorage } from "../tools/storage/TransactionStorage";
 
@@ -96,6 +97,7 @@ export class DeployerCore {
 
   // eslint-disable-next-line
   private async _reportContractDeployTransactionSent(tx: TransactionResponse): Promise<void> {
+    await Reporter.reportDeploy(tx);
     // TODO: implement when reporter is ready. Must be inlined with call to the Reporter contract.
     // this function (_reportContractDeployTransactionSent) is not needed in this class. Must be handled by the Reporter.
   }
