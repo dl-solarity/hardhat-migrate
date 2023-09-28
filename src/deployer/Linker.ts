@@ -4,7 +4,7 @@ import { Artifact, Libraries } from "hardhat/types";
 
 import { MigrateError } from "../errors";
 
-import { bytecodeToString } from "../utils";
+import { bytecodeToString, catchError } from "../utils";
 
 import { ArtifactExtended, NeededLibrary } from "../types/artifacts-parser";
 import { Bytecode } from "../types/deployer";
@@ -13,6 +13,7 @@ import { Link } from "../types/linker";
 import { TemporaryStorage } from "../tools/storage/TemporaryStorage";
 import { TransactionStorage } from "../tools/storage/TransactionStorage";
 
+@catchError
 export class Linker {
   public static validateBytecode(bytecode: Bytecode) {
     if (bytecodeToString(bytecode).indexOf("__") !== -1) {

@@ -1,11 +1,12 @@
 import { Artifact, HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { bytecodeHash } from "../utils";
+import { bytecodeHash, catchError } from "../utils";
 
 import { ArtifactExtended, NeededLibrary } from "../types/artifacts-parser";
 
 import { TemporaryStorage } from "../tools/storage/TemporaryStorage";
 
+@catchError
 export class ArtifactsParser {
   public static async parseArtifacts(_hre: HardhatRuntimeEnvironment): Promise<void> {
     const names = await _hre.artifacts.getAllFullyQualifiedNames();
