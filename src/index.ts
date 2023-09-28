@@ -1,7 +1,8 @@
 import "@nomicfoundation/hardhat-ethers";
 
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
-import { extendConfig, task, types } from "hardhat/config";
+import { extendConfig, extendEnvironment, task, types } from "hardhat/config";
+import { lazyObject } from "hardhat/plugins";
 import { ActionType } from "hardhat/types";
 
 import { mergeConfigs, migrateConfigExtender } from "./config";
@@ -47,6 +48,12 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
 //   }
 //   return false;
 // }
+
+extendEnvironment((hre) => {
+  hre.migrator = lazyObject(() => {
+    return new Migrator(hre);
+  });
+});
 
 task(TASK_MIGRATE, "Deploy contracts via migration files")
   .addOptionalParam("from", "The migration number from which the migration will be applied.", undefined, types.int)
