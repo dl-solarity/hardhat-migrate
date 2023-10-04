@@ -1,5 +1,3 @@
-import { ContractRunner } from "ethers";
-
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { MigrateError } from "../../errors";
@@ -25,7 +23,7 @@ export abstract class Adapter {
     throw new MigrateError("Linking is not supported with provided Factory.");
   }
 
-  public abstract toInstance<A, I>(instance: Instance<A, I>, address: string, signer: ContractRunner | null): I;
+  public abstract toInstance<A, I>(instance: Instance<A, I>, address: string, signer: any): I;
 
   protected abstract _getABI(instance: any): Abi;
 
