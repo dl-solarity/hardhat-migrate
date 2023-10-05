@@ -13,6 +13,8 @@ import { ArtifactsParser } from "./parser/ArtifactsParser";
 import { TransactionStorage } from "./tools/storage/TransactionStorage";
 import { MigrateConfig } from "./types/migrations";
 
+export { Deployer } from "./deployer/Deployer";
+
 extendConfig(migrateConfigExtender);
 
 const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {

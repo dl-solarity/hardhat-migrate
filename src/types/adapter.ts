@@ -1,5 +1,3 @@
-import { ContractRunner } from "ethers";
-
 import { Abi, Bytecode } from "./deployer";
 
 // TODO: rewrite through declare modules
@@ -10,7 +8,7 @@ export interface EthersFactory<A, I> {
 
   createInterface(): A;
 
-  connect(address: string, runner?: ContractRunner | null): I;
+  connect(address: string, runner?: any): I;
 }
 
 export interface TruffleFactory<I> {
