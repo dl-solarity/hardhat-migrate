@@ -10,10 +10,12 @@ import { TASK_MIGRATE } from "./constants";
 
 import { Migrator } from "./migrator/migrator";
 import { ArtifactsParser } from "./parser/ArtifactsParser";
+import { Reporter } from "./tools/reporter/Reporter";
 import { TransactionStorage } from "./tools/storage/TransactionStorage";
 import { MigrateConfig } from "./types/migrations";
 
 export { Deployer } from "./deployer/Deployer";
+export { Sender } from "./sender/Sender";
 
 extendConfig(migrateConfigExtender);
 
@@ -27,6 +29,7 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
   });
 
   TransactionStorage.getInstance().init(env);
+  await Reporter.getInstance().init(env);
 
   await ArtifactsParser.parseArtifacts(env);
 

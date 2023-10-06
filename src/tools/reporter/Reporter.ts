@@ -1,54 +1,178 @@
 /* eslint-disable no-console */
 import axios from "axios";
 
-import { TransactionResponse } from "ethers";
+import { TransactionReceipt, TransactionResponse } from "ethers";
+
+import ora from "ora";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { ChainRecord, defaultCurrencySymbol, predefinedChains } from "../../types/chain-id-api";
 import { ReportMessage } from "../../types/reporter";
+import { underline } from "../../utils";
 
 export class Reporter {
-  public nativeSymbol = defaultCurrencySymbol;
+  public static _instance: Reporter;
+
+  private _hre: HardhatRuntimeEnvironment = {} as HardhatRuntimeEnvironment;
 
   private totalCost: bigint = BigInt(0);
   private totalTransactions: number = 0;
 
-  constructor(
-    private _hre: HardhatRuntimeEnvironment,
-    private _verbose = false,
-  ) {}
+  private constructor() {}
 
-  public async init() {
-    this.nativeSymbol = await this._getNativeSymbol();
+  public static getInstance(): Reporter {
+    if (!Reporter._instance) {
+      Reporter._instance = new Reporter();
+    }
+
+    return Reporter._instance;
+  }
+
+  public init(hre: HardhatRuntimeEnvironment) {
+    this._hre = hre;
   }
 
   public report(message: ReportMessage): void {
-    if (this._verbose) {
-      console.log(message);
+    console.log(message);
+  }
+
+  public reportMigrationBegin(files: string[]) {
+    this._reportMigrationFiles(files);
+
+    this._reportChainInfo();
+
+    console.log("\nStarting migration...\n");
+  }
+
+  public async reportTransaction(tx: TransactionResponse | string, contractName?: string) {
+    if (typeof tx === "string") {
+      tx = (await this._hre.ethers.provider.getTransaction(tx))!;
     }
+
+    const timeStart = Date.now();
+
+    console.log("\n" + underline(await this._parseTransactionTitle(tx, contractName)));
+
+    console.log(`> explorer: ${await this._getExplorerLink(tx.hash)}`);
+
+    const spinner = ora(await this._formatPendingTime(tx, timeStart)).start();
+
+    const spinnerInterval = setInterval(
+      // TODO: can we not use "as TransactionResponse" here?
+      async () => (spinner.text = await this._formatPendingTime(tx as TransactionResponse, timeStart)),
+      1000,
+    );
+
+    const wait = tx.wait(1);
+
+    wait.then(() => {
+      clearInterval(spinnerInterval);
+
+      spinner.stop();
+    });
+
+    const receipt = (await wait)!;
+
+    await this._printTransaction(receipt);
+
+    this.totalCost += receipt.fee;
+    this.totalTransactions++;
   }
 
-  public static async reportDeploy(tx: TransactionResponse) {
-    console.log("\nDeploying contract...");
+  private async _parseTransactionTitle(tx: TransactionResponse, contractName?: string): Promise<string> {
+    if (tx.to === null) {
+      return `Deploying${contractName ? " " + contractName.split(":")[1] : ""}`;
+    }
 
-    console.log(`transactionHash: ${tx.hash}`);
-
-    console.log(`blockNumber: ${tx.blockNumber}`);
-
-    console.log(`gasLimit: ${tx.gasLimit.toString()}`);
-
-    console.log(`gasPrice: ${tx.gasPrice.toString()}`);
-
-    console.log(`value: ${tx.value.toString()}`);
+    return "Transaction";
   }
 
-  public summary() {
-    const output =
-      `> ${"Total transactions:".padEnd(20)} ${this.totalTransactions}\n` +
-      `> ${"Final cost:".padEnd(20)} ${this.totalCost.toString()} ${this.nativeSymbol}\n`;
+  private async _formatPendingTime(tx: TransactionResponse, startTime: number): Promise<string> {
+    return `Blocks: ${await tx.confirmations()} Seconds: ${((Date.now() - startTime) / 1000).toFixed(0)}`;
+  }
+
+  private async _getExplorerLink(txHash: string): Promise<string> {
+    return (await this._getExplorerUrl()) + "/" + txHash;
+  }
+
+  private async _printTransaction(tx: TransactionReceipt) {
+    let output = "";
+
+    output += `> contractAddress: ${tx.contractAddress}\n`;
+
+    output += `> blockNumber: ${tx.blockNumber}\n`;
+
+    output += `> blockTimestamp: ${(await tx.getBlock()).timestamp}\n`;
+
+    output += `> account: ${tx.from}\n`;
+
+    output += `> balance: ${await tx.provider.getBalance(tx.from)} ${await this._getNativeSymbol()}\n`;
+
+    output += `> gasUsed: ${tx.gasUsed.toString()}\n`;
+
+    output += `> gasPrice: ${tx.gasPrice.toString()} ${await this._getNativeSymbol()}\n`;
+
+    output += `> fee: ${tx.fee.toString()} ${await this._getNativeSymbol()}\n`;
 
     console.log(output);
+  }
+
+  public async summary() {
+    const output =
+      `> ${"Total transactions:".padEnd(20)} ${this.totalTransactions}\n` +
+      `> ${"Final cost:".padEnd(20)} ${this.totalCost.toString()} ${await this._getNativeSymbol()}\n`;
+
+    console.log(output);
+  }
+
+  private _reportMigrationFiles(files: string[]) {
+    console.log("\nMigration files:");
+
+    files.forEach((file) => {
+      console.log(`> ${file}`);
+    });
+  }
+
+  private _reportChainInfo() {
+    // await this._hre.ethers.provider.getNetwork();
+    console.log(`> ${"Network:".padEnd(20)} ${this._hre.network.name}`);
+
+    console.log(`> ${"Network id:".padEnd(20)} ${this._hre.network.config.chainId}`);
+  }
+
+  private async _getExplorerUrl(): Promise<string> {
+    const chainId = Number((await this._hre.ethers.provider.getNetwork()).chainId);
+
+    if (predefinedChains[chainId]) {
+      const explorers = predefinedChains[chainId].explorers;
+
+      if (!explorers || explorers.length === 0) {
+        return "";
+      }
+
+      return explorers[0].url;
+    }
+
+    try {
+      const chain = await this._getChainById(chainId);
+
+      if (chain) {
+        predefinedChains[chainId] = chain;
+
+        const explorers = predefinedChains[chainId].explorers;
+
+        if (!explorers || explorers.length === 0) {
+          return "";
+        }
+
+        return explorers[0].url;
+      }
+    } catch (e) {
+      console.warn(`Unable to get explorer url for chainId ${chainId}.`, e);
+    }
+
+    return "";
   }
 
   private async _getNativeSymbol(): Promise<string> {
@@ -62,6 +186,8 @@ export class Reporter {
       const chain = await this._getChainById(chainId);
 
       if (chain) {
+        predefinedChains[chainId] = chain;
+
         return chain.nativeCurrency.symbol;
       }
     } catch (e) {

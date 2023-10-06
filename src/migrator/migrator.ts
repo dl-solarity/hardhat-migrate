@@ -13,9 +13,11 @@ import { MigrateError } from "../errors";
 import { MigrateConfig } from "../types/migrations";
 
 import { Deployer } from "../deployer/Deployer";
+import { Reporter } from "../tools/reporter/Reporter";
 
 export class Migrator {
   private readonly _deployer: Deployer;
+  private readonly _reporter: Reporter;
   private readonly _migrationFiles: string[];
 
   constructor(
@@ -23,17 +25,20 @@ export class Migrator {
     private _config: MigrateConfig = _hre.config.migrate,
   ) {
     this._deployer = new Deployer(_hre);
+    this._reporter = Reporter.getInstance();
 
     this._migrationFiles = this._getMigrationFiles();
   }
 
   public async migrate() {
+    Reporter.getInstance().reportMigrationBegin(this._migrationFiles);
+
     for (const element of this._migrationFiles) {
       try {
         // eslint-disable-next-line
         const migration = require(resolvePathToFile(this._config.pathToMigrations, element));
 
-        await migration(this._deployer);
+        await migration(this._deployer, this._reporter);
       } catch (e: unknown) {
         if (e instanceof MigrateError) {
           throw new HardhatPluginError(pluginName, e.message, e);
@@ -42,6 +47,8 @@ export class Migrator {
         throw e;
       }
     }
+
+    await Reporter.getInstance().summary();
   }
 
   private _getMigrationFiles() {

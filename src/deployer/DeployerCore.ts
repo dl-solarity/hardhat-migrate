@@ -75,7 +75,7 @@ export class DeployerCore {
 
     const [contractAddress] = await Promise.all([
       this._waitForDeployment(txResponse),
-      this._reportContractDeployTransactionSent(txResponse),
+      await Reporter.getInstance().reportTransaction(txResponse, tx.contractName),
     ]);
 
     TransactionStorage.getInstance().saveDeploymentTransaction(tx, tx.contractName, contractAddress);
@@ -93,12 +93,5 @@ export class DeployerCore {
     }
 
     throw new MigrateError("Contract deployment failed.");
-  }
-
-  // eslint-disable-next-line
-  private async _reportContractDeployTransactionSent(tx: TransactionResponse): Promise<void> {
-    await Reporter.reportDeploy(tx);
-    // TODO: implement when reporter is ready. Must be inlined with call to the Reporter contract.
-    // this function (_reportContractDeployTransactionSent) is not needed in this class. Must be handled by the Reporter.
   }
 }
