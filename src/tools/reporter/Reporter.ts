@@ -9,8 +9,9 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { ChainRecord, defaultCurrencySymbol, predefinedChains } from "../../types/chain-id-api";
 import { ReportMessage } from "../../types/reporter";
-import { underline } from "../../utils";
+import { catchError, underline } from "../../utils";
 
+@catchError
 export class Reporter {
   public static _instance: Reporter;
 
@@ -45,14 +46,14 @@ export class Reporter {
     console.log("\nStarting migration...\n");
   }
 
-  public async reportTransaction(tx: TransactionResponse | string, contractName?: string) {
+  public async reportTransaction(tx: TransactionResponse | string, misc: string) {
     if (typeof tx === "string") {
       tx = (await this._hre.ethers.provider.getTransaction(tx))!;
     }
 
     const timeStart = Date.now();
 
-    console.log("\n" + underline(await this._parseTransactionTitle(tx, contractName)));
+    console.log("\n" + underline(await this._parseTransactionTitle(tx, misc)));
 
     console.log(`> explorer: ${await this._getExplorerLink(tx.hash)}`);
 
@@ -66,13 +67,19 @@ export class Reporter {
 
     const wait = tx.wait(1);
 
-    wait.then(() => {
+    wait.finally(() => {
       clearInterval(spinnerInterval);
 
       spinner.stop();
     });
 
-    const receipt = (await wait)!;
+    let receipt;
+    try {
+      receipt = (await wait)!;
+    } catch (e: any) {
+      console.log("Transaction failed!" + e.message);
+      return;
+    }
 
     await this._printTransaction(receipt);
 
@@ -80,12 +87,12 @@ export class Reporter {
     this.totalTransactions++;
   }
 
-  private async _parseTransactionTitle(tx: TransactionResponse, contractName?: string): Promise<string> {
+  private async _parseTransactionTitle(tx: TransactionResponse, misc: string): Promise<string> {
     if (tx.to === null) {
-      return `Deploying${contractName ? " " + contractName.split(":")[1] : ""}`;
+      return `Deploying${misc ? " " + misc.split(":")[1] : ""}`;
     }
 
-    return "Transaction";
+    return `Transaction: ${misc}`;
   }
 
   private async _formatPendingTime(tx: TransactionResponse, startTime: number): Promise<string> {

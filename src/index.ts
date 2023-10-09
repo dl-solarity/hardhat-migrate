@@ -29,7 +29,7 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
   });
 
   TransactionStorage.getInstance().init(env);
-  await Reporter.getInstance().init(env);
+  Reporter.getInstance().init(env);
 
   await ArtifactsParser.parseArtifacts(env);
 

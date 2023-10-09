@@ -29,6 +29,7 @@ export class DeployerCore {
   }
 
   public async deploy(deployParams: ContractDeployParams, args: Args, parameters: OverridesAndLibs): Promise<string> {
+    // contract.interface.getFunctionName(key),
     const contractName = TemporaryStorage.getInstance().getContractName(deployParams.bytecode);
 
     deployParams.bytecode = await Linker.linkBytecode(deployParams.bytecode, parameters.libraries || {});
