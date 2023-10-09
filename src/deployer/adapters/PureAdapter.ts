@@ -2,8 +2,8 @@ import { Adapter } from "./Adapter";
 
 import { bytecodeToString, catchError } from "../../utils";
 
-import { PureFactory } from "../../types/adapter";
 import { Abi } from "../../types/deployer";
+import { PureFactory } from "../../types/adapter";
 
 @catchError
 export class PureAdapter extends Adapter {

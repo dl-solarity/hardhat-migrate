@@ -2,8 +2,8 @@ import { assert, expect } from "chai";
 import { ContractFactory, ZeroAddress } from "ethers";
 
 import { Deployer } from "../../src/deployer/Deployer";
-import { ArtifactsParser } from "../../src/parser/ArtifactsParser";
-import { TransactionStorage } from "../../src/tools/storage/TransactionStorage";
+import { ArtifactParser } from "../../src/deployer/ArtifactParser";
+import { TransactionProcessor } from "../../src/tools/storage/TransactionProcessor";
 import {
   ContractWithConstructorArguments__factory,
   ContractWithPayableConstructor__factory,
@@ -11,16 +11,16 @@ import {
 import { useEnvironment } from "../helpers";
 
 describe("TransactionStorage", async () => {
-  let transactionStorage: TransactionStorage;
+  let transactionStorage: TransactionProcessor;
 
   useEnvironment("repeats-typechain-ethers");
 
   beforeEach(async function () {
-    transactionStorage = TransactionStorage.getInstance();
+    transactionStorage = TransactionProcessor.getInstance();
 
     transactionStorage.init(this.hre);
 
-    await ArtifactsParser.parseArtifacts(this.hre);
+    await ArtifactParser.parseArtifacts(this.hre);
   });
 
   afterEach(async function () {

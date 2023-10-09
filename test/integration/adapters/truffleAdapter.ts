@@ -6,7 +6,7 @@ import { Interface } from "ethers";
 import { useEnvironment } from "../../helpers";
 
 import { TruffleAdapter } from "../../../src/deployer/adapters/TruffleAdapter";
-import { ArtifactsParser } from "../../../src/parser/ArtifactsParser";
+import { ArtifactParser } from "../../../src/deployer/ArtifactParser";
 
 describe("TruffleAdapter", () => {
   describe("getContractDeployParams()", () => {
@@ -49,7 +49,7 @@ describe("TruffleAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new TruffleAdapter(this.hre);
-        await ArtifactsParser.parseArtifacts(this.hre);
+        await ArtifactParser.parseArtifacts(this.hre);
 
         contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
       });
@@ -74,7 +74,7 @@ describe("TruffleAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new TruffleAdapter(this.hre);
-        await ArtifactsParser.parseArtifacts(this.hre);
+        await ArtifactParser.parseArtifacts(this.hre);
 
         contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
       });
@@ -101,7 +101,7 @@ describe("TruffleAdapter", () => {
       let contractWithConstructorArtifact: TruffleContract;
 
       beforeEach("setup", async function () {
-        await ArtifactsParser.parseArtifacts(this.hre);
+        await ArtifactParser.parseArtifacts(this.hre);
 
         contractWithExternalLibraryArtifact = await this.hre.artifacts.require("ContractWithExternalLibrary");
         contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
@@ -118,7 +118,7 @@ describe("TruffleAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new TruffleAdapter(this.hre);
-        await ArtifactsParser.parseArtifacts(this.hre);
+        await ArtifactParser.parseArtifacts(this.hre);
 
         contractWithExternalLibraryArtifact = await this.hre.artifacts.require("ContractWithExternalLibrary");
         contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");

@@ -5,7 +5,7 @@ import { useEnvironment } from "../../helpers";
 import { Deployer } from "../../../src/deployer/Deployer";
 
 import { Contract, ContractFactory } from "ethers";
-import { TransactionStorage } from "../../../src/tools/storage/TransactionStorage";
+import { TransactionProcessor } from "../../../src/tools/storage/TransactionProcessor";
 
 describe("deployer", () => {
   describe("deploy()", () => {
@@ -18,8 +18,8 @@ describe("deployer", () => {
     beforeEach("setup", async function () {
       deployer = new Deployer(this.hre);
 
-      TransactionStorage.getInstance().init(this.hre);
-      TransactionStorage.getInstance().clear();
+      TransactionProcessor.getInstance().init(this.hre);
+      TransactionProcessor.getInstance().clear();
 
       ContractWithConstructor = await this.hre.ethers.getContractFactory("ContractWithConstructorArguments");
       ContractWithPayableConstructor = await this.hre.ethers.getContractFactory("ContractWithPayableConstructor");

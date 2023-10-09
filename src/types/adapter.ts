@@ -1,7 +1,5 @@
 import { Abi, Bytecode } from "./deployer";
 
-// TODO: rewrite through declare modules
-
 export interface EthersFactory<A, I> {
   bytecode: any;
   abi: Abi;

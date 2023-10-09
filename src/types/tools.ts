@@ -1,3 +1,5 @@
+import { ContractDeployTransaction } from "ethers/lib.esm";
+
 export type ReportMessage = DeployContractMessage;
 
 export interface DeployContractMessage {
@@ -10,3 +12,5 @@ export interface DeployContractMessage {
   value: string;
   libraries?: { [libraryName: string]: string };
 }
+
+export type KeyTxFields = Pick<ContractDeployTransaction, "data" | "from" | "chainId">;

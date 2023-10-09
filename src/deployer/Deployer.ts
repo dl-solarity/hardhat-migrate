@@ -11,9 +11,8 @@ import { catchError, getSignerHelper } from "../utils";
 
 import { MigrateError } from "../errors";
 
-import { Instance } from "../types/adapter";
 import { Args, OverridesAndLibs } from "../types/deployer";
-import { isEthersFactory, isPureFactory, isTruffleFactory } from "../types/type-guards";
+import { EthersFactory, Instance, PureFactory, TruffleFactory } from "../types/adapter";
 
 @catchError
 export class Deployer {
@@ -37,20 +36,30 @@ export class Deployer {
   }
 
   private _resolveAdapter<A, I>(contract: Instance<A, I>): Adapter {
-    if (isEthersFactory(contract)) {
+    if (this.isEthersFactory(contract)) {
       return new EthersAdapter(this._hre);
     }
 
-    if (isTruffleFactory(contract)) {
+    if (this.isTruffleFactory(contract)) {
       return new TruffleAdapter(this._hre);
     }
 
-    if (isPureFactory(contract)) {
+    if (this.isPureFactory(contract)) {
       return new PureAdapter(this._hre);
     }
 
-    // TODO: research how to extend this.
-
     throw new MigrateError("Unknown Contract Factory Type");
+  }
+
+  private isEthersFactory<A, I>(instance: any): instance is EthersFactory<A, I> {
+    return instance.createInterface !== undefined;
+  }
+
+  private isTruffleFactory<I>(instance: any): instance is TruffleFactory<I> {
+    return instance instanceof Function && instance.prototype.constructor !== undefined;
+  }
+
+  private isPureFactory<I>(instance: any): instance is PureFactory<I> {
+    return instance.contractName !== undefined;
   }
 }

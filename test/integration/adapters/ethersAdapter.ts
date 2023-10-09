@@ -4,7 +4,7 @@ import { ContractFactory, Interface } from "ethers";
 import { useEnvironment } from "../../helpers";
 
 import { EthersAdapter } from "../../../src/deployer/adapters/EthersAdapter";
-import { ArtifactsParser } from "../../../src/parser/ArtifactsParser";
+import { ArtifactParser } from "../../../src/deployer/ArtifactParser";
 import { ContractWithConstructorArguments__factory } from "../../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
 
 describe("EthersAdapter", () => {
@@ -48,7 +48,7 @@ describe("EthersAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new EthersAdapter(this.hre);
-        await ArtifactsParser.parseArtifacts(this.hre);
+        await ArtifactParser.parseArtifacts(this.hre);
 
         ContractWithConstructor = await this.hre.ethers.getContractFactory("ContractWithConstructorArguments");
       });
@@ -71,7 +71,7 @@ describe("EthersAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new EthersAdapter(this.hre);
-        await ArtifactsParser.parseArtifacts(this.hre);
+        await ArtifactParser.parseArtifacts(this.hre);
       });
 
       it("should get abi", async () => {
@@ -98,7 +98,7 @@ describe("EthersAdapter", () => {
 
       beforeEach("setup", async function () {
         // adapter = new EthersAdapter(this.hre);
-        await ArtifactsParser.parseArtifacts(this.hre);
+        await ArtifactParser.parseArtifacts(this.hre);
 
         // TODO: how we will handle this?
         // ContractWithExternalLibrary = new ContractFactory();
@@ -118,7 +118,7 @@ describe("EthersAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new EthersAdapter(this.hre);
-        await ArtifactsParser.parseArtifacts(this.hre);
+        await ArtifactParser.parseArtifacts(this.hre);
       });
     });
   });

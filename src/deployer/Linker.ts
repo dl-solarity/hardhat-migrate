@@ -6,12 +6,10 @@ import { MigrateError } from "../errors";
 
 import { bytecodeToString, catchError } from "../utils";
 
-import { ArtifactExtended, NeededLibrary } from "../types/artifacts-parser";
-import { Bytecode } from "../types/deployer";
-import { Link } from "../types/linker";
+import { Bytecode, Link , ArtifactExtended, NeededLibrary } from "../types/deployer";
 
-import { TemporaryStorage } from "../tools/storage/TemporaryStorage";
-import { TransactionStorage } from "../tools/storage/TransactionStorage";
+import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
+import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 
 @catchError
 export class Linker {
@@ -22,7 +20,7 @@ export class Linker {
   }
 
   public static async linkBytecode(bytecode: string, libraries: Libraries): Promise<string> {
-    const artifact: ArtifactExtended = TemporaryStorage.getInstance().getExtendedArtifact(bytecode);
+    const artifact: ArtifactExtended = ArtifactProcessor.getExtendedArtifact(bytecode);
     const neededLibraries = artifact.neededLibraries;
 
     let linksToApply: Map<string, Link> = new Map();
@@ -110,7 +108,7 @@ function _findMissingLibraries(missingLibraries: { sourceName: string; libName: 
 
   for (const missingLibrary of missingLibraries) {
     const lib = `${missingLibrary.sourceName}:${missingLibrary.libName}`;
-    const address = TransactionStorage.getInstance().getDeploymentTransactionByName(lib);
+    const address = TransactionProcessor.getInstance().getDeploymentTransactionByName(lib);
 
     if (address) {
       missingLibrariesMap.set(lib, {

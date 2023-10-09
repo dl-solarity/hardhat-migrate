@@ -18,7 +18,7 @@ export interface MigrateConfig {
   only: number;
 
   /*
-   * The number of migration to skip. Overrides only parameter.
+   * The number of migrations to skip. Overrides only parameter.
    */
   skip: number;
 

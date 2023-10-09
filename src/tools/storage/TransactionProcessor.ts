@@ -6,11 +6,13 @@ import { MigrateError } from "../../errors";
 
 import { catchError, JSONConvertor, resolvePathToFile } from "../../utils";
 
-import { KeyTxFields } from "../../types/transaction-storage";
+import { KeyTxFields } from "../../types/tools";
 
+// TODO: rewrite this class as it is done with ArtifactProcessor
+// TODO: add reseters for storage (if continue not set --> reset)
 @catchError
-export class TransactionStorage {
-  private static instance: TransactionStorage;
+export class TransactionProcessor {
+  private static instance: TransactionProcessor;
 
   private readonly _fileName = ".transaction_storage.json";
 
@@ -20,12 +22,12 @@ export class TransactionStorage {
 
   private constructor() {}
 
-  public static getInstance(): TransactionStorage {
-    if (!TransactionStorage.instance) {
-      TransactionStorage.instance = new TransactionStorage();
+  public static getInstance(): TransactionProcessor {
+    if (!TransactionProcessor.instance) {
+      TransactionProcessor.instance = new TransactionProcessor();
     }
 
-    return TransactionStorage.instance;
+    return TransactionProcessor.instance;
   }
 
   public init(_hre: HardhatRuntimeEnvironment) {

@@ -11,7 +11,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { request } from "undici";
 
 import { pluginName } from "../constants";
-import { EtherscanAPIConfig, EtherscanResponseBody } from "../types/etherscan-api";
+import { EtherscanAPIConfig, EtherscanResponseBody } from "../types/verifier";
 
 /**
  * Call the configured Etherscan API with the given parameters.

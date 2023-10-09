@@ -9,11 +9,11 @@ import { mergeConfigs, migrateConfigExtender } from "./config";
 import { TASK_MIGRATE } from "./constants";
 
 import { Migrator } from "./migrator/migrator";
-import { ArtifactsParser } from "./parser/ArtifactsParser";
-import { TransactionStorage } from "./tools/storage/TransactionStorage";
 import { MigrateConfig } from "./types/migrations";
+import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
 
 export { Deployer } from "./deployer/Deployer";
+export { DefaultStorage as Storage } from "./tools/storage/Storage";
 
 extendConfig(migrateConfigExtender);
 
@@ -26,9 +26,7 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
     force: env.config.migrate.force,
   });
 
-  TransactionStorage.getInstance().init(env);
-
-  await ArtifactsParser.parseArtifacts(env);
+  await ArtifactProcessor.parseArtifacts(env);
 
   await new Migrator(env).migrate();
 };

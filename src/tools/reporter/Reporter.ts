@@ -5,7 +5,7 @@ import { TransactionResponse } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { ChainRecord, defaultCurrencySymbol, predefinedChains } from "../../types/chain-id-api";
+import { ChainRecord, defaultCurrencySymbol, predefinedChains } from "../../types/verifier";
 import { ReportMessage } from "../../types/reporter";
 
 export class Reporter {

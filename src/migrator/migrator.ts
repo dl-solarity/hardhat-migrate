@@ -1,5 +1,5 @@
-import { readdirSync, statSync } from "fs";
 import { basename } from "path";
+import { readdirSync, statSync } from "fs";
 
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
