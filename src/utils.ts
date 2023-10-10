@@ -76,8 +76,6 @@ export function bytecodeToString(bytecode: Bytecode): string {
   return bytecodeHex;
 }
 
-export function addReporterHandler() {}
-
 export function catchError(target: any, propertyName?: string, descriptor?: PropertyDescriptor) {
   // Method decorator
   if (descriptor) {
