@@ -11,8 +11,8 @@ import { catchError, getSignerHelper } from "../utils";
 
 import { MigrateError } from "../errors";
 
-import { Instance } from "../types/adapter";
-import { Args, OverridesAndLibs } from "../types/deployer";
+import { TypedArgs, Instance } from "../types/adapter";
+import { OverridesAndLibs } from "../types/deployer";
 import { isEthersFactory, isPureFactory, isTruffleFactory } from "../types/type-guards";
 
 @catchError
@@ -22,7 +22,11 @@ export class Deployer {
     private _core = new DeployerCore(_hre),
   ) {}
 
-  public async deploy<A, I>(contract: Instance<A, I>, args: Args, parameters: OverridesAndLibs = {}): Promise<I> {
+  public async deploy<A, I>(
+    contract: Instance<A, I>,
+    args: TypedArgs<A>,
+    parameters: OverridesAndLibs = {},
+  ): Promise<I> {
     const adapter = this._resolveAdapter(contract);
 
     const deploymentParams = await adapter.getContractDeployParams(contract);
