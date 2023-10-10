@@ -1,12 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Abi, Bytecode } from "./deployer";
 
-// TODO: rewrite through declare modules
-
 export interface EthersFactory<A, I> {
+  new (...args: any): A;
+
   bytecode: any;
   abi: Abi;
 
-  createInterface(): A;
+  createInterface(): any;
 
   connect(address: string, runner?: any): I;
 }
@@ -22,5 +23,13 @@ export interface PureFactory<I> {
   bytecode: Bytecode;
   contractName: I;
 }
+
+type Parameters<T extends (...args: any) => any> = T extends (...args: infer P) => any
+  ? P extends [...infer Rest, any?]
+    ? Rest
+    : any
+  : never[];
+
+export type TypedArgs<A> = A extends { deploy(...args: any): any } ? Parameters<A["deploy"]> : any;
 
 export type Instance<A, I> = TruffleFactory<I> | EthersFactory<A, I> | PureFactory<I>;

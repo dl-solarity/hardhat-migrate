@@ -17,8 +17,8 @@ import {
 import { MigrateConfig } from "../types/migrations";
 
 import { Reporter } from "../tools/reporter/Reporter";
-import { TemporaryStorage } from "../tools/storage/TemporaryStorage";
-import { TransactionStorage } from "../tools/storage/TransactionStorage";
+import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
+import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 
 @catchError
 export class DeployerCore {
@@ -29,8 +29,7 @@ export class DeployerCore {
   }
 
   public async deploy(deployParams: ContractDeployParams, args: Args, parameters: OverridesAndLibs): Promise<string> {
-    // contract.interface.getFunctionName(key),
-    const contractName = TemporaryStorage.getInstance().getContractName(deployParams.bytecode);
+    const contractName = ArtifactProcessor.getContractName(deployParams.bytecode);
 
     deployParams.bytecode = await Linker.linkBytecode(deployParams.bytecode, parameters.libraries || {});
 
@@ -45,6 +44,8 @@ export class DeployerCore {
     } else {
       contractAddress = await this._processContractDeploymentTransaction(tx);
     }
+
+    // TODO: Add verification step here.
 
     return contractAddress;
   }
@@ -61,7 +62,7 @@ export class DeployerCore {
 
   private async _tryRecoverContractAddress(tx: ContractDeployTransactionWithContractName): Promise<string> {
     try {
-      return TransactionStorage.getInstance().getDeploymentTransaction(tx);
+      return TransactionProcessor.getDeploymentTransaction(tx);
     } catch (e) {
       // TODO: Add reporter call here. Notify user that contract will be deployed instead of recovering.
       return this._processContractDeploymentTransaction(tx);
@@ -79,7 +80,7 @@ export class DeployerCore {
       await Reporter.getInstance().reportTransaction(txResponse, tx.contractName),
     ]);
 
-    TransactionStorage.getInstance().saveDeploymentTransaction(tx, tx.contractName, contractAddress);
+    TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);
 
     return contractAddress;
   }

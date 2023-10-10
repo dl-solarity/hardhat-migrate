@@ -14,15 +14,20 @@ import { Adapter } from "./Adapter";
 import { bytecodeToString, catchError } from "../../utils";
 
 import { Reporter } from "../../tools/reporter/Reporter";
-import { TemporaryStorage } from "../../tools/storage/TemporaryStorage";
+import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 import { EthersFactory } from "../../types/adapter";
 
 @catchError
 export class EthersAdapter extends Adapter {
+  // I like this idea a lot. In this case, we do not need sender at all.
+  // As we can integrate reporter and storage module into methods
+  // As we will support truffle, we will need a separate method
+  // TODO: clean up the file.
+  // 1. toInstance as method is overloaded with functionality
+  // 2. Use separate functions for each functionality
+  // 3. Focus on scalability (e.g., if we have a new module A, this module must be easily integrated into each method of the Contract)
   public toInstance<A, I>(instance: EthersFactory<A, I>, address: string, signer: Signer): I {
-    const contract = new BaseContract(address, this._getABI(instance), signer) as unknown as I;
-
-    return this._insertHandlers(instance, contract);
+    return new BaseContract(address, this._getABI(instance), signer) as unknown as I;
   }
 
   protected _getABI<A, I>(instance: EthersFactory<A, I>): Interface {
@@ -40,7 +45,7 @@ export class EthersAdapter extends Adapter {
   }
 
   private _insertHandlers<A, I>(instance: EthersFactory<A, I>, contract: I): I {
-    const contractName = TemporaryStorage.getInstance().getContractName(this._getRawBytecode(instance)).split(":")[1];
+    const contractName = ArtifactProcessor.getContractName(this._getRawBytecode(instance)).split(":")[1];
 
     for (const method of this._getContractMethods(instance)) {
       const methodName = method.name;

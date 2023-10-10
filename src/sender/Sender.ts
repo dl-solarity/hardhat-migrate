@@ -16,4 +16,9 @@ export class Sender {
 
     return result;
   }
+
+  // public track(receipt: any): void {
+  //   // pass receipt to reporter
+  //   // save in storage
+  // }
 }

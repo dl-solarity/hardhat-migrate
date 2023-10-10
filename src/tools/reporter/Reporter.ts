@@ -7,8 +7,7 @@ import ora from "ora";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { ChainRecord, defaultCurrencySymbol, predefinedChains } from "../../types/chain-id-api";
-import { ReportMessage } from "../../types/reporter";
+import { ChainRecord, defaultCurrencySymbol, predefinedChains } from "../../types/verifier";
 import { catchError, underline } from "../../utils";
 
 @catchError
@@ -32,10 +31,6 @@ export class Reporter {
 
   public init(hre: HardhatRuntimeEnvironment) {
     this._hre = hre;
-  }
-
-  public report(message: ReportMessage): void {
-    console.log(message);
   }
 
   public reportMigrationBegin(files: string[]) {

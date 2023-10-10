@@ -4,8 +4,8 @@ import { ContractFactory, Interface } from "ethers";
 import { useEnvironment } from "../../helpers";
 
 import { EthersAdapter } from "../../../src/deployer/adapters/EthersAdapter";
-import { ArtifactsParser } from "../../../src/parser/ArtifactsParser";
 import { ContractWithConstructorArguments__factory } from "../../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
+import { ArtifactProcessor } from "../../../src/tools/storage/ArtifactProcessor";
 
 describe("EthersAdapter", () => {
   describe("getContractDeployParams()", () => {
@@ -48,7 +48,7 @@ describe("EthersAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new EthersAdapter(this.hre);
-        await ArtifactsParser.parseArtifacts(this.hre);
+        await ArtifactProcessor.parseArtifacts(this.hre);
 
         ContractWithConstructor = await this.hre.ethers.getContractFactory("ContractWithConstructorArguments");
       });
@@ -71,7 +71,7 @@ describe("EthersAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new EthersAdapter(this.hre);
-        await ArtifactsParser.parseArtifacts(this.hre);
+        await ArtifactProcessor.parseArtifacts(this.hre);
       });
 
       it("should get abi", async () => {
@@ -84,41 +84,6 @@ describe("EthersAdapter", () => {
         const bytecode = (await adapter.getContractDeployParams(ContractWithConstructorArguments__factory)).bytecode;
 
         expect(bytecode).to.equal(contractWithConstructorBytecode);
-      });
-    });
-  });
-
-  describe("linking", () => {
-    context("pure ethers", () => {
-      useEnvironment("minimal-ethers");
-
-      // let adapter: EthersAdapter;
-
-      // let ContractWithExternalLibrary: ContractFactory;
-
-      beforeEach("setup", async function () {
-        // adapter = new EthersAdapter(this.hre);
-        await ArtifactsParser.parseArtifacts(this.hre);
-
-        // TODO: how we will handle this?
-        // ContractWithExternalLibrary = new ContractFactory();
-      });
-
-      // describe("_validateBytecode()", () => {
-      //   it("should return false if bytecode is not linked", async () => {
-      //     assert.isFalse(Adapter.validateBytecode(ContractWithExternalLibrary.bytecode));
-      //   });
-      // });
-    });
-
-    context("with typechain", () => {
-      useEnvironment("minimal-typechain-ethers");
-
-      let adapter: EthersAdapter;
-
-      beforeEach("setup", async function () {
-        adapter = new EthersAdapter(this.hre);
-        await ArtifactsParser.parseArtifacts(this.hre);
       });
     });
   });

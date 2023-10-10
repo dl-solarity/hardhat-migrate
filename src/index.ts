@@ -9,9 +9,11 @@ import { mergeConfigs, migrateConfigExtender } from "./config";
 import { TASK_MIGRATE } from "./constants";
 
 import { Migrator } from "./migrator/migrator";
-import { ArtifactsParser } from "./parser/ArtifactsParser";
 import { Reporter } from "./tools/reporter/Reporter";
-import { TransactionStorage } from "./tools/storage/TransactionStorage";
+
+import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
+import { DefaultStorage } from "./tools/storage/Storage";
+
 import { MigrateConfig } from "./types/migrations";
 
 export { Deployer } from "./deployer/Deployer";
@@ -28,10 +30,9 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
     force: env.config.migrate.force,
   });
 
-  TransactionStorage.getInstance().init(env);
-  Reporter.getInstance().init(env);
+  await ArtifactProcessor.parseArtifacts(env);
 
-  await ArtifactsParser.parseArtifacts(env);
+  Reporter.getInstance().init(env);
 
   await new Migrator(env).migrate();
 };
@@ -57,6 +58,10 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
 extendEnvironment((hre) => {
   hre.migrator = lazyObject(() => {
     return new Migrator(hre);
+  });
+
+  hre.storage = lazyObject(() => {
+    return DefaultStorage;
   });
 });
 

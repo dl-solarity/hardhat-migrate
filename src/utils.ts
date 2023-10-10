@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { AddressLike, hexlify, id } from "ethers";
 import { realpathSync } from "fs";
 import { join } from "path";
@@ -10,6 +11,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { MigrateError } from "./errors";
 
 import { Bytecode } from "./types/deployer";
+import { KeyTxFields } from "./types/tools";
 
 export async function getSignerHelper(
   hre: HardhatRuntimeEnvironment,
@@ -32,7 +34,7 @@ export function resolvePathToFile(path: string, file: string = ""): string {
   return join(realpathSync(path), file);
 }
 
-export function JSONConvertor(key: any, value: any) {
+export function JSONConvertor(_key: any, value: any) {
   if (typeof value === "bigint") {
     return value.toString();
   }
@@ -42,6 +44,17 @@ export function JSONConvertor(key: any, value: any) {
 
 export function bytecodeHash(bytecode: any): string {
   return id(bytecodeToString(bytecode));
+}
+
+export function createHash(keyTxFields: KeyTxFields): string {
+  // TODO: rewrite
+  const obj = { data: keyTxFields.data, from: keyTxFields.from, chaId: keyTxFields.chainId };
+
+  return id(toJSON(obj));
+}
+
+export function toJSON(data: any): string {
+  return JSON.stringify(data, JSONConvertor);
 }
 
 export function bytecodeToString(bytecode: Bytecode): string {
