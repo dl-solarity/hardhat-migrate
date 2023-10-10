@@ -5,8 +5,8 @@ import { useEnvironment } from "../../helpers";
 import { Deployer } from "../../../src/deployer/Deployer";
 
 import { ZeroAddress } from "ethers";
-import { ArtifactsParser } from "../../../src/parser/ArtifactsParser";
-import { TransactionStorage } from "../../../src/tools/storage/TransactionStorage";
+import { ArtifactProcessor } from "../../../src/tools/storage/ArtifactProcessor";
+import { TransactionStorage } from "../../../src/tools/storage/Storage";
 import {
   ContractWithConstructorArguments__factory,
   ContractWithExternalLibrary__factory,
@@ -23,10 +23,9 @@ describe("deployer", () => {
     beforeEach("setup", async function () {
       deployer = new Deployer(this.hre);
 
-      await ArtifactsParser.parseArtifacts(this.hre);
+      await ArtifactProcessor.parseArtifacts(this.hre);
 
-      TransactionStorage.getInstance().init(this.hre);
-      TransactionStorage.getInstance().clear();
+      TransactionStorage.clear();
     });
 
     it("should deploy contract with constructor arguments", async function () {

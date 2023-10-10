@@ -5,7 +5,7 @@ import { callEtherscanApi, RESPONSE_OK } from "./etherscan-api";
 
 import { pluginName } from "../constants";
 import { MigrateError } from "../errors";
-import { EtherscanAPIConfig } from "../types/etherscan-api";
+import { EtherscanAPIConfig } from "../types/verifier";
 
 export class Verifier {
   constructor(private _hre: HardhatRuntimeEnvironment) {}

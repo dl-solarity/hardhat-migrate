@@ -1,6 +1,6 @@
 import { BytesLike, ContractDeployTransaction, ContractFactory, Interface, InterfaceAbi, Overrides } from "ethers";
 
-import { Libraries } from "hardhat/types";
+import { Artifact, Libraries } from "hardhat/types";
 
 export type Abi = Interface | InterfaceAbi;
 
@@ -17,4 +17,19 @@ export type ContractDeployTransactionWithContractName = ContractDeployTransactio
 export interface ContractDeployParams {
   abi: Abi;
   bytecode: string;
+}
+
+export interface Link {
+  sourceName: string;
+  libraryName: string;
+  address: string;
+}
+
+export interface NeededLibrary {
+  sourceName: string;
+  libName: string;
+}
+
+export interface ArtifactExtended extends Artifact {
+  neededLibraries: NeededLibrary[];
 }

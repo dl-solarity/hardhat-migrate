@@ -7,6 +7,7 @@ import { Abi } from "../../types/deployer";
 
 @catchError
 export class PureAdapter extends Adapter {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public toInstance<I>(instance: any, address: string): I {
     if (typeof instance.contractName !== "string") {
       throw new Error("ContractName must be a string.");

@@ -1,6 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Abi, Bytecode } from "./deployer";
-
-// TODO: rewrite through declare modules
 
 export interface EthersFactory<A, I> {
   new (...args: any): A;
