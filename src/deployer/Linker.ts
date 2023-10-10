@@ -6,7 +6,7 @@ import { MigrateError } from "../errors";
 
 import { bytecodeToString, catchError } from "../utils";
 
-import { Bytecode, Link , ArtifactExtended, NeededLibrary } from "../types/deployer";
+import { ArtifactExtended, Bytecode, Link, NeededLibrary } from "../types/deployer";
 
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
@@ -108,7 +108,7 @@ function _findMissingLibraries(missingLibraries: { sourceName: string; libName: 
 
   for (const missingLibrary of missingLibraries) {
     const lib = `${missingLibrary.sourceName}:${missingLibrary.libName}`;
-    const address = TransactionProcessor.getInstance().getDeploymentTransactionByName(lib);
+    const address = TransactionProcessor.getDeploymentTransaction(lib);
 
     if (address) {
       missingLibrariesMap.set(lib, {

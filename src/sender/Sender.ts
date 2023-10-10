@@ -10,8 +10,8 @@ export class Sender {
     return receipt;
   }
 
-  public track(receipt: any): void {
-    // pass receipt to reporter
-    // save in storage
-  }
+  // public track(receipt: any): void {
+  //   // pass receipt to reporter
+  //   // save in storage
+  // }
 }

@@ -6,8 +6,8 @@ import { useEnvironment } from "../../helpers";
 
 import { Deployer } from "../../../src/deployer/Deployer";
 
-import { TransactionProcessor } from "../../../src/tools/storage/TransactionProcessor";
 import { ZeroAddress } from "ethers";
+import { TransactionStorage } from "../../../src/tools/storage/Storage";
 
 describe("deployer", () => {
   describe("deploy()", () => {
@@ -22,8 +22,7 @@ describe("deployer", () => {
     beforeEach("setup", async function () {
       deployer = new Deployer(this.hre);
 
-      TransactionProcessor.getInstance().init(this.hre);
-      TransactionProcessor.getInstance().clear();
+      TransactionStorage.clear();
 
       contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
       ContractWithExternalLibraryArtifact = await this.hre.artifacts.require("ContractWithExternalLibrary");
@@ -67,6 +66,8 @@ describe("deployer", () => {
 
       await deployer.deploy(library1Artifact, []);
       await deployer.deploy(library2Artifact, []);
+      await deployer.deploy(ContractWithExternalLibraryArtifact, [], {});
+
       await deployer.deploy(ContractWithExternalLibraryArtifact, [], {});
 
       await expect(deployer.deploy(ContractWithExternalLibraryArtifact, [], {})).to.be.not.rejected;

@@ -62,7 +62,7 @@ export class DeployerCore {
 
   private async _tryRecoverContractAddress(tx: ContractDeployTransactionWithContractName): Promise<string> {
     try {
-      return TransactionProcessor.getInstance().getDeploymentTransaction(tx);
+      return TransactionProcessor.getDeploymentTransaction(tx);
     } catch (e) {
       // TODO: Add reporter call here. Notify user that contract will be deployed instead of recovering.
       return this._processContractDeploymentTransaction(tx);
@@ -80,7 +80,7 @@ export class DeployerCore {
       this._reportContractDeployTransactionSent(txResponse),
     ]);
 
-    TransactionProcessor.getInstance().saveDeploymentTransaction(tx, tx.contractName, contractAddress);
+    TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);
 
     return contractAddress;
   }

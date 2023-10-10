@@ -1,55 +1,57 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { existsSync, readFileSync, writeFileSync } from "fs";
+import { MigrateError } from "../../errors";
+import { StorageNamespaces } from "../../types/tools";
 
 import { JSONConvertor, resolvePathToFile } from "../../utils";
 
-class Storage {
+export class Storage {
   private readonly _fileName = ".storage.json";
 
-  private readonly _filePath: string = "";
-  private readonly _namespace: string = "";
+  private readonly _filePath: string;
 
   private _state: Record<string, any> = {};
 
-  // TODO: default path to storage should be: artifacts/build-infos -> .storage.json
-  constructor(namespace: string = "", pathToStorage: string = "") {
-    this._namespace = namespace;
+  constructor(
+    private _namespace: StorageNamespaces = StorageNamespaces.Storage,
+    pathToStorage: string = "artifacts/build-infos",
+  ) {
     this._filePath = resolvePathToFile(pathToStorage, this._fileName);
 
-    if (!this._stateExistsInFile()) {
-      this._clear();
+    if (this._stateExistsInFile()) {
+      this._state = this._readStateFromFile();
     }
-
-    this._state = this._readStateFromFile();
   }
 
   public get(key: string): any {
-    return this._state[this._namespace][key];
+    return this._state[key];
   }
 
-  // TODO: add force set and delete. So if key exists it will be overwritten, otherwise throw error
-  public set(key: string, value: any): void {
-    this._state[this._namespace][key] = value;
+  public set(key: string, value: any, force = false): void {
+    if (!force && this.has(key)) {
+      throw new MigrateError(`Key already exists`);
+    }
+
+    this._state[key] = value;
 
     this._saveStateToFile();
   }
 
-  public delete(key: string): void {
-    delete this._state[this._namespace][key];
+  public delete(key: string, force = false): void {
+    if (!force && !this.has(key)) {
+      throw new MigrateError(`Key not found`);
+    }
+
+    delete this._state[key];
 
     this._saveStateToFile();
   }
 
   public has(key: string): boolean {
-    return this._state[this._namespace][key] !== undefined;
+    return this._state[key] !== undefined;
   }
 
   public clear(): void {
-    this._state[this._namespace] = {};
-
-    this._saveStateToFile();
-  }
-
-  private _clear() {
     this._state = {};
 
     this._saveStateToFile();
@@ -60,7 +62,11 @@ class Storage {
   }
 
   private _saveStateToFile() {
-    const fileContent = this._toJSON(this._state);
+    const fullState = this._stateExistsInFile() ? this._readStateFromFile() : {};
+
+    fullState[this._namespace] = this._state;
+
+    const fileContent = this._toJSON(fullState);
 
     writeFileSync(this._filePath, fileContent, {
       flag: "w",
@@ -68,7 +74,7 @@ class Storage {
     });
   }
 
-  private _readStateFromFile(): Record<string, string> {
+  private _readStateFromFile(): Record<string, Record<string, any>> {
     const fileContent = readFileSync(this._filePath, {
       encoding: "utf8",
     });
@@ -77,10 +83,10 @@ class Storage {
   }
 
   private _toJSON(data: any): string {
-    return JSON.stringify(data, JSONConvertor);
+    return JSON.stringify(data, JSONConvertor, 2);
   }
 }
 
-export const DefaultStorage = new Storage("storage");
-export const ArtifactStorage = new Storage("artifacts");
-export const TransactionStorage = new Storage("transactions");
+export const DefaultStorage = new Storage(StorageNamespaces.Storage);
+export const ArtifactStorage = new Storage(StorageNamespaces.Artifacts);
+export const TransactionStorage = new Storage(StorageNamespaces.Transactions);

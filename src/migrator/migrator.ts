@@ -1,5 +1,5 @@
-import { basename } from "path";
 import { readdirSync, statSync } from "fs";
+import { basename } from "path";
 
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -30,7 +30,7 @@ export class Migrator {
   public async migrate() {
     for (const element of this._migrationFiles) {
       try {
-        // eslint-disable-next-line
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const migration = require(resolvePathToFile(this._config.pathToMigrations, element));
 
         await migration(this._deployer);

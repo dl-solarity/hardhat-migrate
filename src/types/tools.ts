@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ContractDeployTransaction } from "ethers/lib.esm";
 
 export type ReportMessage = DeployContractMessage;
@@ -14,3 +15,9 @@ export interface DeployContractMessage {
 }
 
 export type KeyTxFields = Pick<ContractDeployTransaction, "data" | "from" | "chainId">;
+
+export enum StorageNamespaces {
+  Storage = "storage",
+  Artifacts = "artifacts",
+  Transactions = "transactions",
+}

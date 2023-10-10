@@ -6,7 +6,6 @@ import { TransactionResponse } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { ChainRecord, defaultCurrencySymbol, predefinedChains } from "../../types/verifier";
-import { ReportMessage } from "../../types/reporter";
 
 export class Reporter {
   public nativeSymbol = defaultCurrencySymbol;
@@ -21,12 +20,6 @@ export class Reporter {
 
   public async init() {
     this.nativeSymbol = await this._getNativeSymbol();
-  }
-
-  public report(message: ReportMessage): void {
-    if (this._verbose) {
-      console.log(message);
-    }
   }
 
   public static async reportDeploy(tx: TransactionResponse) {

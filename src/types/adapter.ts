@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Abi, Bytecode } from "./deployer";
 
 export interface EthersFactory<A, I> {

@@ -1,17 +1,17 @@
-import { ArtifactStorage } from "./Storage";
-
 import { MigrateError } from "../../errors";
 
 import { bytecodeHash, bytecodeToString } from "../../utils";
 
-import { ArtifactExtended, NeededLibrary , Bytecode } from "../../types/deployer";
 import { Artifact, HardhatRuntimeEnvironment } from "hardhat/types";
 
-// TODO: add reseters for storage (reset on each build (i.e., compile))
-export class ArtifactProcessor {
-  // TODO: Merge Artifact parser into Artifact storage. (finish it)
+import { ArtifactStorage } from "./Storage";
 
+import { ArtifactExtended, Bytecode, NeededLibrary } from "../../types/deployer";
+
+export class ArtifactProcessor {
   public static async parseArtifacts(_hre: HardhatRuntimeEnvironment): Promise<void> {
+    ArtifactStorage.clear();
+
     const names = await _hre.artifacts.getAllFullyQualifiedNames();
 
     for (const name of names) {

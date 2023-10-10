@@ -4,25 +4,23 @@ import { useEnvironment } from "../../helpers";
 
 import { Deployer } from "../../../src/deployer/Deployer";
 
-import { Contract, ContractFactory } from "ethers";
-import { TransactionProcessor } from "../../../src/tools/storage/TransactionProcessor";
+import { TransactionStorage } from "../../../src/tools/storage/Storage";
 
 describe("deployer", () => {
   describe("deploy()", () => {
     useEnvironment("minimal-ethers");
 
-    let ContractWithConstructor: ContractFactory<any[], Contract>;
-    let ContractWithPayableConstructor: ContractFactory<any[], Contract>;
+    // let ContractWithConstructor: ContractFactory<any[], Contract>;
+    // let ContractWithPayableConstructor: ContractFactory<any[], Contract>;
     let deployer: Deployer;
 
     beforeEach("setup", async function () {
       deployer = new Deployer(this.hre);
 
-      TransactionProcessor.getInstance().init(this.hre);
-      TransactionProcessor.getInstance().clear();
+      TransactionStorage.clear();
 
-      ContractWithConstructor = await this.hre.ethers.getContractFactory("ContractWithConstructorArguments");
-      ContractWithPayableConstructor = await this.hre.ethers.getContractFactory("ContractWithPayableConstructor");
+      // ContractWithConstructor = await this.hre.ethers.getContractFactory("ContractWithConstructorArguments");
+      // ContractWithPayableConstructor = await this.hre.ethers.getContractFactory("ContractWithPayableConstructor");
     });
 
     // it("should deploy contract with constructor arguments", async function () {

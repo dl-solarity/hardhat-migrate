@@ -9,11 +9,13 @@ import { mergeConfigs, migrateConfigExtender } from "./config";
 import { TASK_MIGRATE } from "./constants";
 
 import { Migrator } from "./migrator/migrator";
-import { MigrateConfig } from "./types/migrations";
+
 import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
+import { DefaultStorage } from "./tools/storage/Storage";
+
+import { MigrateConfig } from "./types/migrations";
 
 export { Deployer } from "./deployer/Deployer";
-export { DefaultStorage as Storage } from "./tools/storage/Storage";
 
 extendConfig(migrateConfigExtender);
 
@@ -52,6 +54,10 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
 extendEnvironment((hre) => {
   hre.migrator = lazyObject(() => {
     return new Migrator(hre);
+  });
+
+  hre.storage = lazyObject(() => {
+    return DefaultStorage;
   });
 });
 

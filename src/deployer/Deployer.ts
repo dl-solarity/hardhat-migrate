@@ -1,18 +1,19 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { DeployerCore } from "./DeployerCore";
 
 import { Adapter } from "./adapters/Adapter";
-import { PureAdapter } from "./adapters/PureAdapter";
 import { EthersAdapter } from "./adapters/EthersAdapter";
+import { PureAdapter } from "./adapters/PureAdapter";
 import { TruffleAdapter } from "./adapters/TruffleAdapter";
 
 import { catchError, getSignerHelper } from "../utils";
 
 import { MigrateError } from "../errors";
 
-import { Args, OverridesAndLibs } from "../types/deployer";
 import { EthersFactory, Instance, PureFactory, TruffleFactory } from "../types/adapter";
+import { Args, OverridesAndLibs } from "../types/deployer";
 
 @catchError
 export class Deployer {

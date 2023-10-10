@@ -6,7 +6,7 @@ import { Interface } from "ethers";
 import { useEnvironment } from "../../helpers";
 
 import { TruffleAdapter } from "../../../src/deployer/adapters/TruffleAdapter";
-import { ArtifactParser } from "../../../src/deployer/ArtifactParser";
+import { ArtifactProcessor } from "../../../src/tools/storage/ArtifactProcessor";
 
 describe("TruffleAdapter", () => {
   describe("getContractDeployParams()", () => {
@@ -49,7 +49,7 @@ describe("TruffleAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new TruffleAdapter(this.hre);
-        await ArtifactParser.parseArtifacts(this.hre);
+        await ArtifactProcessor.parseArtifacts(this.hre);
 
         contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
       });
@@ -74,7 +74,7 @@ describe("TruffleAdapter", () => {
 
       beforeEach("setup", async function () {
         adapter = new TruffleAdapter(this.hre);
-        await ArtifactParser.parseArtifacts(this.hre);
+        await ArtifactProcessor.parseArtifacts(this.hre);
 
         contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
       });
@@ -89,39 +89,6 @@ describe("TruffleAdapter", () => {
         const bytecode = (await adapter.getContractDeployParams(contractWithConstructorArtifact)).bytecode;
 
         expect(bytecode).to.equal(contractWithConstructorBytecode);
-      });
-    });
-  });
-
-  describe("linking", () => {
-    context("pure truffle", () => {
-      useEnvironment("minimal-truffle");
-
-      let contractWithExternalLibraryArtifact: TruffleContract;
-      let contractWithConstructorArtifact: TruffleContract;
-
-      beforeEach("setup", async function () {
-        await ArtifactParser.parseArtifacts(this.hre);
-
-        contractWithExternalLibraryArtifact = await this.hre.artifacts.require("ContractWithExternalLibrary");
-        contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
-      });
-    });
-
-    context("with typechain", () => {
-      useEnvironment("minimal-typechain-truffle");
-
-      let adapter: TruffleAdapter;
-
-      let contractWithExternalLibraryArtifact: TruffleContract;
-      let contractWithConstructorArtifact: TruffleContract;
-
-      beforeEach("setup", async function () {
-        adapter = new TruffleAdapter(this.hre);
-        await ArtifactParser.parseArtifacts(this.hre);
-
-        contractWithExternalLibraryArtifact = await this.hre.artifacts.require("ContractWithExternalLibrary");
-        contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
       });
     });
   });

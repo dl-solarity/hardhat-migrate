@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { MigrateError } from "../../errors";
@@ -18,6 +19,7 @@ export abstract class Adapter {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async link(_instance: any, _library: any): Promise<void> {
     throw new MigrateError("Linking is not supported with provided Factory.");
   }
