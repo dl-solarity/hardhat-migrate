@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import axios from "axios";
 
-import { TransactionReceipt, TransactionResponse } from "ethers";
+import { Network, TransactionReceipt, TransactionResponse } from "ethers";
 
 import ora from "ora";
 
@@ -33,12 +33,20 @@ export class Reporter {
     this._hre = hre;
   }
 
-  public reportMigrationBegin(files: string[]) {
+  public async reportMigrationBegin(files: string[]) {
     this._reportMigrationFiles(files);
 
-    this._reportChainInfo();
+    await this._reportChainInfo();
 
     console.log("\nStarting migration...\n");
+  }
+
+  public async summary() {
+    const output =
+      `> ${"Total transactions:".padEnd(20)} ${this.totalTransactions}\n` +
+      `> ${"Final cost:".padEnd(20)} ${this.totalCost.toString()} ${await this._getNativeSymbol()}\n`;
+
+    console.log(output);
   }
 
   public async reportTransaction(tx: TransactionResponse | string, misc: string) {
@@ -120,14 +128,6 @@ export class Reporter {
     console.log(output);
   }
 
-  public async summary() {
-    const output =
-      `> ${"Total transactions:".padEnd(20)} ${this.totalTransactions}\n` +
-      `> ${"Final cost:".padEnd(20)} ${this.totalCost.toString()} ${await this._getNativeSymbol()}\n`;
-
-    console.log(output);
-  }
-
   private _reportMigrationFiles(files: string[]) {
     console.log("\nMigration files:");
 
@@ -136,15 +136,23 @@ export class Reporter {
     });
   }
 
-  private _reportChainInfo() {
-    // await this._hre.ethers.provider.getNetwork();
-    console.log(`> ${"Network:".padEnd(20)} ${this._hre.network.name}`);
+  private async _getNetwork(): Promise<Network> {
+    return this._hre.ethers.provider.getNetwork();
+  }
 
-    console.log(`> ${"Network id:".padEnd(20)} ${this._hre.network.config.chainId}`);
+  private async _getChainId(): Promise<number> {
+    return Number((await this._getNetwork()).chainId);
+  }
+
+  private async _reportChainInfo() {
+    // await this._hre.ethers.provider.getNetwork();
+    console.log(`> ${"Network:".padEnd(20)} ${(await this._getNetwork()).name}`);
+
+    console.log(`> ${"Network id:".padEnd(20)} ${await this._getChainId()}`);
   }
 
   private async _getExplorerUrl(): Promise<string> {
-    const chainId = Number((await this._hre.ethers.provider.getNetwork()).chainId);
+    const chainId = await this._getChainId();
 
     if (predefinedChains[chainId]) {
       const explorers = predefinedChains[chainId].explorers;
@@ -157,7 +165,7 @@ export class Reporter {
     }
 
     try {
-      const chain = await this._getChainById(chainId);
+      const chain = await this._getChainMetadataById(chainId);
 
       if (chain) {
         predefinedChains[chainId] = chain;
@@ -185,7 +193,7 @@ export class Reporter {
     }
 
     try {
-      const chain = await this._getChainById(chainId);
+      const chain = await this._getChainMetadataById(chainId);
 
       if (chain) {
         predefinedChains[chainId] = chain;
@@ -199,7 +207,7 @@ export class Reporter {
     return defaultCurrencySymbol;
   }
 
-  private async _getChainById(chainId: number): Promise<ChainRecord | undefined> {
+  private async _getChainMetadataById(chainId: number): Promise<ChainRecord | undefined> {
     const chains = await this._getAllRecords();
 
     return chains.find((chain) => chain.chainId === chainId);

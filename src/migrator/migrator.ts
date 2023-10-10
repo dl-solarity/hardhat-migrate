@@ -32,7 +32,7 @@ export class Migrator {
   }
 
   public async migrate() {
-    Reporter.getInstance().reportMigrationBegin(this._migrationFiles);
+    await Reporter.getInstance().reportMigrationBegin(this._migrationFiles);
 
     for (const element of this._migrationFiles) {
       try {
