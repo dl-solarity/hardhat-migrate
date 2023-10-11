@@ -34,6 +34,10 @@ export function resolvePathToFile(path: string, file: string = ""): string {
   return join(realpathSync(path), file);
 }
 
+export function toJSON(data: any): string {
+  return JSON.stringify(data, JSONConvertor, 2);
+}
+
 export function JSONConvertor(_key: any, value: any) {
   if (typeof value === "bigint") {
     return value.toString();
@@ -51,10 +55,6 @@ export function createHash(keyTxFields: KeyTxFields): string {
   const obj = { data: keyTxFields.data, from: keyTxFields.from, chaId: keyTxFields.chainId };
 
   return id(toJSON(obj));
-}
-
-export function toJSON(data: any): string {
-  return JSON.stringify(data, JSONConvertor);
 }
 
 export function bytecodeToString(bytecode: Bytecode): string {

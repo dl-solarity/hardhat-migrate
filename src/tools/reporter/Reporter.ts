@@ -63,7 +63,6 @@ export class Reporter {
     const spinner = ora(await this._formatPendingTime(tx, timeStart)).start();
 
     const spinnerInterval = setInterval(
-      // TODO: can we not use "as TransactionResponse" here?
       async () => (spinner.text = await this._formatPendingTime(tx as TransactionResponse, timeStart)),
       1000,
     );
@@ -90,6 +89,30 @@ export class Reporter {
     this.totalTransactions++;
   }
 
+  public async notifyDeploymentInsteadOfRecovery(contractName: string) {
+    const output = `\nUnfortunately, we can't recover contract address for ${contractName}. Deploying instead...`;
+
+    console.log(output);
+  }
+
+  public async notifyTransactionSendingInsteadOfRecovery(contractMethod: string) {
+    const output = `\nUnfortunately, we can't recover transaction for ${contractMethod}. Sending instead...`;
+
+    console.log(output);
+  }
+
+  public async notifyContractRecovery(contractName: string, contractAddress: string) {
+    const output = `\nContract address for ${contractName} has been recovered: ${contractAddress}\n`;
+
+    console.log(output);
+  }
+
+  public async notifyTransactionRecovery(methodString: string) {
+    const output = `\nTransaction ${methodString} has been recovered.\n`;
+
+    console.log(output);
+  }
+
   private async _parseTransactionTitle(tx: TransactionResponse, misc: string): Promise<string> {
     if (tx.to === null) {
       return `Deploying${misc ? " " + misc.split(":")[1] : ""}`;
@@ -109,7 +132,9 @@ export class Reporter {
   private async _printTransaction(tx: TransactionReceipt) {
     let output = "";
 
-    output += `> contractAddress: ${tx.contractAddress}\n`;
+    if (tx.contractAddress) {
+      output += `> contractAddress: ${tx.contractAddress}\n`;
+    }
 
     output += `> blockNumber: ${tx.blockNumber}\n`;
 

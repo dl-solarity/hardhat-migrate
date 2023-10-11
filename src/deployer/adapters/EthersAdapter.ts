@@ -16,6 +16,7 @@ import { bytecodeToString, catchError } from "../../utils";
 
 import { Reporter } from "../../tools/reporter/Reporter";
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
+import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 import { EthersFactory } from "../../types/adapter";
 
 @catchError
@@ -49,7 +50,7 @@ export class EthersAdapter extends Adapter {
       const oldMethod: BaseContractMethod = (contract as any)[methodName];
 
       const newMethod = async (...args: any[]) => {
-        const res = await oldMethod(...args);
+        const tx = await oldMethod.populateTransaction(...args);
 
         let argsString = "";
         for (let i = 0; i < args.length; i++) {
@@ -57,7 +58,21 @@ export class EthersAdapter extends Adapter {
         }
         const methodString = `${contractName}.${methodName}(${argsString})`;
 
-        await Reporter.getInstance().reportTransaction(res as unknown as ContractTransactionResponse, methodString);
+        try {
+          const txResponse = TransactionProcessor.restoreSavedTransaction(tx);
+
+          Reporter.getInstance().notifyTransactionRecovery(methodString);
+
+          return txResponse;
+        } catch (err) {
+          await Reporter.getInstance().notifyTransactionSendingInsteadOfRecovery(methodString);
+        }
+
+        const res: ContractTransactionResponse = await oldMethod(...args);
+
+        TransactionProcessor.saveTransaction(tx);
+
+        await Reporter.getInstance().reportTransaction(res, methodString);
 
         return res;
       };

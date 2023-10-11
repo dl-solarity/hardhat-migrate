@@ -1,4 +1,4 @@
-import { resolveAddress } from "ethers";
+import { isAddress, resolveAddress } from "ethers";
 
 import { Artifact, Libraries } from "hardhat/types";
 
@@ -108,9 +108,9 @@ function _findMissingLibraries(missingLibraries: { sourceName: string; libName: 
 
   for (const missingLibrary of missingLibraries) {
     const lib = `${missingLibrary.sourceName}:${missingLibrary.libName}`;
-    const address = TransactionProcessor.getDeploymentTransaction(lib);
+    const address = TransactionProcessor.restoreSavedDeployTransaction(lib);
 
-    if (address) {
+    if (isAddress(address)) {
       missingLibrariesMap.set(lib, {
         sourceName: missingLibrary.sourceName,
         libraryName: missingLibrary.libName,
