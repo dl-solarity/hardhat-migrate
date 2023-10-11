@@ -1,4 +1,4 @@
-import { ContractDeployTransaction, Overrides, Signer, TransactionResponse } from "ethers";
+import { ContractDeployTransaction, Overrides, Signer, TransactionResponse, isAddress } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -64,12 +64,22 @@ export class DeployerCore {
   }
 
   private async _tryRecoverContractAddress(tx: ContractDeployTransactionWithContractName): Promise<string> {
+    let contractAddress;
     try {
-      return TransactionProcessor.getDeploymentTransaction(tx);
+      contractAddress = TransactionProcessor.restoreSavedDeployTransaction(tx);
     } catch (e) {
-      // TODO: Add reporter call here. Notify user that contract will be deployed instead of recovering.
+      Reporter.getInstance().notifyDeploymentInsteadOfRecovery(tx.contractName);
+
       return this._processContractDeploymentTransaction(tx);
     }
+
+    if (!isAddress(contractAddress)) {
+      throw new MigrateError(`Invalid address located in the storage: ${contractAddress}`);
+    }
+
+    Reporter.getInstance().notifyContractRecovery(tx.contractName, contractAddress);
+
+    return contractAddress;
   }
 
   private async _processContractDeploymentTransaction(tx: ContractDeployTransactionWithContractName): Promise<string> {
@@ -80,7 +90,7 @@ export class DeployerCore {
 
     const [contractAddress] = await Promise.all([
       this._waitForDeployment(txResponse),
-      this._reportContractDeployTransactionSent(txResponse),
+      Reporter.getInstance().reportTransaction(txResponse, tx.contractName),
     ]);
 
     TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);
@@ -98,12 +108,5 @@ export class DeployerCore {
     }
 
     throw new MigrateError("Contract deployment failed.");
-  }
-
-  // eslint-disable-next-line
-  private async _reportContractDeployTransactionSent(tx: TransactionResponse): Promise<void> {
-    await Reporter.reportDeploy(tx);
-    // TODO: implement when reporter is ready. Must be inlined with call to the Reporter contract.
-    // this function (_reportContractDeployTransactionSent) is not needed in this class. Must be handled by the Reporter.
   }
 }

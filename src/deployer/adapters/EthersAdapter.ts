@@ -1,40 +1,30 @@
-import { BaseContract, BaseContractMethod, Interface, Signer } from "ethers";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import {
+  BaseContract,
+  BaseContractMethod,
+  ContractTransactionResponse,
+  defineProperties,
+  Fragment,
+  FunctionFragment,
+  Interface,
+  Signer,
+} from "ethers";
 
 import { Adapter } from "./Adapter";
 
 import { bytecodeToString, catchError } from "../../utils";
 
+import { Reporter } from "../../tools/reporter/Reporter";
+import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
+import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 import { EthersFactory } from "../../types/adapter";
 
 @catchError
 export class EthersAdapter extends Adapter {
-  // I like this idea a lot. In this case, we do not need sender at all.
-  // As we can integrate reporter and storage module into methods
-  // As we will support truffle, we will need a separate method
-  // TODO: clean up the file.
-  // 1. toInstance as method is overloaded with functionality
-  // 2. Use separate functions for each functionality
-  // 3. Focus on scalability (e.g., if we have a new module A, this module must be easily integrated into each method of the Contract)
   public toInstance<A, I>(instance: EthersFactory<A, I>, address: string, signer: Signer): I {
     const contract = new BaseContract(address, this._getABI(instance), signer) as unknown as I;
 
-    const fragments = (instance.createInterface() as unknown as Interface).fragments;
-
-    const methods = fragments.filter((fragment) => fragment.type === "function") as unknown as BaseContractMethod[];
-
-    for (const method of methods) {
-      const methodName = method.name;
-
-      const oldMethod: BaseContractMethod = (contract as any)[methodName];
-      // [Symbol.toPrimitive]
-      (contract as any)[methodName] = async (...args: any[]) => {
-        console.log(`Calling ${methodName} with args: ${args}`);
-
-        return oldMethod(...args);
-      };
-    }
-
-    return contract;
+    return this._insertHandlers(instance, contract);
   }
 
   protected _getABI<A, I>(instance: EthersFactory<A, I>): Interface {
@@ -43,5 +33,64 @@ export class EthersAdapter extends Adapter {
 
   protected _getRawBytecode<A, I>(instance: EthersFactory<A, I>): string {
     return bytecodeToString(instance.bytecode);
+  }
+
+  private _getContractMethods<A, I>(instance: EthersFactory<A, I>): FunctionFragment[] {
+    const fragments = (instance.createInterface() as unknown as Interface).fragments;
+
+    return fragments.filter(Fragment.isFunction).filter((fragment) => !fragment.constant);
+  }
+
+  private _insertHandlers<A, I>(instance: EthersFactory<A, I>, contract: I): I {
+    const contractName = ArtifactProcessor.getContractName(this._getRawBytecode(instance)).split(":")[1];
+
+    for (const method of this._getContractMethods(instance)) {
+      const methodName = method.name;
+
+      const oldMethod: BaseContractMethod = (contract as any)[methodName];
+
+      const newMethod = async (...args: any[]) => {
+        const tx = await oldMethod.populateTransaction(...args);
+
+        let argsString = "";
+        for (let i = 0; i < args.length; i++) {
+          argsString += `${method.inputs[i].name}:${args[i]}${i === args.length - 1 ? "" : ", "}`;
+        }
+        const methodString = `${contractName}.${methodName}(${argsString})`;
+
+        try {
+          const txResponse = TransactionProcessor.restoreSavedTransaction(tx);
+
+          Reporter.getInstance().notifyTransactionRecovery(methodString);
+
+          return txResponse;
+        } catch (err) {
+          await Reporter.getInstance().notifyTransactionSendingInsteadOfRecovery(methodString);
+        }
+
+        const res: ContractTransactionResponse = await oldMethod(...args);
+
+        TransactionProcessor.saveTransaction(tx);
+
+        await Reporter.getInstance().reportTransaction(res, methodString);
+
+        return res;
+      };
+
+      defineProperties<any>(newMethod, {
+        name: oldMethod.name,
+        getFragment: oldMethod.getFragment,
+        estimateGas: oldMethod.estimateGas,
+        populateTransaction: oldMethod.populateTransaction,
+        send: oldMethod.send,
+        staticCall: oldMethod.staticCall,
+        staticCallResult: oldMethod.staticCallResult,
+      });
+      Object.defineProperty(newMethod, "fragment", oldMethod.fragment);
+
+      (contract as any)[methodName] = newMethod;
+    }
+
+    return contract;
   }
 }

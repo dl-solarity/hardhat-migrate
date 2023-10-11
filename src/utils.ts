@@ -26,8 +26,16 @@ export async function getSignerHelper(
   return hre.ethers.getSigner(address);
 }
 
+export function underline(str: string): string {
+  return `\u001b[4m${str}\u001b[0m`;
+}
+
 export function resolvePathToFile(path: string, file: string = ""): string {
   return join(realpathSync(path), file);
+}
+
+export function toJSON(data: any): string {
+  return JSON.stringify(data, JSONConvertor, 2);
 }
 
 export function JSONConvertor(_key: any, value: any) {
@@ -47,10 +55,6 @@ export function createHash(keyTxFields: KeyTxFields): string {
   const obj = { data: keyTxFields.data, from: keyTxFields.from, chaId: keyTxFields.chainId };
 
   return id(toJSON(obj));
-}
-
-export function toJSON(data: any): string {
-  return JSON.stringify(data, JSONConvertor);
 }
 
 export function bytecodeToString(bytecode: Bytecode): string {
