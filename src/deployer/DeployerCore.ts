@@ -19,13 +19,16 @@ import { MigrateConfig } from "../types/migrations";
 import { Reporter } from "../tools/reporter/Reporter";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
+import { Verifier } from "../verifier/Verifier";
 
 @catchError
 export class DeployerCore {
   private _config: MigrateConfig;
+  private _verifier: Verifier;
 
   constructor(private _hre: HardhatRuntimeEnvironment) {
     this._config = _hre.config.migrate;
+    this._verifier = new Verifier(_hre);
   }
 
   public async deploy(deployParams: ContractDeployParams, args: Args, parameters: OverridesAndLibs): Promise<string> {
@@ -45,7 +48,7 @@ export class DeployerCore {
       contractAddress = await this._processContractDeploymentTransaction(tx);
     }
 
-    // TODO: Add verification step here.
+    this._verifier.verify(contractAddress, contractName, args);
 
     return contractAddress;
   }
