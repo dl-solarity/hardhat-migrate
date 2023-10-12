@@ -32,7 +32,7 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
 
   await ArtifactProcessor.parseArtifacts(env);
 
-  Reporter.getInstance().init(env);
+  Reporter.init(env);
 
   await new Migrator(env).migrate();
 };

@@ -108,7 +108,7 @@ function _findMissingLibraries(missingLibraries: { sourceName: string; libName: 
 
   for (const missingLibrary of missingLibraries) {
     const lib = `${missingLibrary.sourceName}:${missingLibrary.libName}`;
-    const address = TransactionProcessor.restoreSavedDeployTransaction(lib);
+    const address = TransactionProcessor.tryRestoreSavedContractAddress(lib);
 
     if (isAddress(address)) {
       missingLibrariesMap.set(lib, {

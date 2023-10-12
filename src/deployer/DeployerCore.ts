@@ -1,4 +1,4 @@
-import { ContractDeployTransaction, Overrides, Signer, TransactionResponse, isAddress } from "ethers";
+import { ContractDeployTransaction, Overrides, Signer, TransactionResponse } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -61,33 +61,27 @@ export class DeployerCore {
   }
 
   private async _tryRecoverContractAddress(tx: ContractDeployTransactionWithContractName): Promise<string> {
-    let contractAddress;
     try {
-      contractAddress = TransactionProcessor.restoreSavedDeployTransaction(tx);
-    } catch (e) {
-      Reporter.getInstance().notifyDeploymentInsteadOfRecovery(tx.contractName);
+      const contractAddress = TransactionProcessor.tryRestoreSavedContractAddress(tx);
+
+      Reporter.notifyContractRecovery(tx.contractName, contractAddress);
+
+      return contractAddress;
+    } catch {
+      Reporter.notifyDeploymentInsteadOfRecovery(tx.contractName);
 
       return this._processContractDeploymentTransaction(tx);
     }
-
-    if (!isAddress(contractAddress)) {
-      throw new MigrateError(`Invalid address located in the storage: ${contractAddress}`);
-    }
-
-    Reporter.getInstance().notifyContractRecovery(tx.contractName, contractAddress);
-
-    return contractAddress;
   }
 
   private async _processContractDeploymentTransaction(tx: ContractDeployTransactionWithContractName): Promise<string> {
     const signer: Signer = await getSignerHelper(this._hre, tx.from);
 
-    // Send transaction
     const txResponse = await signer.sendTransaction(tx);
 
     const [contractAddress] = await Promise.all([
       this._waitForDeployment(txResponse),
-      Reporter.getInstance().reportTransaction(txResponse, tx.contractName),
+      Reporter.reportTransaction(txResponse, tx.contractName),
     ]);
 
     TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);

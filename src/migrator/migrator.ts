@@ -12,8 +12,10 @@ import { MigrateError } from "../errors";
 
 import { MigrateConfig } from "../types/migrations";
 
-import { Deployer } from "../deployer/Deployer";
 import { Sender } from "../sender/Sender";
+
+import { Deployer } from "../deployer/Deployer";
+
 import { Reporter } from "../tools/reporter/Reporter";
 
 export class Migrator {
@@ -26,13 +28,13 @@ export class Migrator {
     private _config: MigrateConfig = _hre.config.migrate,
   ) {
     this._deployer = new Deployer(_hre);
-    this._sender = new Sender(Reporter.getInstance());
+    this._sender = new Sender();
 
     this._migrationFiles = this._getMigrationFiles();
   }
 
   public async migrate() {
-    await Reporter.getInstance().reportMigrationBegin(this._migrationFiles);
+    await Reporter.reportMigrationBegin(this._migrationFiles);
 
     for (const element of this._migrationFiles) {
       try {
@@ -49,7 +51,7 @@ export class Migrator {
       }
     }
 
-    await Reporter.getInstance().summary();
+    await Reporter.summary();
   }
 
   private _getMigrationFiles() {

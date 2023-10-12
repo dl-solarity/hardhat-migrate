@@ -17,7 +17,8 @@ export class Verifier {
         constructorArguments: args,
         contract: contractName,
         noCompile: true,
-        // TOOD: If your contract has libraries with undetectable addresses, you may pass the libraries parameter with a dictionary specifying them:
+        // TOOD: If your contract has libraries with undetectable addresses, you may pass the libraries parameter
+        // with a dictionary specifying them:
         // libraries: {
         //   SomeLibrary: "0x...",
         // },
@@ -41,7 +42,7 @@ export class Verifier {
     proxyAddress: string,
     implAddress: string,
   ) {
-    console.log(`Linking proxy ${proxyAddress} with implementation`);
+    console.info(`Linking proxy ${proxyAddress} with implementation`);
     const params = {
       module: "contract",
       action: "verifyproxycontract",
@@ -51,7 +52,8 @@ export class Verifier {
     let responseBody = await callEtherscanApi(etherscanApi, params);
 
     if (responseBody.status === RESPONSE_OK) {
-      // initial call was OK, but need to send a status request using the returned guid to get the actual verification status
+      // the initial call was OK, but need to send a status request using the returned guid
+      // to get the actual verification status
       const guid = responseBody.result;
       responseBody = await this.checkProxyVerificationStatus(etherscanApi, guid);
 
@@ -62,7 +64,7 @@ export class Verifier {
     }
 
     if (responseBody.status === RESPONSE_OK) {
-      console.log("Successfully linked proxy to implementation.");
+      console.info("Successfully linked proxy to implementation.");
     } else {
       throw new NomicLabsHardhatPluginError(
         pluginName,
@@ -82,6 +84,6 @@ export class Verifier {
       apikey: etherscanApi.key,
       guid: guid,
     };
-    return await callEtherscanApi(etherscanApi, checkProxyVerificationParams);
+    return callEtherscanApi(etherscanApi, checkProxyVerificationParams);
   }
 }
