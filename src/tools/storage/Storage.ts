@@ -3,29 +3,24 @@ import { existsSync, readFileSync, writeFileSync } from "fs";
 import { MigrateError } from "../../errors";
 import { StorageNamespaces } from "../../types/tools";
 
-import { JSONConvertor, catchError, resolvePathToFile } from "../../utils";
+import { catchError, resolvePathToFile, toJSON } from "../../utils";
 
 @catchError
 export class Storage {
-  private readonly _fileName = ".storage.json";
+  private static readonly _fileName = ".storage.json";
 
-  private readonly _filePath: string;
+  private static readonly _filePath = resolvePathToFile("artifacts/build-info", Storage._fileName);
 
-  private _state: Record<string, any> = {};
+  private static _state: Record<string, any> = Storage._readFullStateFromFile();
 
-  constructor(
-    private _namespace: StorageNamespaces = StorageNamespaces.Storage,
-    pathToStorage: string = "artifacts/build-info",
-  ) {
-    this._filePath = resolvePathToFile(pathToStorage, this._fileName);
-
-    if (this._stateExistsInFile()) {
-      this._state = this._readStateFromFile();
+  constructor(private _namespace: StorageNamespaces = StorageNamespaces.Storage) {
+    if (!Storage._state[this._namespace]) {
+      Storage._state[this._namespace] = {};
     }
   }
 
   public get(key: string): any {
-    return this._state[key];
+    return Storage._state[this._namespace][key];
   }
 
   public set(key: string, value: any, force = false): void {
@@ -33,9 +28,9 @@ export class Storage {
       throw new MigrateError(`Key already exists`);
     }
 
-    this._state[key] = value;
+    Storage._state[this._namespace][key] = value;
 
-    this._saveStateToFile();
+    Storage._saveStateToFile();
   }
 
   public delete(key: string, force = false): void {
@@ -43,51 +38,45 @@ export class Storage {
       throw new MigrateError(`Key not found`);
     }
 
-    delete this._state[key];
+    delete Storage._state[this._namespace][key];
 
-    this._saveStateToFile();
+    Storage._saveStateToFile();
   }
 
   public has(key: string): boolean {
-    return this._state[key] !== undefined;
+    return Storage._state[this._namespace][key] !== undefined;
   }
 
   public clear(): void {
-    this._state = {};
+    Storage._state[this._namespace] = {};
 
-    this._saveStateToFile();
+    Storage._saveStateToFile();
   }
 
-  private _stateExistsInFile(): boolean {
-    return existsSync(this._filePath);
+  private static _stateExistsInFile(): boolean {
+    return existsSync(Storage._filePath);
   }
 
-  private _saveStateToFile() {
-    const fullState = this._stateExistsInFile() ? this._readStateFromFile() : {};
-
-    fullState[this._namespace] = this._state;
-
-    const fileContent = this._toJSON(fullState);
-
-    writeFileSync(this._filePath, fileContent, {
+  private static _saveStateToFile() {
+    writeFileSync(Storage._filePath, toJSON(Storage._state), {
       flag: "w",
       encoding: "utf8",
     });
   }
 
-  private _readStateFromFile(): Record<string, Record<string, any>> {
+  private static _readFullStateFromFile(): Record<string, Record<string, any>> {
+    if (!Storage._stateExistsInFile()) {
+      return {};
+    }
+
     const fileContent = readFileSync(this._filePath, {
       encoding: "utf8",
     });
 
     return JSON.parse(fileContent);
   }
-
-  private _toJSON(data: any): string {
-    return JSON.stringify(data, JSONConvertor, 2);
-  }
 }
 
 export const DefaultStorage = new Storage(StorageNamespaces.Storage);
-export const ArtifactStorage = new Storage(StorageNamespaces.Artifacts);
 export const TransactionStorage = new Storage(StorageNamespaces.Transactions);
+export const ArtifactStorage = new Storage(StorageNamespaces.Artifacts);

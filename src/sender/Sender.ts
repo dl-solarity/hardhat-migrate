@@ -12,6 +12,7 @@ export class Sender {
   ): Promise<ContractTransactionResponse> {
     const result = await task;
 
+    // TransactionProcessor.saveTransaction(result);
     await this._reporter.reportTransaction(result, misc);
 
     return result;

@@ -28,7 +28,7 @@ describe("TransactionStorage", async () => {
 
       TransactionProcessor.saveDeploymentTransaction(tx, "name", "123");
 
-      assert.equal(TransactionProcessor.getDeploymentTransaction(tx), "123");
+      assert.equal(TransactionProcessor.restoreSavedDeployTransaction(tx), "123");
     });
 
     it("should save deployment transaction by name", function () {
@@ -40,7 +40,7 @@ describe("TransactionStorage", async () => {
 
       TransactionProcessor.saveDeploymentTransaction(tx, contractName, contractAddress);
 
-      assert(TransactionProcessor.getDeploymentTransaction(contractName), contractAddress);
+      assert(TransactionProcessor.restoreSavedDeployTransaction(contractName), contractAddress);
     });
   });
 
@@ -61,14 +61,14 @@ describe("TransactionStorage", async () => {
 
       const tx = await factory.getDeployTransaction("hello");
 
-      assert.equal(TransactionProcessor.getDeploymentTransaction(tx), await contract.getAddress());
+      assert.equal(TransactionProcessor.restoreSavedDeployTransaction(tx), await contract.getAddress());
     });
 
     it("should save deployment transaction by name", async function () {
       const contract = await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
 
       assert.equal(
-        TransactionProcessor.getDeploymentTransaction(
+        TransactionProcessor.restoreSavedDeployTransaction(
           "contracts/another-contracts/Contracts.sol:ContractWithConstructorArguments",
         ),
         await contract.getAddress(),
@@ -86,7 +86,7 @@ describe("TransactionStorage", async () => {
 
       const tx = await factory.getDeployTransaction({ value: value });
 
-      assert.equal(TransactionProcessor.getDeploymentTransaction(tx), await contract.getAddress());
+      assert.equal(TransactionProcessor.restoreSavedDeployTransaction(tx), await contract.getAddress());
     });
 
     it("should differ contracts with chainId", async function () {
@@ -99,7 +99,7 @@ describe("TransactionStorage", async () => {
 
       const tx = await factory.getDeployTransaction("hello", { chainId: 1 });
 
-      expect(() => TransactionProcessor.getDeploymentTransaction(tx)).to.throw("Transaction not found in storage");
+      expect(() => TransactionProcessor.restoreSavedDeployTransaction(tx)).to.throw("Transaction not found in storage");
     });
 
     it("should differ contracts with chainId", async function () {
@@ -112,7 +112,7 @@ describe("TransactionStorage", async () => {
 
       const tx = await factory.getDeployTransaction("hello", { chainId: 1 });
 
-      expect(() => TransactionProcessor.getDeploymentTransaction(tx)).to.throw("Transaction not found in storage");
+      expect(() => TransactionProcessor.restoreSavedDeployTransaction(tx)).to.throw("Transaction not found in storage");
     });
 
     it("should differ contracts with from", async function () {
@@ -125,7 +125,7 @@ describe("TransactionStorage", async () => {
 
       const tx = await factory.getDeployTransaction("hello", { from: ZeroAddress });
 
-      expect(() => TransactionProcessor.getDeploymentTransaction(tx)).to.throw("Transaction not found in storage");
+      expect(() => TransactionProcessor.restoreSavedDeployTransaction(tx)).to.throw("Transaction not found in storage");
     });
 
     it("should not differ contracts with nonce", async function () {
@@ -138,7 +138,7 @@ describe("TransactionStorage", async () => {
 
       const tx = await factory.getDeployTransaction("hello", { nonce: 0 });
 
-      assert.equal(TransactionProcessor.getDeploymentTransaction(tx), await contract.getAddress());
+      assert.equal(TransactionProcessor.restoreSavedDeployTransaction(tx), await contract.getAddress());
     });
 
     it("should differ contracts with args", async function () {
@@ -151,7 +151,7 @@ describe("TransactionStorage", async () => {
 
       const tx = await factory.getDeployTransaction("hello2");
 
-      expect(() => TransactionProcessor.getDeploymentTransaction(tx)).to.throw("Transaction not found in storage");
+      expect(() => TransactionProcessor.restoreSavedDeployTransaction(tx)).to.throw("Transaction not found in storage");
     });
   });
 });
