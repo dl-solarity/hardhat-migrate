@@ -26,6 +26,10 @@ export async function getSignerHelper(
   return hre.ethers.getSigner(address);
 }
 
+export function underline(str: string): string {
+  return `\u001b[4m${str}\u001b[0m`;
+}
+
 export function resolvePathToFile(path: string, file: string = ""): string {
   return join(realpathSync(path), file);
 }

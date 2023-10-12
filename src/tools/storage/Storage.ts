@@ -3,8 +3,9 @@ import { existsSync, readFileSync, writeFileSync } from "fs";
 import { MigrateError } from "../../errors";
 import { StorageNamespaces } from "../../types/tools";
 
-import { JSONConvertor, resolvePathToFile } from "../../utils";
+import { JSONConvertor, catchError, resolvePathToFile } from "../../utils";
 
+@catchError
 export class Storage {
   private readonly _fileName = ".storage.json";
 
@@ -14,7 +15,7 @@ export class Storage {
 
   constructor(
     private _namespace: StorageNamespaces = StorageNamespaces.Storage,
-    pathToStorage: string = "artifacts/build-infos",
+    pathToStorage: string = "artifacts/build-info",
   ) {
     this._filePath = resolvePathToFile(pathToStorage, this._fileName);
 

@@ -1,6 +1,6 @@
 import { MigrateError } from "../../errors";
 
-import { bytecodeHash, bytecodeToString } from "../../utils";
+import { bytecodeHash, catchError } from "../../utils";
 
 import { Artifact, HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -8,6 +8,7 @@ import { ArtifactStorage } from "./Storage";
 
 import { ArtifactExtended, Bytecode, NeededLibrary } from "../../types/deployer";
 
+@catchError
 export class ArtifactProcessor {
   public static async parseArtifacts(_hre: HardhatRuntimeEnvironment): Promise<void> {
     ArtifactStorage.clear();
@@ -19,9 +20,33 @@ export class ArtifactProcessor {
 
       const contract: ArtifactExtended = { ...artifact, neededLibraries: this._parseLibrariesOfArtifact(artifact) };
 
+      if (contract.bytecode === "0x") {
+        continue;
+      }
+
       ArtifactStorage.set(name, contract);
       ArtifactStorage.set(bytecodeHash(artifact.bytecode), contract);
     }
+  }
+
+  public static getExtendedArtifact(bytecode: string): ArtifactExtended {
+    const artifact = ArtifactStorage.get(bytecodeHash(bytecode));
+
+    if (!artifact) {
+      throw new MigrateError(`Artifact not found`);
+    }
+
+    return artifact;
+  }
+
+  public static getContractName(bytecode: Bytecode): string {
+    const artifact = ArtifactStorage.get(bytecodeHash(bytecode)) as ArtifactExtended;
+
+    if (!artifact) {
+      throw new MigrateError(`Contract name not found`);
+    }
+
+    return `${artifact.sourceName}:${artifact.contractName}`;
   }
 
   private static _parseLibrariesOfArtifact(artifact: Artifact): NeededLibrary[] {
@@ -41,25 +66,5 @@ export class ArtifactProcessor {
     }
 
     return neededLibraries;
-  }
-
-  public static getExtendedArtifact(bytecode: string): ArtifactExtended {
-    const artifact = ArtifactStorage.get(bytecodeHash(bytecode));
-
-    if (!artifact) {
-      throw new MigrateError(`Artifact not found`);
-    }
-
-    return artifact;
-  }
-
-  public static getContractName(bytecode: Bytecode): string {
-    const artifact = ArtifactStorage.get(bytecodeHash(bytecodeToString(bytecode))) as ArtifactExtended;
-
-    if (!artifact) {
-      throw new MigrateError(`Contract name not found`);
-    }
-
-    return `${artifact.sourceName}:${artifact.contractName}`;
   }
 }

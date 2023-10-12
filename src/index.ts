@@ -9,6 +9,7 @@ import { mergeConfigs, migrateConfigExtender } from "./config";
 import { TASK_MIGRATE } from "./constants";
 
 import { Migrator } from "./migrator/migrator";
+import { Reporter } from "./tools/reporter/Reporter";
 
 import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
 import { DefaultStorage } from "./tools/storage/Storage";
@@ -16,6 +17,7 @@ import { DefaultStorage } from "./tools/storage/Storage";
 import { MigrateConfig } from "./types/migrations";
 
 export { Deployer } from "./deployer/Deployer";
+export { Sender } from "./sender/Sender";
 
 extendConfig(migrateConfigExtender);
 
@@ -29,6 +31,8 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
   });
 
   await ArtifactProcessor.parseArtifacts(env);
+
+  Reporter.getInstance().init(env);
 
   await new Migrator(env).migrate();
 };

@@ -1,13 +1,20 @@
+import { ContractTransactionResponse } from "ethers";
+import { Reporter } from "../tools/reporter/Reporter";
+import { catchError } from "../utils";
+
+@catchError
 export class Sender {
-  constructor() {}
+  constructor(private _reporter: Reporter) {}
 
-  public async send<T>(foo: () => Promise<T>): Promise<TransactionReceipt> {
-    const receipt = (await foo()) as unknown as TransactionReceipt;
+  public async sendTransaction(
+    task: Promise<ContractTransactionResponse>,
+    misc = "",
+  ): Promise<ContractTransactionResponse> {
+    const result = await task;
 
-    // pass receipt to reporter
-    // save in storage
+    await this._reporter.reportTransaction(result, misc);
 
-    return receipt;
+    return result;
   }
 
   // public track(receipt: any): void {
