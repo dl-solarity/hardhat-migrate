@@ -1,40 +1,30 @@
 /* eslint-disable no-console */
 import axios from "axios";
 
-import { Network, TransactionReceipt, TransactionResponse } from "ethers";
-
 import ora from "ora";
+
+import { Network, TransactionReceipt, TransactionResponse } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { MigrateError } from "../../errors";
-import { ChainRecord, defaultCurrencySymbol, predefinedChains } from "../../types/verifier";
+
 import { catchError, underline } from "../../utils";
+
+import { ChainRecord, defaultCurrencySymbol, predefinedChains } from "../../types/verifier";
 
 @catchError
 export class Reporter {
-  public static _instance: Reporter;
+  private static _hre: HardhatRuntimeEnvironment = {} as HardhatRuntimeEnvironment;
 
-  private _hre: HardhatRuntimeEnvironment = {} as HardhatRuntimeEnvironment;
+  private static totalCost: bigint = BigInt(0);
+  private static totalTransactions: number = 0;
 
-  private totalCost: bigint = BigInt(0);
-  private totalTransactions: number = 0;
-
-  private constructor() {}
-
-  public static getInstance(): Reporter {
-    if (!Reporter._instance) {
-      Reporter._instance = new Reporter();
-    }
-
-    return Reporter._instance;
-  }
-
-  public init(hre: HardhatRuntimeEnvironment) {
+  public static init(hre: HardhatRuntimeEnvironment) {
     this._hre = hre;
   }
 
-  public async reportMigrationBegin(files: string[]) {
+  public static async reportMigrationBegin(files: string[]) {
     this._reportMigrationFiles(files);
 
     await this._reportChainInfo();
@@ -42,7 +32,7 @@ export class Reporter {
     console.log("\nStarting migration...\n");
   }
 
-  public async summary() {
+  public static async summary() {
     const output =
       `> ${"Total transactions:".padEnd(20)} ${this.totalTransactions}\n` +
       `> ${"Final cost:".padEnd(20)} ${this.totalCost.toString()} ${await this._getNativeSymbol()}\n`;
@@ -50,7 +40,7 @@ export class Reporter {
     console.log(output);
   }
 
-  public async reportTransaction(tx: TransactionResponse | string, misc: string) {
+  public static async reportTransaction(tx: TransactionResponse | string, misc: string) {
     if (typeof tx === "string") {
       tx = (await this._hre.ethers.provider.getTransaction(tx))!;
     }
@@ -89,31 +79,31 @@ export class Reporter {
     this.totalTransactions++;
   }
 
-  public async notifyDeploymentInsteadOfRecovery(contractName: string) {
+  public static notifyDeploymentInsteadOfRecovery(contractName: string): void {
     const output = `\nUnfortunately, we can't recover contract address for ${contractName}. Deploying instead...`;
 
     console.log(output);
   }
 
-  public async notifyTransactionSendingInsteadOfRecovery(contractMethod: string) {
+  public static notifyTransactionSendingInsteadOfRecovery(contractMethod: string): void {
     const output = `\nUnfortunately, we can't recover transaction for ${contractMethod}. Sending instead...`;
 
     console.log(output);
   }
 
-  public async notifyContractRecovery(contractName: string, contractAddress: string) {
+  public static notifyContractRecovery(contractName: string, contractAddress: string): void {
     const output = `\nContract address for ${contractName} has been recovered: ${contractAddress}\n`;
 
     console.log(output);
   }
 
-  public async notifyTransactionRecovery(methodString: string) {
+  public static notifyTransactionRecovery(methodString: string): void {
     const output = `\nTransaction ${methodString} has been recovered.\n`;
 
     console.log(output);
   }
 
-  private async _parseTransactionTitle(tx: TransactionResponse, misc: string): Promise<string> {
+  private static _parseTransactionTitle(tx: TransactionResponse, misc: string): string {
     if (tx.to === null) {
       return `Deploying${misc ? " " + misc.split(":")[1] : ""}`;
     }
@@ -121,15 +111,15 @@ export class Reporter {
     return `Transaction: ${misc}`;
   }
 
-  private async _formatPendingTime(tx: TransactionResponse, startTime: number): Promise<string> {
+  private static async _formatPendingTime(tx: TransactionResponse, startTime: number): Promise<string> {
     return `Blocks: ${await tx.confirmations()} Seconds: ${((Date.now() - startTime) / 1000).toFixed(0)}`;
   }
 
-  private async _getExplorerLink(txHash: string): Promise<string> {
+  private static async _getExplorerLink(txHash: string): Promise<string> {
     return (await this._getExplorerUrl()) + "/" + txHash;
   }
 
-  private async _printTransaction(tx: TransactionReceipt) {
+  private static async _printTransaction(tx: TransactionReceipt) {
     let output = "";
 
     if (tx.contractAddress) {
@@ -153,7 +143,7 @@ export class Reporter {
     console.log(output);
   }
 
-  private _reportMigrationFiles(files: string[]) {
+  private static _reportMigrationFiles(files: string[]) {
     console.log("\nMigration files:");
 
     files.forEach((file) => {
@@ -161,22 +151,21 @@ export class Reporter {
     });
   }
 
-  private async _getNetwork(): Promise<Network> {
+  private static async _getNetwork(): Promise<Network> {
     return this._hre.ethers.provider.getNetwork();
   }
 
-  private async _getChainId(): Promise<number> {
+  private static async _getChainId(): Promise<number> {
     return Number((await this._getNetwork()).chainId);
   }
 
-  private async _reportChainInfo() {
-    // await this._hre.ethers.provider.getNetwork();
+  private static async _reportChainInfo() {
     console.log(`> ${"Network:".padEnd(20)} ${(await this._getNetwork()).name}`);
 
     console.log(`> ${"Network id:".padEnd(20)} ${await this._getChainId()}`);
   }
 
-  private async _getExplorerUrl(): Promise<string> {
+  private static async _getExplorerUrl(): Promise<string> {
     const chainId = await this._getChainId();
 
     if (predefinedChains[chainId]) {
@@ -210,7 +199,7 @@ export class Reporter {
     return "";
   }
 
-  private async _getNativeSymbol(): Promise<string> {
+  private static async _getNativeSymbol(): Promise<string> {
     const chainId = Number((await this._hre.ethers.provider.getNetwork()).chainId);
 
     if (predefinedChains[chainId]) {
@@ -232,13 +221,13 @@ export class Reporter {
     return defaultCurrencySymbol;
   }
 
-  private async _getChainMetadataById(chainId: number): Promise<ChainRecord | undefined> {
+  private static async _getChainMetadataById(chainId: number): Promise<ChainRecord | undefined> {
     const chains = await this._getAllRecords();
 
     return chains.find((chain) => chain.chainId === chainId);
   }
 
-  private async _getAllRecords(): Promise<ChainRecord[]> {
+  private static async _getAllRecords(): Promise<ChainRecord[]> {
     const url = "https://chainid.network/chains.json";
     const response = await axios.get(url);
 

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { AddressLike, hexlify, id } from "ethers";
 import { realpathSync } from "fs";
 import { join } from "path";

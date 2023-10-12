@@ -37,7 +37,7 @@ export async function callEtherscanApi(etherscanApi: EtherscanAPIConfig, params:
     );
   }
 
-  return await (<Promise<EtherscanResponseBody>>response.body.json());
+  return <Promise<EtherscanResponseBody>>response.body.json();
 }
 
 /**

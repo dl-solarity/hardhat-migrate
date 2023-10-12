@@ -4,10 +4,10 @@ import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
 
 import { Adapter } from "./Adapter";
 
-import { Abi } from "../../types/deployer";
-
-import { TruffleFactory } from "../../types/adapter";
 import { bytecodeToString, catchError } from "../../utils";
+
+import { Abi } from "../../types/deployer";
+import { TruffleFactory } from "../../types/adapter";
 
 @catchError
 export class TruffleAdapter extends Adapter {

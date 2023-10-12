@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { EtherscanNetworkEntry } from "@nomiclabs/hardhat-etherscan/dist/src/types";
 
 /**

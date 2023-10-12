@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ContractDeployTransaction } from "ethers/lib.esm";
 
 export type ReportMessage = DeployContractMessage;

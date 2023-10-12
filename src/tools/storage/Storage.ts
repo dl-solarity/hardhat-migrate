@@ -1,6 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { existsSync, readFileSync, writeFileSync } from "fs";
+
 import { MigrateError } from "../../errors";
+
 import { StorageNamespaces } from "../../types/tools";
 
 import { catchError, resolvePathToFile, toJSON } from "../../utils";
