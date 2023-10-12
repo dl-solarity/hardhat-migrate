@@ -33,11 +33,15 @@ export const mergeConfigs = (
     return defaultConfig;
   }
 
-  if (!isRelativePath(config.pathToMigrations)) {
+  if (config.pathToMigrations && !isRelativePath(config.pathToMigrations)) {
     throw new HardhatPluginError(pluginName, "config.migrate.pathToMigrations must be a relative path");
   }
 
-  return { ...defaultConfig, ...config };
+  return { ...defaultConfig, ...definedProps(config) };
 };
+
+const definedProps = (obj: Partial<MigrateConfig>): Partial<MigrateConfig> =>
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  Object.fromEntries(Object.entries(obj).filter(([k, v]) => v !== undefined));
 
 const isRelativePath = (path?: string): boolean => path === undefined || !isAbsolute(path);

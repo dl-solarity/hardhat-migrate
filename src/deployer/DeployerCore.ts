@@ -48,7 +48,9 @@ export class DeployerCore {
       contractAddress = await this._processContractDeploymentTransaction(tx);
     }
 
-    this._verifier.verify(contractAddress, contractName, args);
+    if (this._config.verify) {
+      await this._verifier.verify(contractAddress, contractName, args);
+    }
 
     return contractAddress;
   }

@@ -1,4 +1,5 @@
 import "@nomicfoundation/hardhat-ethers";
+import "@nomicfoundation/hardhat-verify";
 
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { extendConfig, extendEnvironment, task, types } from "hardhat/config";
@@ -22,7 +23,7 @@ export { Sender } from "./sender/Sender";
 extendConfig(migrateConfigExtender);
 
 const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
-  mergeConfigs(taskArgs, env.config.migrate);
+  env.config.migrate = mergeConfigs(taskArgs, env.config.migrate);
 
   // Make sure that contract artifacts are up-to-date.
   await env.run(TASK_COMPILE, {
@@ -46,6 +47,8 @@ extendEnvironment((hre) => {
     return DefaultStorage;
   });
 });
+
+// TODO: override the `clean` task
 
 task(TASK_MIGRATE, "Deploy contracts via migration files")
   .addOptionalParam("from", "The migration number from which the migration will be applied.", undefined, types.int)

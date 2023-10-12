@@ -41,6 +41,10 @@ export class Reporter {
     console.log("\nStarting migration...\n");
   }
 
+  public async reportMigrationFileBegin(file: string) {
+    console.log(`\n${underline(`Running ${file}...`)}`);
+  }
+
   public async summary() {
     const output =
       `> ${"Total transactions:".padEnd(20)} ${this.totalTransactions}\n` +
@@ -113,6 +117,24 @@ export class Reporter {
     console.log(output);
   }
 
+  public async reportSuccessfulVerification() {
+    const output = `\nContract has been successfully verified.\n`;
+
+    console.log(output);
+  }
+
+  public async reportAlreadyVerified() {
+    const output = `\nContract has been already verified.\n`;
+
+    console.log(output);
+  }
+
+  public async reportVerificationError(contractAddress: string, contractName: string, message: string) {
+    const output = `\nContract ${contractName} (${contractAddress}) verification failed: ${message}\n`;
+
+    console.log(output);
+  }
+
   private async _parseTransactionTitle(tx: TransactionResponse, misc: string): Promise<string> {
     if (tx.to === null) {
       return `Deploying${misc ? " " + misc.split(":")[1] : ""}`;
@@ -126,7 +148,7 @@ export class Reporter {
   }
 
   private async _getExplorerLink(txHash: string): Promise<string> {
-    return (await this._getExplorerUrl()) + "/" + txHash;
+    return (await this._getExplorerUrl()) + "/tx/" + txHash;
   }
 
   private async _printTransaction(tx: TransactionReceipt) {
@@ -159,6 +181,8 @@ export class Reporter {
     files.forEach((file) => {
       console.log(`> ${file}`);
     });
+
+    console.log("");
   }
 
   private async _getNetwork(): Promise<Network> {

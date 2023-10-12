@@ -35,6 +35,7 @@ export class Migrator {
     await Reporter.getInstance().reportMigrationBegin(this._migrationFiles);
 
     for (const element of this._migrationFiles) {
+      Reporter.getInstance().reportMigrationFileBegin(element);
       try {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const migration = require(resolvePathToFile(this._config.pathToMigrations, element));
