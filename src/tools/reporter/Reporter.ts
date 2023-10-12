@@ -7,6 +7,7 @@ import ora from "ora";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
+import { MigrateError } from "../../errors";
 import { ChainRecord, defaultCurrencySymbol, predefinedChains } from "../../types/verifier";
 import { catchError, underline } from "../../utils";
 
@@ -83,8 +84,7 @@ export class Reporter {
     try {
       receipt = (await wait)!;
     } catch (e: any) {
-      console.log("Transaction failed!" + e.message);
-      return;
+      throw new MigrateError(`Transaction failed: ${e.message}`);
     }
 
     await this._printTransaction(receipt);
