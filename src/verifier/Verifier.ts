@@ -20,7 +20,7 @@ export class Verifier {
     const instance = await this._getEtherscanInstance(this._hre);
 
     if (await instance.isVerified(contractAddress)) {
-      Reporter.getInstance().reportAlreadyVerified(contractAddress, contractName);
+      Reporter.reportAlreadyVerified(contractAddress, contractName);
       return;
     }
 
@@ -30,22 +30,22 @@ export class Verifier {
       const status = await instance.getVerificationStatus(contractAddress);
 
       if (status.isSuccess()) {
-        Reporter.getInstance().reportSuccessfulVerification(contractAddress, contractName);
+        Reporter.reportSuccessfulVerification(contractAddress, contractName);
       } else {
-        Reporter.getInstance().reportVerificationError(contractAddress, contractName, status.message);
+        Reporter.reportVerificationError(contractAddress, contractName, status.message);
       }
     } catch (e: any) {
       if (e.message.toLowerCase().includes("already verified")) {
-        Reporter.getInstance().reportAlreadyVerified(contractAddress, contractName);
+        Reporter.reportAlreadyVerified(contractAddress, contractName);
       } else {
-        Reporter.getInstance().reportVerificationError(contractAddress, contractName, e.message);
+        Reporter.reportVerificationError(contractAddress, contractName, e.message);
       }
     }
   }
 
   @catchError
   public async verifyBatch(verifierButchArgs: VerifierBatchArgs[]) {
-    Reporter.getInstance().reportVerificationBatchBegin();
+    Reporter.reportVerificationBatchBegin();
 
     await Promise.all(
       verifierButchArgs.map(async (args) => {

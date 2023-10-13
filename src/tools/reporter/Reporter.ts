@@ -123,7 +123,7 @@ export class Reporter {
     console.log(output);
   }
 
-  public async reportVerificationError(contractAddress: string, contractName: string, message: string) {
+  public static async reportVerificationError(contractAddress: string, contractName: string, message: string) {
     const output = `\nContract ${contractName} (${contractAddress}) verification failed: ${message}\n`;
 
     console.log(output);
