@@ -56,6 +56,7 @@ export class Migrator {
       }
     }
 
+    // TODO: move to verifier.
     if (this._config.verify) {
       await this._verifier.verifyBatch(TransactionProcessor.restoreSavedVerificationFunctions());
     }

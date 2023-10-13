@@ -45,6 +45,8 @@ export class DeployerCore {
       contractAddress = await this._processContractDeploymentTransaction(tx, args);
     }
 
+    // TODO: add verifyImmediately option
+
     return contractAddress;
   }
 

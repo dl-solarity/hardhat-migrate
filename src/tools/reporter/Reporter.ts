@@ -32,7 +32,7 @@ export class Reporter {
     console.log("\nStarting migration...\n");
   }
 
-  public static async reportMigrationFileBegin(file: string) {
+  public static reportMigrationFileBegin(file: string) {
     console.log(`\n${underline(`Running ${file}...`)}`);
   }
 
@@ -107,23 +107,23 @@ export class Reporter {
     console.log(output);
   }
 
-  public static async reportVerificationBatchBegin() {
+  public static reportVerificationBatchBegin() {
     console.log("\nStarting verification of all deployed contracts\n");
   }
 
-  public static async reportSuccessfulVerification(contractAddress: string, contractName: string) {
+  public static reportSuccessfulVerification(contractAddress: string, contractName: string) {
     const output = `\nContract ${contractName} (${contractAddress}) verified successfully.\n`;
 
     console.log(output);
   }
 
-  public static async reportAlreadyVerified(contractAddress: string, contractName: string) {
+  public static reportAlreadyVerified(contractAddress: string, contractName: string) {
     const output = `\nContract ${contractName} (${contractAddress}) already verified.\n`;
 
     console.log(output);
   }
 
-  public static async reportVerificationError(contractAddress: string, contractName: string, message: string) {
+  public static reportVerificationError(contractAddress: string, contractName: string, message: string) {
     const output = `\nContract ${contractName} (${contractAddress}) verification failed: ${message}\n`;
 
     console.log(output);

@@ -50,8 +50,7 @@ export function bytecodeHash(bytecode: any): string {
 }
 
 export function createHash(keyTxFields: KeyTxFields): string {
-  // TODO: rewrite
-  const obj = { data: keyTxFields.data, from: keyTxFields.from, chaId: keyTxFields.chainId };
+  const obj: KeyTxFields = { data: keyTxFields.data, from: keyTxFields.from, chainId: keyTxFields.chainId };
 
   return id(toJSON(obj));
 }
@@ -103,6 +102,24 @@ export function catchError(target: any, propertyName?: string, descriptor?: Prop
       );
     }
   }
+}
+
+export function suppressLogs(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  const originalMethod = descriptor.value;
+
+  descriptor.value = function (...args: any[]) {
+    const log = console.log;
+
+    console.log = () => {};
+
+    const result = originalMethod.apply(this, args);
+
+    console.log = log;
+
+    return result;
+  };
+
+  return descriptor;
 }
 
 function _generateDescriptor(propertyName: string, descriptor: PropertyDescriptor): PropertyDescriptor {

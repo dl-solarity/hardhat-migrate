@@ -1,10 +1,13 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
-import { Reporter } from "../tools/reporter/Reporter";
+
+import { catchError, suppressLogs, waitForBlock } from "../utils";
+
 import { Args } from "../types/deployer";
 import { VerifierArgs, VerifierBatchArgs } from "../types/verifier";
-import { catchError, waitForBlock } from "../utils";
+
+import { Reporter } from "../tools/reporter/Reporter";
 
 export class Verifier {
   private _etherscanConfig: any;
@@ -66,6 +69,7 @@ export class Verifier {
     return Etherscan.fromChainConfig(this._etherscanConfig.apiKey, chainConfig);
   }
 
+  @suppressLogs
   private async verificationTask(contractAddress: string, contractName: string, args: Args) {
     await this._hre.run("verify:verify", {
       address: contractAddress,
