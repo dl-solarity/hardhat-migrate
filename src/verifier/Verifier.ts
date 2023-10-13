@@ -3,7 +3,8 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
 import { Reporter } from "../tools/reporter/Reporter";
 import { Args } from "../types/deployer";
-import { catchError } from "../utils";
+import { VerifierArgs, VerifierBatchArgs } from "../types/verifier";
+import { catchError, waitForBlock } from "../utils";
 
 export class Verifier {
   private _etherscanConfig: any;
@@ -13,12 +14,13 @@ export class Verifier {
   }
 
   @catchError
-  public async verify(contractAddress: string, contractName: string, constructorArguments: Args): Promise<void> {
-    console.log(`\nVerifying ${contractName} at ${contractAddress}...`);
+  public async verify(verifierArgs: VerifierArgs): Promise<void> {
+    const { contractAddress, contractName, constructorArguments } = verifierArgs;
+
     const instance = await this._getEtherscanInstance(this._hre);
 
     if (await instance.isVerified(contractAddress)) {
-      Reporter.getInstance().reportAlreadyVerified();
+      Reporter.getInstance().reportAlreadyVerified(contractAddress, contractName);
       return;
     }
 
@@ -28,17 +30,29 @@ export class Verifier {
       const status = await instance.getVerificationStatus(contractAddress);
 
       if (status.isSuccess()) {
-        Reporter.getInstance().reportSuccessfulVerification();
+        Reporter.getInstance().reportSuccessfulVerification(contractAddress, contractName);
       } else {
         Reporter.getInstance().reportVerificationError(contractAddress, contractName, status.message);
       }
     } catch (e: any) {
       if (e.message.toLowerCase().includes("already verified")) {
-        Reporter.getInstance().reportAlreadyVerified();
+        Reporter.getInstance().reportAlreadyVerified(contractAddress, contractName);
       } else {
         Reporter.getInstance().reportVerificationError(contractAddress, contractName, e.message);
       }
     }
+  }
+
+  @catchError
+  public async verifyBatch(verifierButchArgs: VerifierBatchArgs[]) {
+    Reporter.getInstance().reportVerificationBatchBegin();
+
+    await Promise.all(
+      verifierButchArgs.map(async (args) => {
+        await waitForBlock(this._hre, args.blockNumber + this._hre.config.migrate.confirmations);
+        await this.verify(args);
+      }),
+    );
   }
 
   @catchError

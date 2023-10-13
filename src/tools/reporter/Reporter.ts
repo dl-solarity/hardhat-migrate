@@ -72,7 +72,7 @@ export class Reporter {
       1000,
     );
 
-    const wait = tx.wait(1);
+    const wait = tx.wait();
 
     wait.finally(() => {
       clearInterval(spinnerInterval);
@@ -117,14 +117,18 @@ export class Reporter {
     console.log(output);
   }
 
-  public async reportSuccessfulVerification() {
-    const output = `\nContract has been successfully verified.\n`;
+  public async reportVerificationBatchBegin() {
+    console.log("\nStarting verification of all deployed contracts\n");
+  }
+
+  public async reportSuccessfulVerification(contractAddress: string, contractName: string) {
+    const output = `\nContract ${contractName} (${contractAddress}) verified successfully.\n`;
 
     console.log(output);
   }
 
-  public async reportAlreadyVerified() {
-    const output = `\nContract has been already verified.\n`;
+  public async reportAlreadyVerified(contractAddress: string, contractName: string) {
+    const output = `\nContract ${contractName} (${contractAddress}) already verified.\n`;
 
     console.log(output);
   }

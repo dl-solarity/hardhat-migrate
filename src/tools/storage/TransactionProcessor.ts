@@ -2,10 +2,11 @@ import { TransactionStorage } from "./Storage";
 
 import { MigrateError } from "../../errors";
 
-import { catchError, createHash } from "../../utils";
+import { catchError, createHash, toJSON } from "../../utils";
 
 import { ContractTransaction, ContractTransactionResponse } from "ethers";
 import { KeyTxFields } from "../../types/tools";
+import { VerifierBatchArgs } from "../../types/verifier";
 
 @catchError
 export class TransactionProcessor {
@@ -24,6 +25,21 @@ export class TransactionProcessor {
 
   public static restoreSavedTransaction(key: KeyTxFields): ContractTransactionResponse {
     return this._getDataFromStorage(key);
+  }
+
+  public static saveVerificationFunction(verifierArgs: VerifierBatchArgs) {
+    const key = "TO_VERIFICATION";
+    const data = (TransactionStorage.get(key) || []) as string[];
+
+    data.push(toJSON(verifierArgs));
+    TransactionStorage.set(key, data, true);
+  }
+
+  public static restoreSavedVerificationFunctions(): VerifierBatchArgs[] {
+    const key = "TO_VERIFICATION";
+    const data = (TransactionStorage.get(key) || []) as string[];
+
+    return data.map((item: string) => JSON.parse(item));
   }
 
   private static _getDataFromStorage(key: KeyTxFields | string): any {

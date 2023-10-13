@@ -15,10 +15,14 @@ import { MigrateConfig } from "../types/migrations";
 import { Deployer } from "../deployer/Deployer";
 import { Sender } from "../sender/Sender";
 import { Reporter } from "../tools/reporter/Reporter";
+import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
+import { Verifier } from "../verifier/Verifier";
 
 export class Migrator {
   private readonly _deployer: Deployer;
+  private readonly _verifier: Verifier;
   private readonly _sender: Sender;
+
   private readonly _migrationFiles: string[];
 
   constructor(
@@ -26,6 +30,7 @@ export class Migrator {
     private _config: MigrateConfig = _hre.config.migrate,
   ) {
     this._deployer = new Deployer(_hre);
+    this._verifier = new Verifier(_hre);
     this._sender = new Sender(Reporter.getInstance());
 
     this._migrationFiles = this._getMigrationFiles();
@@ -48,6 +53,10 @@ export class Migrator {
 
         throw e;
       }
+    }
+
+    if (this._config.verify) {
+      await this._verifier.verifyBatch(TransactionProcessor.restoreSavedVerificationFunctions());
     }
 
     await Reporter.getInstance().summary();

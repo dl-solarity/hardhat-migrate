@@ -43,13 +43,9 @@ export class DeployerCore {
 
     let contractAddress: string;
     if (this._config.continuePreviousDeployment) {
-      contractAddress = await this._tryRecoverContractAddress(tx);
+      contractAddress = await this._tryRecoverContractAddress(tx, args);
     } else {
-      contractAddress = await this._processContractDeploymentTransaction(tx);
-    }
-
-    if (this._config.verify) {
-      await this._verifier.verify(contractAddress, contractName, args);
+      contractAddress = await this._processContractDeploymentTransaction(tx, args);
     }
 
     return contractAddress;
@@ -65,14 +61,14 @@ export class DeployerCore {
     return factory.getDeployTransaction(...args, txOverrides);
   }
 
-  private async _tryRecoverContractAddress(tx: ContractDeployTransactionWithContractName): Promise<string> {
+  private async _tryRecoverContractAddress(tx: ContractDeployTransactionWithContractName, args: Args): Promise<string> {
     let contractAddress;
     try {
       contractAddress = TransactionProcessor.restoreSavedDeployTransaction(tx);
     } catch (e) {
       Reporter.getInstance().notifyDeploymentInsteadOfRecovery(tx.contractName);
 
-      return this._processContractDeploymentTransaction(tx);
+      return this._processContractDeploymentTransaction(tx, args);
     }
 
     if (!isAddress(contractAddress)) {
@@ -84,29 +80,41 @@ export class DeployerCore {
     return contractAddress;
   }
 
-  private async _processContractDeploymentTransaction(tx: ContractDeployTransactionWithContractName): Promise<string> {
+  private async _processContractDeploymentTransaction(
+    tx: ContractDeployTransactionWithContractName,
+    args: Args,
+  ): Promise<string> {
     const signer: Signer = await getSignerHelper(this._hre, tx.from);
 
     // Send transaction
     const txResponse = await signer.sendTransaction(tx);
 
-    const [contractAddress] = await Promise.all([
+    const [[contractAddress, blockNumber]] = await Promise.all([
       this._waitForDeployment(txResponse),
       Reporter.getInstance().reportTransaction(txResponse, tx.contractName),
     ]);
 
     TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);
 
+    if (this._config.verify) {
+      TransactionProcessor.saveVerificationFunction({
+        contractAddress,
+        contractName: tx.contractName,
+        constructorArguments: args,
+        blockNumber,
+      });
+    }
+
     return contractAddress;
   }
 
-  private async _waitForDeployment(tx: TransactionResponse): Promise<string> {
+  private async _waitForDeployment(tx: TransactionResponse): Promise<[string, number]> {
     // this._config.confirmations -- is used only for verification process.
     // TODO: Create other parameter to pass to tx.wait(). Default must be 1
     const receipt = await tx.wait();
 
     if (receipt) {
-      return receipt.contractAddress!;
+      return [receipt.contractAddress!, receipt.blockNumber];
     }
 
     throw new MigrateError("Contract deployment failed.");

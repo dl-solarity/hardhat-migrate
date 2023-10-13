@@ -1,3 +1,8 @@
+import { Args } from "./deployer";
+
+export type VerifierArgs = { contractAddress: string; contractName: string; constructorArguments: Args };
+export type VerifierBatchArgs = VerifierArgs & { blockNumber: number };
+
 export interface ChainRecord {
   name: string;
   chain: string;

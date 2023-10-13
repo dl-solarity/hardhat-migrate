@@ -76,6 +76,16 @@ export function bytecodeToString(bytecode: Bytecode): string {
   return bytecodeHex;
 }
 
+export async function waitForBlock(hre: HardhatRuntimeEnvironment, desiredBlock: number) {
+  return new Promise<void>((resolve) => {
+    hre.ethers.provider.on("block", (blockNumber) => {
+      if (blockNumber == desiredBlock) {
+        resolve();
+      }
+    });
+  });
+}
+
 export function catchError(target: any, propertyName?: string, descriptor?: PropertyDescriptor) {
   // Method decorator
   if (descriptor) {
