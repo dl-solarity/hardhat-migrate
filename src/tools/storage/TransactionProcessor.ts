@@ -4,7 +4,7 @@ import { MigrateError } from "../../errors";
 
 import { catchError, createHash, toJSON } from "../../utils";
 
-import { ContractTransaction, ContractTransactionResponse } from "ethers";
+import { ContractTransaction, ContractTransactionResponse, isAddress } from "ethers";
 import { KeyTxFields } from "../../types/tools";
 import { VerifierBatchArgs } from "../../types/verifier";
 
@@ -19,12 +19,18 @@ export class TransactionProcessor {
     this._saveTransactionByTx(tx, tx);
   }
 
-  public static restoreSavedDeployTransaction(key: KeyTxFields | string): string {
-    return this._getDataFromStorage(key);
+  public static tryRestoreSavedContractAddress(key: KeyTxFields | string): string {
+    const contractAddress = this._tryGetDataFromStorage(key);
+
+    if (!isAddress(contractAddress)) {
+      throw new MigrateError(`Contract address is not valid`);
+    }
+
+    return contractAddress;
   }
 
-  public static restoreSavedTransaction(key: KeyTxFields): ContractTransactionResponse {
-    return this._getDataFromStorage(key);
+  public static tryRestoreSavedTransaction(key: KeyTxFields): ContractTransactionResponse {
+    return this._tryGetDataFromStorage(key);
   }
 
   public static saveVerificationFunction(verifierArgs: VerifierBatchArgs) {
@@ -42,7 +48,7 @@ export class TransactionProcessor {
     return data.map((item: string) => JSON.parse(item));
   }
 
-  private static _getDataFromStorage(key: KeyTxFields | string): any {
+  private static _tryGetDataFromStorage(key: KeyTxFields | string): any {
     if (typeof key !== "string") {
       key = createHash(key);
     }

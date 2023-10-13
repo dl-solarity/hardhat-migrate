@@ -48,6 +48,6 @@ module.exports = {
     ],
     "no-multiple-empty-lines": [2, { max: 1, maxEOF: 0, maxBOF: 0 }],
     "@typescript-eslint/no-non-null-assertion": "off",
-    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-explicit-any": "off",
   },
 };

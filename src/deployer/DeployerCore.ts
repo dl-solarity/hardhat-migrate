@@ -1,4 +1,4 @@
-import { ContractDeployTransaction, Overrides, Signer, TransactionResponse, isAddress } from "ethers";
+import { ContractDeployTransaction, Overrides, Signer, TransactionResponse } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -19,16 +19,13 @@ import { MigrateConfig } from "../types/migrations";
 import { Reporter } from "../tools/reporter/Reporter";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
-import { Verifier } from "../verifier/Verifier";
 
 @catchError
 export class DeployerCore {
   private _config: MigrateConfig;
-  private _verifier: Verifier;
 
   constructor(private _hre: HardhatRuntimeEnvironment) {
     this._config = _hre.config.migrate;
-    this._verifier = new Verifier(_hre);
   }
 
   public async deploy(deployParams: ContractDeployParams, args: Args, parameters: OverridesAndLibs): Promise<string> {
@@ -62,22 +59,17 @@ export class DeployerCore {
   }
 
   private async _tryRecoverContractAddress(tx: ContractDeployTransactionWithContractName, args: Args): Promise<string> {
-    let contractAddress;
     try {
-      contractAddress = TransactionProcessor.restoreSavedDeployTransaction(tx);
+      const contractAddress = TransactionProcessor.tryRestoreSavedContractAddress(tx);
+
+      Reporter.notifyContractRecovery(tx.contractName, contractAddress);
+
+      return contractAddress;
     } catch (e) {
-      Reporter.getInstance().notifyDeploymentInsteadOfRecovery(tx.contractName);
+      Reporter.notifyDeploymentInsteadOfRecovery(tx.contractName);
 
       return this._processContractDeploymentTransaction(tx, args);
     }
-
-    if (!isAddress(contractAddress)) {
-      throw new MigrateError(`Invalid address located in the storage: ${contractAddress}`);
-    }
-
-    Reporter.getInstance().notifyContractRecovery(tx.contractName, contractAddress);
-
-    return contractAddress;
   }
 
   private async _processContractDeploymentTransaction(
@@ -86,12 +78,11 @@ export class DeployerCore {
   ): Promise<string> {
     const signer: Signer = await getSignerHelper(this._hre, tx.from);
 
-    // Send transaction
     const txResponse = await signer.sendTransaction(tx);
 
     const [[contractAddress, blockNumber]] = await Promise.all([
       this._waitForDeployment(txResponse),
-      Reporter.getInstance().reportTransaction(txResponse, tx.contractName),
+      Reporter.reportTransaction(txResponse, tx.contractName),
     ]);
 
     TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);

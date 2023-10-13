@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { MigrateError } from "../../errors";

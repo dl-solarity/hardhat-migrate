@@ -12,8 +12,9 @@ import { MigrateError } from "../errors";
 
 import { MigrateConfig } from "../types/migrations";
 
-import { Deployer } from "../deployer/Deployer";
 import { Sender } from "../sender/Sender";
+
+import { Deployer } from "../deployer/Deployer";
 import { Reporter } from "../tools/reporter/Reporter";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 import { Verifier } from "../verifier/Verifier";
@@ -31,16 +32,16 @@ export class Migrator {
   ) {
     this._deployer = new Deployer(_hre);
     this._verifier = new Verifier(_hre);
-    this._sender = new Sender(Reporter.getInstance());
+    this._sender = new Sender();
 
     this._migrationFiles = this._getMigrationFiles();
   }
 
   public async migrate() {
-    await Reporter.getInstance().reportMigrationBegin(this._migrationFiles);
+    await Reporter.reportMigrationBegin(this._migrationFiles);
 
     for (const element of this._migrationFiles) {
-      Reporter.getInstance().reportMigrationFileBegin(element);
+      Reporter.reportMigrationFileBegin(element);
       try {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const migration = require(resolvePathToFile(this._config.pathToMigrations, element));
@@ -59,7 +60,7 @@ export class Migrator {
       await this._verifier.verifyBatch(TransactionProcessor.restoreSavedVerificationFunctions());
     }
 
-    await Reporter.getInstance().summary();
+    await Reporter.summary();
   }
 
   private _getMigrationFiles() {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   BaseContract,
   BaseContractMethod,
@@ -14,10 +13,11 @@ import { Adapter } from "./Adapter";
 
 import { bytecodeToString, catchError } from "../../utils";
 
+import { EthersFactory } from "../../types/adapter";
+
 import { Reporter } from "../../tools/reporter/Reporter";
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
-import { EthersFactory } from "../../types/adapter";
 
 @catchError
 export class EthersAdapter extends Adapter {
@@ -44,38 +44,12 @@ export class EthersAdapter extends Adapter {
   private _insertHandlers<A, I>(instance: EthersFactory<A, I>, contract: I): I {
     const contractName = ArtifactProcessor.getContractName(this._getRawBytecode(instance)).split(":")[1];
 
-    for (const method of this._getContractMethods(instance)) {
-      const methodName = method.name;
+    for (const methodFragments of this._getContractMethods(instance)) {
+      const methodName = methodFragments.name;
 
       const oldMethod: BaseContractMethod = (contract as any)[methodName];
 
-      const newMethod = async (...args: any[]) => {
-        const tx = await oldMethod.populateTransaction(...args);
-
-        let argsString = "";
-        for (let i = 0; i < args.length; i++) {
-          argsString += `${method.inputs[i].name}:${args[i]}${i === args.length - 1 ? "" : ", "}`;
-        }
-        const methodString = `${contractName}.${methodName}(${argsString})`;
-
-        try {
-          const txResponse = TransactionProcessor.restoreSavedTransaction(tx);
-
-          Reporter.getInstance().notifyTransactionRecovery(methodString);
-
-          return txResponse;
-        } catch (err) {
-          await Reporter.getInstance().notifyTransactionSendingInsteadOfRecovery(methodString);
-        }
-
-        const res: ContractTransactionResponse = await oldMethod(...args);
-
-        TransactionProcessor.saveTransaction(tx);
-
-        await Reporter.getInstance().reportTransaction(res, methodString);
-
-        return res;
-      };
+      const newMethod = this.wrapOldMethod(contractName, methodName, methodFragments, oldMethod);
 
       defineProperties<any>(newMethod, {
         name: oldMethod.name,
@@ -92,5 +66,40 @@ export class EthersAdapter extends Adapter {
     }
 
     return contract;
+  }
+
+  private wrapOldMethod(
+    contractName: string,
+    methodName: string,
+    methodFragments: FunctionFragment,
+    oldMethod: BaseContractMethod,
+  ): (...args: any[]) => Promise<ContractTransactionResponse> {
+    return async (...args: any[]): Promise<ContractTransactionResponse> => {
+      const tx = await oldMethod.populateTransaction(...args);
+
+      let argsString = "";
+      for (let i = 0; i < args.length; i++) {
+        argsString += `${methodFragments.inputs[i].name}:${args[i]}${i === args.length - 1 ? "" : ", "}`;
+      }
+      const methodString = `${contractName}.${methodName}(${argsString})`;
+
+      try {
+        const txResponse = TransactionProcessor.tryRestoreSavedTransaction(tx);
+
+        Reporter.notifyTransactionRecovery(methodString);
+
+        return txResponse;
+      } catch {
+        Reporter.notifyTransactionSendingInsteadOfRecovery(methodString);
+
+        const res: ContractTransactionResponse = await oldMethod(...args);
+
+        TransactionProcessor.saveTransaction(tx);
+
+        await Reporter.reportTransaction(res, methodString);
+
+        return res;
+      }
+    };
   }
 }
