@@ -2,18 +2,11 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { DeployerCore } from "./DeployerCore";
 
-import { Adapter } from "./adapters/Adapter";
-import { EthersAdapter } from "./adapters/EthersAdapter";
-import { PureAdapter } from "./adapters/PureAdapter";
-import { TruffleAdapter } from "./adapters/TruffleAdapter";
-
-import { catchError, getSignerHelper } from "../utils";
-
-import { MigrateError } from "../errors";
+import { catchError, getSignerHelper, resolveAdapter } from "../utils";
 
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
-import { EthersFactory, Instance, ProxyTypedArgs, PureFactory, TruffleFactory, TypedArgs } from "../types/adapter";
+import { Instance, ProxyTypedArgs, TypedArgs } from "../types/adapter";
 import { Args, OverridesAndLibs } from "../types/deployer";
 
 @catchError
@@ -28,7 +21,7 @@ export class Deployer {
     args: TypedArgs<A> = [] as any,
     parameters: OverridesAndLibs = {},
   ): Promise<I> {
-    const adapter = this._resolveAdapter(contract);
+    const adapter = resolveAdapter(this._hre, contract);
 
     const deploymentParams = await adapter.getContractDeployParams(contract);
 
@@ -49,7 +42,7 @@ export class Deployer {
       constructorArgs?: TypedArgs<A>;
     },
   ): Promise<I> {
-    const adapter = this._resolveAdapter(contract);
+    const adapter = resolveAdapter(this._hre, contract);
 
     const contractImplementationAddress = await this._core.deploy(
       await adapter.getContractDeployParams(contract),
@@ -87,7 +80,7 @@ export class Deployer {
   }
 
   public async deployed<A, I>(contract: Instance<A, I>): Promise<I> {
-    const adapter = this._resolveAdapter(contract);
+    const adapter = resolveAdapter(this._hre, contract);
 
     const contractName = ArtifactProcessor.getContractName((await adapter.getContractDeployParams(contract)).bytecode);
 
@@ -97,35 +90,7 @@ export class Deployer {
   }
 
   public async link<A, I>(library: any, instance: Instance<A, I>): Promise<void> {
-    await this._resolveAdapter(instance).link(library, instance);
-  }
-
-  private _resolveAdapter<A, I>(contract: Instance<A, I>): Adapter {
-    if (this.isEthersFactory(contract)) {
-      return new EthersAdapter(this._hre);
-    }
-
-    if (this.isTruffleFactory(contract)) {
-      return new TruffleAdapter(this._hre);
-    }
-
-    if (this.isPureFactory(contract)) {
-      return new PureAdapter(this._hre);
-    }
-
-    throw new MigrateError("Unknown Contract Factory Type");
-  }
-
-  private isEthersFactory<A, I>(instance: any): instance is EthersFactory<A, I> {
-    return instance.createInterface !== undefined;
-  }
-
-  private isTruffleFactory<I>(instance: any): instance is TruffleFactory<I> {
-    return instance instanceof Function && instance.prototype.constructor !== undefined;
-  }
-
-  private isPureFactory<I>(instance: any): instance is PureFactory<I> {
-    return instance.contractName !== undefined;
+    await resolveAdapter(this._hre, instance).link(library, instance);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

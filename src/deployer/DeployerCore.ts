@@ -14,11 +14,12 @@ import {
   ContractDeployTransactionWithContractName,
   OverridesAndLibs,
 } from "../types/deployer";
-import { MigrateConfig } from "../types/migrations";
+import { MigrateConfig, VerifyStrategy } from "../types/migrations";
 
 import { Reporter } from "../tools/reporter/Reporter";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
+import { Verifier } from "../verifier/Verifier";
 
 @catchError
 export class DeployerCore {
@@ -44,8 +45,6 @@ export class DeployerCore {
     } else {
       contractAddress = await this._processContractDeploymentTransaction(tx, args);
     }
-
-    // TODO: add verifyImmediately option
 
     return contractAddress;
   }
@@ -89,13 +88,27 @@ export class DeployerCore {
 
     TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);
 
-    if (this._config.verify) {
-      TransactionProcessor.saveVerificationFunction({
-        contractAddress,
-        contractName: tx.contractName,
-        constructorArguments: args,
-        blockNumber,
-      });
+    switch (this._config.verify) {
+      case VerifyStrategy.AtTheEnd: {
+        TransactionProcessor.saveVerificationFunction({
+          contractAddress,
+          contractName: tx.contractName,
+          constructorArguments: args,
+          blockNumber,
+        });
+        break;
+      }
+      case VerifyStrategy.Immediately: {
+        await new Verifier(this._hre).verify({
+          contractAddress,
+          contractName: tx.contractName,
+          constructorArguments: args,
+        });
+        break;
+      }
+      case VerifyStrategy.None: {
+        break;
+      }
     }
 
     return contractAddress;
@@ -104,7 +117,7 @@ export class DeployerCore {
   private async _waitForDeployment(tx: TransactionResponse): Promise<[string, number]> {
     // this._config.confirmations -- is used only for verification process.
     // TODO: Create other parameter to pass to tx.wait(). Default must be 1
-    const receipt = await tx.wait();
+    const receipt = await tx.wait(this._config.verify === VerifyStrategy.Immediately ? this._config.confirmations : 1);
 
     if (receipt) {
       return [receipt.contractAddress!, receipt.blockNumber];

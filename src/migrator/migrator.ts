@@ -32,7 +32,7 @@ export class Migrator {
   ) {
     this._deployer = new Deployer(_hre);
     this._verifier = new Verifier(_hre);
-    this._sender = new Sender();
+    this._sender = new Sender(_hre);
 
     this._migrationFiles = this._getMigrationFiles();
   }
@@ -56,10 +56,7 @@ export class Migrator {
       }
     }
 
-    // TODO: move to verifier.
-    if (this._config.verify) {
-      await this._verifier.verifyBatch(TransactionProcessor.restoreSavedVerificationFunctions());
-    }
+    await this._verifier.verifyBatch(TransactionProcessor.restoreSavedVerificationFunctions());
 
     await Reporter.summary();
   }

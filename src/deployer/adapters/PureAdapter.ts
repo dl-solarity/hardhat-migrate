@@ -2,8 +2,9 @@ import { Adapter } from "./Adapter";
 
 import { bytecodeToString, catchError } from "../../utils";
 
-import { Abi } from "../../types/deployer";
+import { MigrateError } from "../../errors";
 import { PureFactory } from "../../types/adapter";
+import { Abi } from "../../types/deployer";
 
 // TODO: think about BaseContract usage here.
 
@@ -15,6 +16,11 @@ export class PureAdapter extends Adapter {
     }
 
     return address as unknown as I;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async sendTransaction(instance: any, method: string, args: any[]): Promise<any> {
+    throw new MigrateError("PureAdapter does not support sendTransaction.");
   }
 
   protected _getABI<I>(instance: PureFactory<I>): Abi {

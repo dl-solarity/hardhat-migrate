@@ -1,4 +1,4 @@
-import { TransactionStorage } from "./Storage";
+import { TransactionStorage, VerificationStorage } from "./Storage";
 
 import { MigrateError } from "../../errors";
 
@@ -42,12 +42,12 @@ export class TransactionProcessor {
     const data = (TransactionStorage.get(key) || []) as string[];
 
     data.push(toJSON(verifierArgs));
-    TransactionStorage.set(key, data, true);
+    VerificationStorage.set(key, data, true);
   }
 
   public static restoreSavedVerificationFunctions(): VerifierBatchArgs[] {
     const key = "TO_VERIFICATION";
-    const data = (TransactionStorage.get(key) || []) as string[];
+    const data = (VerificationStorage.get(key) || []) as string[];
 
     return data.map((item: string) => JSON.parse(item));
   }

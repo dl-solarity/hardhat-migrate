@@ -8,12 +8,15 @@ import { Args } from "../types/deployer";
 import { VerifierArgs, VerifierBatchArgs } from "../types/verifier";
 
 import { Reporter } from "../tools/reporter/Reporter";
+import { MigrateConfig } from "../types/migrations";
 
 export class Verifier {
   private _etherscanConfig: any;
+  private _config: MigrateConfig;
 
   constructor(private _hre: HardhatRuntimeEnvironment) {
     this._etherscanConfig = (_hre.config as any).etherscan;
+    this._config = _hre.config.migrate;
   }
 
   @catchError
@@ -48,6 +51,10 @@ export class Verifier {
 
   @catchError
   public async verifyBatch(verifierButchArgs: VerifierBatchArgs[]) {
+    if (!this._config.verify) {
+      return;
+    }
+
     Reporter.reportVerificationBatchBegin();
 
     await Promise.all(

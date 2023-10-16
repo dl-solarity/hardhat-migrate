@@ -6,8 +6,9 @@ import { Adapter } from "./Adapter";
 
 import { bytecodeToString, catchError } from "../../utils";
 
-import { Abi } from "../../types/deployer";
+import { MigrateError } from "../../errors";
 import { TruffleFactory } from "../../types/adapter";
+import { Abi } from "../../types/deployer";
 
 @catchError
 export class TruffleAdapter extends Adapter {
@@ -17,6 +18,11 @@ export class TruffleAdapter extends Adapter {
     for (const instance of instances) {
       instance.link(library);
     }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async sendTransaction(instance: any, method: string, args: any[]): Promise<any> {
+    throw new MigrateError("PureAdapter does not support sendTransaction.");
   }
 
   public toInstance<I>(instance: TruffleFactory<I>, address: string): I {

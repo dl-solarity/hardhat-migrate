@@ -19,4 +19,5 @@ export enum StorageNamespaces {
   Storage = "storage",
   Artifacts = "artifacts",
   Transactions = "transactions",
+  Verification = "verification",
 }

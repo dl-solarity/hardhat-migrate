@@ -25,6 +25,8 @@ export abstract class Adapter {
 
   public abstract toInstance<A, I>(instance: Instance<A, I>, address: string, signer: any): I;
 
+  public abstract sendTransaction(instance: any, method: string, args: any[], parameters: any): Promise<any>;
+
   protected abstract _getABI(instance: any): Abi;
 
   protected abstract _getRawBytecode(instance: any): string;

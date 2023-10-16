@@ -18,6 +18,7 @@ import { EthersFactory } from "../../types/adapter";
 import { Reporter } from "../../tools/reporter/Reporter";
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
+import { Args } from "../../types/deployer";
 
 @catchError
 export class EthersAdapter extends Adapter {
@@ -25,6 +26,20 @@ export class EthersAdapter extends Adapter {
     const contract = new BaseContract(address, this._getABI(instance), signer) as unknown as I;
 
     return this._insertHandlers(instance, contract, tryRestore);
+  }
+
+  public async sendTransaction(
+    instance: BaseContract,
+    method: string,
+    args: Args,
+  ): Promise<ContractTransactionResponse> {
+    return this.wrapOldMethod(
+      "",
+      method,
+      (instance as any).getFunction(method),
+      (instance as any)[method],
+      false,
+    )(...args);
   }
 
   protected _getABI<A, I>(instance: EthersFactory<A, I>): Interface {

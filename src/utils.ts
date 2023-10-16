@@ -9,6 +9,11 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { MigrateError } from "./errors";
 
+import { Adapter } from "./deployer/adapters/Adapter";
+import { EthersAdapter } from "./deployer/adapters/EthersAdapter";
+import { PureAdapter } from "./deployer/adapters/PureAdapter";
+import { TruffleAdapter } from "./deployer/adapters/TruffleAdapter";
+import { EthersFactory, Instance, PureFactory, TruffleFactory } from "./types/adapter";
 import { Bytecode } from "./types/deployer";
 import { KeyTxFields } from "./types/tools";
 
@@ -31,6 +36,34 @@ export function underline(str: string): string {
 
 export function resolvePathToFile(path: string, file: string = ""): string {
   return join(realpathSync(path), file);
+}
+
+export function resolveAdapter<A, I>(hre: HardhatRuntimeEnvironment, contract: Instance<A, I>): Adapter {
+  if (isEthersFactory(contract)) {
+    return new EthersAdapter(hre);
+  }
+
+  if (isTruffleFactory(contract)) {
+    return new TruffleAdapter(hre);
+  }
+
+  if (isPureFactory(contract)) {
+    return new PureAdapter(hre);
+  }
+
+  throw new MigrateError("Unknown Contract Factory Type");
+}
+
+export function isEthersFactory<A, I>(instance: any): instance is EthersFactory<A, I> {
+  return instance.createInterface !== undefined;
+}
+
+export function isTruffleFactory<I>(instance: any): instance is TruffleFactory<I> {
+  return instance instanceof Function && instance.prototype.constructor !== undefined;
+}
+
+export function isPureFactory<I>(instance: any): instance is PureFactory<I> {
+  return instance.contractName !== undefined;
 }
 
 export function toJSON(data: any): string {

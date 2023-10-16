@@ -1,12 +1,15 @@
 import { ContractTransactionResponse } from "ethers";
 
-import { catchError } from "../utils";
+import { catchError, resolveAdapter } from "../utils";
 
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { Reporter } from "../tools/reporter/Reporter";
+import { Instance, TypedArgs } from "../types/adapter";
+import { OverridesAndLibs } from "../types/deployer";
 
 @catchError
 export class Sender {
-  // TODO: add similar function as in the deployer (instance, args, options)
+  constructor(private _hre: HardhatRuntimeEnvironment) {}
   // TODO: add types -- Hard
   public async sendTransaction(
     task: Promise<ContractTransactionResponse>,
@@ -18,5 +21,16 @@ export class Sender {
     await Reporter.reportTransaction(result, misc);
 
     return result;
+  }
+
+  public async sendTransaction2<A, I>(
+    contract: Instance<A, I>,
+    method: string,
+    args: TypedArgs<A> = [] as any,
+    parameters: OverridesAndLibs = {},
+  ): Promise<ContractTransactionResponse> {
+    const adapter = resolveAdapter(this._hre, contract);
+
+    return adapter.sendTransaction(contract, method, args, parameters);
   }
 }

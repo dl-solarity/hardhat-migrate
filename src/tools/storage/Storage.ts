@@ -81,5 +81,4 @@ export class Storage {
 export const DefaultStorage = new Storage(StorageNamespaces.Storage);
 export const TransactionStorage = new Storage(StorageNamespaces.Transactions);
 export const ArtifactStorage = new Storage(StorageNamespaces.Artifacts);
-
-// TODO: add verification Storage + processor
+export const VerificationStorage = new Storage(StorageNamespaces.Verification);
