@@ -21,10 +21,10 @@ import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 
 @catchError
 export class EthersAdapter extends Adapter {
-  public toInstance<A, I>(instance: EthersFactory<A, I>, address: string, signer: Signer): I {
+  public toInstance<A, I>(instance: EthersFactory<A, I>, address: string, signer: Signer, tryRestore = false): I {
     const contract = new BaseContract(address, this._getABI(instance), signer) as unknown as I;
 
-    return this._insertHandlers(instance, contract);
+    return this._insertHandlers(instance, contract, tryRestore);
   }
 
   protected _getABI<A, I>(instance: EthersFactory<A, I>): Interface {
@@ -41,15 +41,15 @@ export class EthersAdapter extends Adapter {
     return fragments.filter(Fragment.isFunction).filter((fragment) => !fragment.constant);
   }
 
-  private _insertHandlers<A, I>(instance: EthersFactory<A, I>, contract: I): I {
+  private _insertHandlers<A, I>(instance: EthersFactory<A, I>, contract: I, tryRestore: boolean): I {
     const contractName = ArtifactProcessor.getContractName(this._getRawBytecode(instance)).split(":")[1];
 
     for (const methodFragments of this._getContractMethods(instance)) {
-      const methodName = methodFragments.name;
+      const methodName = methodFragments.format();
 
       const oldMethod: BaseContractMethod = (contract as any)[methodName];
 
-      const newMethod = this.wrapOldMethod(contractName, methodName, methodFragments, oldMethod);
+      const newMethod = this.wrapOldMethod(contractName, methodName, methodFragments, oldMethod, tryRestore);
 
       defineProperties<any>(newMethod, {
         name: oldMethod.name,
@@ -73,6 +73,7 @@ export class EthersAdapter extends Adapter {
     methodName: string,
     methodFragments: FunctionFragment,
     oldMethod: BaseContractMethod,
+    tryRestore: boolean,
   ): (...args: any[]) => Promise<ContractTransactionResponse> {
     return async (...args: any[]): Promise<ContractTransactionResponse> => {
       const tx = await oldMethod.populateTransaction(...args);
@@ -83,15 +84,25 @@ export class EthersAdapter extends Adapter {
       }
       const methodString = `${contractName}.${methodName}(${argsString})`;
 
-      try {
-        const txResponse = TransactionProcessor.tryRestoreSavedTransaction(tx);
+      if (tryRestore) {
+        try {
+          const txResponse = TransactionProcessor.tryRestoreSavedTransaction(tx);
 
-        Reporter.notifyTransactionRecovery(methodString);
+          Reporter.notifyTransactionRecovery(methodString);
 
-        return txResponse;
-      } catch {
-        Reporter.notifyTransactionSendingInsteadOfRecovery(methodString);
+          return txResponse;
+        } catch {
+          Reporter.notifyTransactionSendingInsteadOfRecovery(methodString);
 
+          const res: ContractTransactionResponse = await oldMethod(...args);
+
+          TransactionProcessor.saveTransaction(tx);
+
+          await Reporter.reportTransaction(res, methodString);
+
+          return res;
+        }
+      } else {
         const res: ContractTransactionResponse = await oldMethod(...args);
 
         TransactionProcessor.saveTransaction(tx);

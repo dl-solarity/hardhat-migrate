@@ -15,6 +15,10 @@ export class TransactionProcessor {
     this._saveDeploymentTransactionByName(contractName, address);
   }
 
+  public static saveDeploymentByName(contractName: string, address: string) {
+    this._saveDeploymentTransactionByName(contractName, address);
+  }
+
   public static saveTransaction(tx: ContractTransaction) {
     this._saveTransactionByTx(tx, tx);
   }

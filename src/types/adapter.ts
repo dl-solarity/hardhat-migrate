@@ -31,4 +31,12 @@ type Parameters<T extends (...args: any) => any> = T extends (...args: infer P) 
 
 export type TypedArgs<A> = A extends { deploy(...args: any): any } ? Parameters<A["deploy"]> : any;
 
+export type TypedInitArgs = any;
+
+export type ProxyTypedArgs<A> = A extends { deploy(...args: any): any }
+  ? OmitFirstArgument<Parameters<A["deploy"]>>
+  : any;
+
 export type Instance<A, I> = TruffleFactory<I> | EthersFactory<A, I> | PureFactory<I>;
+
+type OmitFirstArgument<T extends any[]> = T extends [any, ...infer U] ? U : never;
