@@ -1,10 +1,10 @@
-import { ContractDeployTransaction, Overrides, Signer, TransactionResponse } from "ethers";
+import { ContractDeployTransaction, Overrides, Signer, TransactionResponse, toBigInt } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { Linker } from "./Linker";
 
-import { catchError, getSignerHelper } from "../utils";
+import { catchError, getChainId, getSignerHelper } from "../utils";
 
 import { MigrateError } from "../errors";
 
@@ -56,7 +56,16 @@ export class DeployerCore {
   ): Promise<ContractDeployTransaction> {
     const factory = new this._hre.ethers.ContractFactory(contractParams.abi, contractParams.bytecode);
 
-    return factory.getDeployTransaction(...args, txOverrides);
+    const chainId = await getChainId(this._hre);
+    const from = (await getSignerHelper(this._hre, txOverrides.from)).address;
+
+    const tx: ContractDeployTransaction = {
+      chainId: toBigInt(chainId),
+      from,
+      ...(await factory.getDeployTransaction(...args, txOverrides)),
+    };
+
+    return tx;
   }
 
   private async _tryRecoverContractAddress(tx: ContractDeployTransactionWithContractName, args: Args): Promise<string> {

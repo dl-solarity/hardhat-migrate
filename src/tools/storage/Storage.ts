@@ -4,15 +4,14 @@ import { MigrateError } from "../../errors";
 
 import { StorageNamespaces } from "../../types/tools";
 
+import { lazyObject } from "hardhat/plugins";
 import { catchError, resolvePathToFile, toJSON } from "../../utils";
 
 @catchError
 export class Storage {
   private static readonly _fileName = ".storage.json";
 
-  private static readonly _filePath = resolvePathToFile("artifacts/build-info", Storage._fileName);
-
-  private static _state: Record<string, any> = Storage._readFullStateFromFile();
+  private static _state: Record<string, any> = lazyObject(() => Storage._readFullStateFromFile());
 
   constructor(private _namespace: StorageNamespaces = StorageNamespaces.Storage) {
     if (!Storage._state[this._namespace]) {
@@ -55,11 +54,11 @@ export class Storage {
   }
 
   private static _stateExistsInFile(): boolean {
-    return existsSync(Storage._filePath);
+    return existsSync(this._filePath());
   }
 
   private static _saveStateToFile() {
-    writeFileSync(Storage._filePath, toJSON(Storage._state), {
+    writeFileSync(this._filePath(), toJSON(Storage._state), {
       flag: "w",
       encoding: "utf8",
     });
@@ -70,15 +69,19 @@ export class Storage {
       return {};
     }
 
-    const fileContent = readFileSync(this._filePath, {
+    const fileContent = readFileSync(this._filePath(), {
       encoding: "utf8",
     });
 
     return JSON.parse(fileContent);
   }
+
+  private static _filePath(): string {
+    return resolvePathToFile("artifacts/build-info", Storage._fileName);
+  }
 }
 
-export const DefaultStorage = new Storage(StorageNamespaces.Storage);
-export const TransactionStorage = new Storage(StorageNamespaces.Transactions);
-export const ArtifactStorage = new Storage(StorageNamespaces.Artifacts);
-export const VerificationStorage = new Storage(StorageNamespaces.Verification);
+export const DefaultStorage = lazyObject(() => new Storage(StorageNamespaces.Storage));
+export const TransactionStorage = lazyObject(() => new Storage(StorageNamespaces.Transactions));
+export const ArtifactStorage = lazyObject(() => new Storage(StorageNamespaces.Artifacts));
+export const VerificationStorage = lazyObject(() => new Storage(StorageNamespaces.Verification));

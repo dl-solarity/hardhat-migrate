@@ -2,12 +2,17 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { DeployerCore } from "./DeployerCore";
 
-import { catchError, getSignerHelper, resolveAdapter } from "../utils";
+import { catchError, getSignerHelper, isEthersFactory, isPureFactory, isTruffleFactory } from "../utils";
 
+import { MigrateError } from "../errors";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 import { Instance, ProxyTypedArgs, TypedArgs } from "../types/adapter";
 import { Args, OverridesAndLibs } from "../types/deployer";
+import { Adapter } from "./adapters/Adapter";
+import { EthersAdapter } from "./adapters/EthersAdapter";
+import { PureAdapter } from "./adapters/PureAdapter";
+import { TruffleAdapter } from "./adapters/TruffleAdapter";
 
 @catchError
 export class Deployer {
@@ -54,11 +59,10 @@ export class Deployer {
     if (this._isUUPSProxy(contract)) {
       const proxyArgs = [contractImplementationAddress, ...opts.args];
 
-      proxyAddress = await this._core.deploy(
-        await adapter.getContractDeployParams(opts.kind),
-        proxyArgs,
-        opts.txOverrides || {},
-      );
+      proxyAddress = await this._core.deploy(await adapter.getContractDeployParams(opts.kind), proxyArgs, {
+        misc: contractImplementationAddress,
+        ...(opts.txOverrides || {}),
+      });
     }
 
     const contractInstance = adapter.toInstance(
@@ -97,4 +101,20 @@ export class Deployer {
   private _isUUPSProxy(instance: any): boolean {
     return true;
   }
+}
+
+export function resolveAdapter<A, I>(hre: HardhatRuntimeEnvironment, contract: Instance<A, I>): Adapter {
+  if (isEthersFactory(contract)) {
+    return new EthersAdapter(hre);
+  }
+
+  if (isTruffleFactory(contract)) {
+    return new TruffleAdapter(hre);
+  }
+
+  if (isPureFactory(contract)) {
+    return new PureAdapter(hre);
+  }
+
+  throw new MigrateError("Unknown Contract Factory Type");
 }

@@ -24,6 +24,8 @@ export class Migrator {
   private readonly _verifier: Verifier;
   private readonly _sender: Sender;
 
+  private readonly _verifyIfError = true;
+
   private readonly _migrationFiles: string[];
 
   constructor(
@@ -48,6 +50,10 @@ export class Migrator {
 
         await migration(this._deployer, this._sender);
       } catch (e: unknown) {
+        // if (this._verifyIfError) {
+        //   await this._verifier.verifyBatch(TransactionProcessor.restoreSavedVerificationFunctions());
+        // }
+
         if (e instanceof MigrateError) {
           throw new HardhatPluginError(pluginName, e.message, e);
         }

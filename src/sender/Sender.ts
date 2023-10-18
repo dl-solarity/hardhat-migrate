@@ -1,11 +1,12 @@
 import { ContractTransactionResponse } from "ethers";
 
-import { catchError, resolveAdapter } from "../utils";
+import { catchError } from "../utils";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { Reporter } from "../tools/reporter/Reporter";
 import { Instance, TypedArgs } from "../types/adapter";
 import { OverridesAndLibs } from "../types/deployer";
+import { resolveAdapter } from "../deployer/Deployer";
 
 @catchError
 export class Sender {

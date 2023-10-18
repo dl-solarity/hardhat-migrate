@@ -3,13 +3,13 @@ import axios from "axios";
 
 import ora from "ora";
 
-import { Network, TransactionReceipt, TransactionResponse } from "ethers";
+import { TransactionReceipt, TransactionResponse } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { MigrateError } from "../../errors";
 
-import { catchError, underline } from "../../utils";
+import { catchError, getChainId, getNetwork, underline } from "../../utils";
 
 import { ChainRecord, defaultCurrencySymbol, predefinedChains } from "../../types/verifier";
 
@@ -179,22 +179,14 @@ export class Reporter {
     console.log("");
   }
 
-  private static async _getNetwork(): Promise<Network> {
-    return this._hre.ethers.provider.getNetwork();
-  }
-
-  private static async _getChainId(): Promise<number> {
-    return Number((await this._getNetwork()).chainId);
-  }
-
   private static async _reportChainInfo() {
-    console.log(`> ${"Network:".padEnd(20)} ${(await this._getNetwork()).name}`);
+    console.log(`> ${"Network:".padEnd(20)} ${(await getNetwork(this._hre)).name}`);
 
-    console.log(`> ${"Network id:".padEnd(20)} ${await this._getChainId()}`);
+    console.log(`> ${"Network id:".padEnd(20)} ${await getChainId(this._hre)}`);
   }
 
   private static async _getExplorerUrl(): Promise<string> {
-    const chainId = await this._getChainId();
+    const chainId = await getChainId(this._hre);
 
     if (predefinedChains[chainId]) {
       const explorers = predefinedChains[chainId].explorers;
