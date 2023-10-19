@@ -25,17 +25,17 @@ describe("deployer", () => {
 
     // it("should deploy contract with constructor arguments", async function () {
     //   const contract = await deployer.deploy(ContractWithConstructor, ["test"], {});
-
+    //
     //   const name = await contract.name();
-
+    //
     //   expect(name).to.equal("test");
     // });
-
+    //
     // it("should deploy contract with ethers", async function () {
     //   const value = BigInt(1);
-
+    //
     //   const contract = await deployer.deploy(ContractWithPayableConstructor, [], { value: value });
-
+    //
     //   expect(await this.hre.ethers.provider.getBalance(contract.getAddress())).to.equal(value);
     // });
 

@@ -1,12 +1,13 @@
-import { TransactionStorage, VerificationStorage } from "./Storage";
+import { ContractTransaction, ContractTransactionResponse, isAddress } from "ethers";
+
+import { TransactionStorage } from "./Storage";
 
 import { MigrateError } from "../../errors";
 
 import { catchError, createHash } from "../../utils";
 
-import { ContractTransaction, ContractTransactionResponse, isAddress } from "ethers";
 import { KeyTxFields } from "../../types/tools";
-import { VerifierBatchArgs } from "../../types/verifier";
+import { TruffleTransactionResponse } from "../../types/deployer";
 
 @catchError
 export class TransactionProcessor {
@@ -37,18 +38,8 @@ export class TransactionProcessor {
     return this._tryGetDataFromStorage(key);
   }
 
-  public static saveVerificationFunction(verifierArgs: VerifierBatchArgs) {
-    const key = "TO_VERIFICATION";
-    const data = this.restoreSavedVerificationFunctions();
-
-    data.push(verifierArgs);
-    VerificationStorage.set(key, data, true);
-  }
-
-  public static restoreSavedVerificationFunctions(): VerifierBatchArgs[] {
-    const key = "TO_VERIFICATION";
-
-    return VerificationStorage.get(key) || [];
+  public static tryRecoverTruffleTransaction(key: KeyTxFields): TruffleTransactionResponse {
+    return this._tryGetDataFromStorage(key);
   }
 
   private static _tryGetDataFromStorage(key: KeyTxFields | string): any {

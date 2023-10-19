@@ -1,4 +1,4 @@
-import { Interface } from "ethers";
+import { defineProperties, Signer, Interface, FunctionFragment, ContractTransaction } from "ethers";
 
 import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
 
@@ -6,9 +6,12 @@ import { Adapter } from "./Adapter";
 
 import { bytecodeToString, catchError } from "../../utils";
 
-import { MigrateError } from "../../errors";
 import { TruffleFactory } from "../../types/adapter";
-import { Abi } from "../../types/deployer";
+import { BaseTruffleMethod, TruffleTransactionResponse } from "../../types/deployer";
+
+import { Reporter } from "../../tools/reporter/Reporter";
+import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
+import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 
 @catchError
 export class TruffleAdapter extends Adapter {
@@ -20,22 +23,117 @@ export class TruffleAdapter extends Adapter {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async sendTransaction(instance: any, method: string, args: any[]): Promise<any> {
-    throw new MigrateError("PureAdapter does not support sendTransaction.");
-  }
-
-  public toInstance<I>(instance: TruffleFactory<I>, address: string): I {
+  public async toInstance<I>(instance: TruffleFactory<I>, address: string, signer: Signer): Promise<I> {
     const contract = this._hre.artifacts.require(instance.contractName!);
+
+    this._insertHandlers(instance, contract, address, await signer.getAddress());
 
     return contract.at(address);
   }
 
-  protected _getABI(instance: TruffleContract): Abi {
+  protected _getInterface(instance: TruffleContract): Interface {
     return Interface.from(instance.abi);
   }
 
   protected _getRawBytecode(instance: TruffleContract): string {
     return bytecodeToString(instance.bytecode);
+  }
+
+  protected _insertHandlers<I>(instance: TruffleFactory<I>, contract: I, to: string, from: string): I {
+    const contractName = ArtifactProcessor.getContractName(this._getRawBytecode(instance)).split(":")[1];
+
+    for (const methodFragment of this._getContractMethods(instance)) {
+      const methodName = methodFragment.format();
+
+      const oldMethod: BaseTruffleMethod = (contract as any)[methodName];
+
+      const newMethod = this._wrapOldMethod(contractName, methodName, methodFragment, oldMethod, to, from);
+
+      defineProperties<any>(newMethod, {
+        oldMethod,
+        call: oldMethod.call,
+        sendTransaction: oldMethod.sendTransaction,
+        estimateGas: oldMethod.estimateGas,
+      });
+      Object.defineProperty(newMethod, "fragment", methodFragment);
+
+      (contract as any)[methodName] = newMethod;
+    }
+
+    return contract;
+  }
+
+  protected _wrapOldMethod(
+    contractName: string,
+    methodName: string,
+    methodFragments: FunctionFragment,
+    oldMethod: BaseTruffleMethod,
+    to: string,
+    from: string,
+  ): (...args: any[]) => Promise<TruffleTransactionResponse> {
+    return async (...args: any[]): Promise<TruffleTransactionResponse> => {
+      const tx = await this._buildContractDeployTransaction(args, to, from);
+
+      const methodString = this._getMethodString(contractName, methodName, methodFragments, ...args);
+
+      let txResult: TruffleTransactionResponse;
+      if (this._config.continuePreviousDeployment) {
+        return this._recoverTransaction(methodString, tx, oldMethod, args);
+      } else {
+        txResult = await oldMethod(...args);
+
+        TransactionProcessor.saveTransaction(tx);
+
+        await Reporter.reportTruffleTransaction(txResult, methodString);
+      }
+
+      return txResult;
+    };
+  }
+
+  protected async _recoverTransaction(
+    methodString: string,
+    tx: ContractTransaction,
+    oldMethod: BaseTruffleMethod,
+    args: any[],
+  ) {
+    try {
+      return this._tryRecoverTransaction(methodString, tx);
+    } catch {
+      Reporter.notifyTransactionSendingInsteadOfRecovery(methodString);
+
+      return this._sendTransaction(methodString, tx, oldMethod, args);
+    }
+  }
+
+  protected async _sendTransaction(
+    methodString: string,
+    tx: ContractTransaction,
+    oldMethod: BaseTruffleMethod,
+    args: any[],
+  ) {
+    const txResult = await oldMethod(...args);
+
+    TransactionProcessor.saveTransaction(tx);
+
+    await Reporter.reportTruffleTransaction(txResult, methodString);
+
+    return txResult;
+  }
+
+  private async _tryRecoverTransaction(methodString: string, tx: ContractTransaction) {
+    const txResponse = TransactionProcessor.tryRecoverTruffleTransaction(tx);
+
+    Reporter.notifyTransactionRecovery(methodString);
+
+    return txResponse;
+  }
+
+  private _buildContractDeployTransaction(args: any[], to: string, from: string): ContractTransaction {
+    return {
+      to: to,
+      data: JSON.stringify(args),
+      from: from,
+    };
   }
 }

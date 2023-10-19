@@ -1,11 +1,12 @@
 import { existsSync, readFileSync, writeFileSync } from "fs";
 
+import { lazyObject } from "hardhat/plugins";
+
 import { MigrateError } from "../../errors";
 
-import { StorageNamespaces } from "../../types/tools";
-
-import { lazyObject } from "hardhat/plugins";
 import { catchError, resolvePathToFile, toJSON } from "../../utils";
+
+import { StorageNamespaces } from "../../types/tools";
 
 @catchError
 export class Storage {
@@ -21,6 +22,10 @@ export class Storage {
 
   public get(key: string): any {
     return Storage._state[this._namespace][key];
+  }
+
+  public getAll(): Record<string, any> {
+    return Storage._state[this._namespace];
   }
 
   public set(key: string, value: any, force = false): void {

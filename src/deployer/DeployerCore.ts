@@ -1,4 +1,4 @@
-import { ContractDeployTransaction, Overrides, Signer, TransactionResponse, toBigInt } from "ethers";
+import { ContractDeployTransaction, Overrides, Signer, toBigInt, TransactionResponse } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -12,14 +12,15 @@ import {
   Args,
   ContractDeployParams,
   ContractDeployTransactionWithContractName,
-  OverridesAndLibs,
+  OverridesAndLibs
 } from "../types/deployer";
-import { MigrateConfig, VerifyStrategy } from "../types/migrations";
+import { MigrateConfig } from "../types/migrations";
+
+import { Verifier } from "../verifier/Verifier";
 
 import { Reporter } from "../tools/reporter/Reporter";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
-import { Verifier } from "../verifier/Verifier";
 
 @catchError
 export class DeployerCore {
@@ -59,13 +60,11 @@ export class DeployerCore {
     const chainId = await getChainId(this._hre);
     const from = (await getSignerHelper(this._hre, txOverrides.from)).address;
 
-    const tx: ContractDeployTransaction = {
+    return {
       chainId: toBigInt(chainId),
       from,
       ...(await factory.getDeployTransaction(...args, txOverrides)),
     };
-
-    return tx;
   }
 
   private async _tryRecoverContractAddress(tx: ContractDeployTransactionWithContractName, args: Args): Promise<string> {
@@ -90,46 +89,31 @@ export class DeployerCore {
 
     const txResponse = await signer.sendTransaction(tx);
 
-    const [[contractAddress, blockNumber]] = await Promise.all([
+    const [contractAddress] = await Promise.all([
       this._waitForDeployment(txResponse),
       Reporter.reportTransaction(txResponse, tx.contractName),
     ]);
 
+    if (typeof contractAddress !== "string") {
+      throw new MigrateError("Contract deployment failed. Invalid contract address conversion.");
+    }
+
     TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);
 
-    switch (this._config.verify) {
-      case VerifyStrategy.AtTheEnd: {
-        TransactionProcessor.saveVerificationFunction({
-          contractAddress,
-          contractName: tx.contractName,
-          constructorArguments: args,
-          blockNumber,
-        });
-        break;
-      }
-      case VerifyStrategy.Immediately: {
-        await new Verifier(this._hre).verify({
-          contractAddress,
-          contractName: tx.contractName,
-          constructorArguments: args,
-        });
-        break;
-      }
-      case VerifyStrategy.None: {
-        break;
-      }
-    }
+    await Verifier.processVerification({
+      contractAddress,
+      contractName: tx.contractName,
+      constructorArguments: args,
+    });
 
     return contractAddress;
   }
 
-  private async _waitForDeployment(tx: TransactionResponse): Promise<[string, number]> {
-    // this._config.confirmations -- is used only for verification process.
-    // TODO: Create other parameter to pass to tx.wait(). Default must be 1
-    const receipt = await tx.wait(this._config.verify === VerifyStrategy.Immediately ? this._config.confirmations : 1);
+  private async _waitForDeployment(tx: TransactionResponse): Promise<string> {
+    const receipt = await tx.wait(this._config.txConfirmations);
 
     if (receipt) {
-      return [receipt.contractAddress!, receipt.blockNumber];
+      return receipt.contractAddress!;
     }
 
     throw new MigrateError("Contract deployment failed.");

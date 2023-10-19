@@ -1,12 +1,8 @@
-import { BytesLike, ContractDeployTransaction, ContractFactory, Interface, InterfaceAbi, Overrides } from "ethers";
+import { BytesLike, ContractDeployTransaction, ContractFactory, FunctionFragment, Interface, Overrides } from "ethers";
 
 import { Artifact, Libraries } from "hardhat/types";
 
-export type Abi = Interface | InterfaceAbi;
-
 export type Bytecode = BytesLike;
-
-export type DeployFactoryParams = ConstructorParameters<typeof ContractFactory>;
 
 export type Args = Parameters<ContractFactory["getDeployTransaction"]>;
 
@@ -17,7 +13,7 @@ export type OverridesAndLibs = OverridesAndMisc & { libraries?: Libraries };
 export type ContractDeployTransactionWithContractName = ContractDeployTransaction & { contractName: string };
 
 export interface ContractDeployParams {
-  abi: Abi;
+  abi: Interface;
   bytecode: string;
 }
 
@@ -35,3 +31,32 @@ export interface NeededLibrary {
 export interface ArtifactExtended extends Artifact {
   neededLibraries: NeededLibrary[];
 }
+
+export interface TruffleTransactionResponse {
+  tx: string;
+  receipt: TransactionReceipt;
+}
+
+export interface TransactionReceipt {
+  transactionHash: string;
+  transactionIndex: string;
+  blockHash: string;
+  blockNumber: string;
+  from: string;
+  to: string;
+  gasUsed?: string;
+  logs?: any[];
+  logsBloom?: string;
+  type?: string;
+  status?: string;
+  cumulativeGasUsed?: string;
+  contractAddress?: string;
+}
+
+export type BaseTruffleMethod = {
+  (...args: any[]): Promise<TruffleTransactionResponse>;
+  call: (...args: any[]) => Promise<any>;
+  sendTransaction: (...args: any[]) => Promise<TruffleTransactionResponse>;
+  estimateGas: (...args: any[]) => Promise<any>;
+  fragment: FunctionFragment;
+};

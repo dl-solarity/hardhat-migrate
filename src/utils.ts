@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-import { AddressLike, Network, hexlify, id } from "ethers";
-import { realpathSync } from "fs";
 import { join } from "path";
+import { realpathSync, existsSync } from "fs";
+import { AddressLike, Network, hexlify, id } from "ethers";
 
 import { isBytes } from "@ethersproject/bytes";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
@@ -10,9 +10,9 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { MigrateError } from "./errors";
 
-import { EthersFactory, PureFactory, TruffleFactory } from "./types/adapter";
-import { Bytecode } from "./types/deployer";
 import { KeyTxFields } from "./types/tools";
+import { Bytecode } from "./types/deployer";
+import { EthersFactory, PureFactory, TruffleFactory } from "./types/adapter";
 
 export async function getSignerHelper(
   hre: HardhatRuntimeEnvironment,
@@ -24,7 +24,7 @@ export async function getSignerHelper(
 
   const address = await hre.ethers.resolveAddress(from, hre.ethers.provider);
 
-  return hre.ethers.getSigner(address);
+  return hre.ethers.getSigner(address as string);
 }
 
 export function underline(str: string): string {
@@ -32,6 +32,10 @@ export function underline(str: string): string {
 }
 
 export function resolvePathToFile(path: string, file: string = ""): string {
+  if (!existsSync(join(path, file))) {
+    path = "./";
+  }
+
   return join(realpathSync(path), file);
 }
 
@@ -43,7 +47,7 @@ export function isTruffleFactory<I>(instance: any): instance is TruffleFactory<I
   return instance instanceof Function && instance.prototype.constructor !== undefined;
 }
 
-export function isPureFactory<I>(instance: any): instance is PureFactory<I> {
+export function isPureFactory(instance: any): instance is PureFactory {
   return instance.contractName !== undefined;
 }
 
@@ -52,7 +56,7 @@ export async function getNetwork(hre: HardhatRuntimeEnvironment): Promise<Networ
 }
 
 export async function getChainId(hre: HardhatRuntimeEnvironment): Promise<number> {
-  return Number((await getNetwork(hre)).chainId);
+  return Number(await hre.ethers.provider.send("eth_chainId"));
 }
 
 export function toJSON(data: any): string {
@@ -76,7 +80,7 @@ export function createHash(keyTxFields: KeyTxFields): string {
     data: keyTxFields.data,
     from: keyTxFields.from,
     chainId: keyTxFields.chainId,
-    misc: keyTxFields.misc,
+    instanceName: keyTxFields.instanceName,
   };
 
   return id(toJSON(obj));
@@ -156,7 +160,7 @@ function _generateDescriptor(propertyName: string, descriptor: PropertyDescripto
     try {
       const result = method.apply(this, args);
 
-      // Check if method is asynchronous
+      // Check if the method is asynchronous
       if (result && result instanceof Promise) {
         // Return promise
         return result.catch((e: any) => {

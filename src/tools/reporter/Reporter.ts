@@ -3,15 +3,16 @@ import axios from "axios";
 
 import ora from "ora";
 
-import { TransactionReceipt, TransactionResponse } from "ethers";
+import { Network, TransactionReceipt, TransactionResponse } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { MigrateError } from "../../errors";
 
-import { catchError, getChainId, getNetwork, underline } from "../../utils";
+import { catchError, underline } from "../../utils";
 
-import { ChainRecord, defaultCurrencySymbol, predefinedChains } from "../../types/verifier";
+import { TruffleTransactionResponse } from "../../types/deployer";
+import { ChainRecord, predefinedChains } from "../../types/verifier";
 
 @catchError
 export class Reporter {
@@ -44,14 +45,14 @@ export class Reporter {
     console.log(output);
   }
 
-  public static async reportTransaction(tx: TransactionResponse | string, misc: string) {
+  public static async reportTransaction(tx: TransactionResponse | string, instanceName: string) {
     if (typeof tx === "string") {
       tx = (await this._hre.ethers.provider.getTransaction(tx))!;
     }
 
     const timeStart = Date.now();
 
-    console.log("\n" + underline(await this._parseTransactionTitle(tx, misc)));
+    console.log("\n" + underline(this._parseTransactionTitle(tx, instanceName)));
 
     console.log(`> explorer: ${await this._getExplorerLink(tx.hash)}`);
 
@@ -81,6 +82,22 @@ export class Reporter {
 
     this.totalCost += receipt.fee;
     this.totalTransactions++;
+  }
+
+  public static async reportTruffleTransaction(tx: TruffleTransactionResponse | string, instanceName: string) {
+    if (typeof tx === "string") {
+      await this.reportTransaction(tx, instanceName);
+
+      return;
+    }
+
+    const transaction = await this._hre.ethers.provider.getTransaction(tx.receipt.transactionHash);
+
+    if (!transaction) {
+      throw new MigrateError("Transaction not found.");
+    }
+
+    await this.reportTransaction(transaction, instanceName);
   }
 
   public static notifyDeploymentInsteadOfRecovery(contractName: string): void {
@@ -129,12 +146,12 @@ export class Reporter {
     console.log(output);
   }
 
-  private static _parseTransactionTitle(tx: TransactionResponse, misc: string): string {
+  private static _parseTransactionTitle(tx: TransactionResponse, instanceName: string): string {
     if (tx.to === null) {
-      return `Deploying${misc ? " " + misc.split(":")[1] : ""}`;
+      return `Deploying${instanceName ? " " + instanceName.split(":")[1] : ""}`;
     }
 
-    return `Transaction: ${misc}`;
+    return `Transaction: ${instanceName}`;
   }
 
   private static async _formatPendingTime(tx: TransactionResponse, startTime: number): Promise<string> {
@@ -179,75 +196,69 @@ export class Reporter {
     console.log("");
   }
 
-  private static async _reportChainInfo() {
-    console.log(`> ${"Network:".padEnd(20)} ${(await getNetwork(this._hre)).name}`);
+  private static async _getNetwork(): Promise<Network> {
+    return this._hre.ethers.provider.getNetwork();
+  }
 
-    console.log(`> ${"Network id:".padEnd(20)} ${await getChainId(this._hre)}`);
+  private static async _getChainId(): Promise<number> {
+    try {
+      return Number((await this._getNetwork()).chainId);
+    } catch {
+      return 1337;
+    }
+  }
+
+  private static async _reportChainInfo() {
+    console.log(`> ${"Network:".padEnd(20)} ${(await this._getNetwork()).name}`);
+
+    console.log(`> ${"Network id:".padEnd(20)} ${await this._getChainId()}`);
   }
 
   private static async _getExplorerUrl(): Promise<string> {
-    const chainId = await getChainId(this._hre);
+    const chainId = await this._getChainId();
 
     if (predefinedChains[chainId]) {
       const explorers = predefinedChains[chainId].explorers;
 
-      if (!explorers || explorers.length === 0) {
-        return "";
-      }
-
-      return explorers[0].url;
+      return !explorers || explorers.length === 0 ? "" : explorers[0].url;
     }
 
-    try {
-      const chain = await this._getChainMetadataById(chainId);
+    const chain = await this._getChainMetadataById(chainId);
 
-      if (chain) {
-        predefinedChains[chainId] = chain;
-
-        const explorers = predefinedChains[chainId].explorers;
-
-        if (!explorers || explorers.length === 0) {
-          return "";
-        }
-
-        return explorers[0].url;
-      }
-    } catch (e) {
-      console.warn(`Unable to get explorer url for chainId ${chainId}.`, e);
-    }
-
-    return "";
+    return chain.explorers[0].url;
   }
 
   private static async _getNativeSymbol(): Promise<string> {
-    const chainId = Number((await this._hre.ethers.provider.getNetwork()).chainId);
+    const chainId = await this._getChainId();
 
     if (predefinedChains[chainId]) {
       return predefinedChains[chainId].nativeCurrency.symbol;
     }
 
+    const chain = await this._getChainMetadataById(chainId);
+
+    return chain.nativeCurrency.symbol;
+  }
+
+  private static async _getChainMetadataById(chainId: number): Promise<ChainRecord> {
     try {
-      const chain = await this._getChainMetadataById(chainId);
+      const chains = await this._tryGetAllRecords();
+
+      const chain = chains.find((chain) => chain.chainId === chainId);
 
       if (chain) {
         predefinedChains[chainId] = chain;
 
-        return chain.nativeCurrency.symbol;
+        return chain;
       }
-    } catch (e) {
-      console.warn(`Unable to get native symbol for chainId ${chainId}.`, e);
+
+      return predefinedChains[1337];
+    } catch {
+      return predefinedChains[1337];
     }
-
-    return defaultCurrencySymbol;
   }
 
-  private static async _getChainMetadataById(chainId: number): Promise<ChainRecord | undefined> {
-    const chains = await this._getAllRecords();
-
-    return chains.find((chain) => chain.chainId === chainId);
-  }
-
-  private static async _getAllRecords(): Promise<ChainRecord[]> {
+  private static async _tryGetAllRecords(): Promise<ChainRecord[]> {
     const url = "https://chainid.network/chains.json";
     const response = await axios.get(url);
 

@@ -5,7 +5,7 @@ import { assert, expect } from "chai";
 import { HardhatPluginError } from "hardhat/plugins";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 
-import { MigrateConfig } from "../../src/types/migrations";
+import { MigrateConfig, VerifyStrategy } from "../../src/types/migrations";
 import { useEnvironment } from "../helpers";
 
 describe("config", () => {
@@ -42,8 +42,12 @@ describe("config", () => {
       assert.equal(loadedOptions.attempts, 2);
     });
 
-    it("should apply confirmations", async function () {
-      assert.equal(loadedOptions.confirmations, 5);
+    it("should apply tx confirmations", async function () {
+      assert.equal(loadedOptions.txConfirmations, 2);
+    });
+
+    it("should apply verify confirmations", async function () {
+      assert.equal(loadedOptions.verifyConfirmations, 5);
     });
 
     it("should apply pathToMigrations", async function () {
@@ -105,15 +109,19 @@ describe("config", () => {
     });
 
     it("should set to default verify", async function () {
-      assert.isFalse(loadedOptions.verify);
+      assert.equal(loadedOptions.verify, VerifyStrategy.AtTheEnd);
     });
 
     it("should set to default attempts", async function () {
       assert.equal(loadedOptions.attempts, 0);
     });
 
-    it("should set to default confirmations", async function () {
-      assert.equal(loadedOptions.confirmations, 0);
+    it("should set to default tx confirmations", async function () {
+      assert.equal(loadedOptions.txConfirmations, 1);
+    });
+
+    it("should set to default verify confirmations", async function () {
+      assert.equal(loadedOptions.verifyConfirmations, 0);
     });
 
     it("should set to default pathToMigrations", async function () {
