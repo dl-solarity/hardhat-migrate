@@ -24,6 +24,10 @@ export class Storage {
     return Storage._state[this._namespace][key];
   }
 
+  public getAll(): Record<string, any> {
+    return Storage._state[this._namespace];
+  }
+
   public set(key: string, value: any, force = false): void {
     if (!force && this.has(key)) {
       throw new MigrateError(`Key already exists`);
