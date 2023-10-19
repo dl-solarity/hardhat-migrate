@@ -13,7 +13,7 @@ export interface MigrateConfig {
   to: number;
 
   /*
-   * The number of the migration that will be applied. Overrides from and to parameters.
+   * The number of the migrations that will be applied. Overrides from and to parameters.
    */
   only: number;
 
@@ -23,9 +23,14 @@ export interface MigrateConfig {
   skip: number;
 
   /*
+   * The number defining how many confirmations each transaction should have.
+   */
+  txConfirmations: number;
+
+  /*
    * The number defining after how many blocks the verification should start.
    */
-  confirmations: number;
+  verifyConfirmations: number;
 
   /*
    * The strategy of the verification.

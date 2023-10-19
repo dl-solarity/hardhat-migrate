@@ -1,26 +1,33 @@
-import { Abi, Bytecode } from "./deployer";
+import { InterfaceAbi } from "ethers";
+
+import { Bytecode } from "./deployer";
 
 export interface EthersFactory<A, I> {
   new (...args: any): A;
 
+  abi: any;
   bytecode: any;
-  abi: Abi;
 
   createInterface(): any;
 
   connect(address: string, runner?: any): I;
 }
 
-export interface TruffleFactory<I> {
-  contractName: string;
+export interface TruffleFactory<I> extends Truffle.Contract<I> {
+  "new"(...args: any): Promise<I>;
 
-  new (_name: string, meta?: any): Promise<I>;
+  deployed(): Promise<I>;
+  at(address: string): Promise<I>;
+  link(name: string, address: string): void;
+  link(contract: any): void;
+  address: string;
+  contractName: string;
 }
 
-export interface PureFactory<I> {
-  abi: Abi;
+export interface PureFactory {
+  abi: InterfaceAbi;
   bytecode: Bytecode;
-  contractName: I;
+  contractName: string;
 }
 
 type Parameters<T extends (...args: any) => any> = T extends (...args: infer P) => any
@@ -29,14 +36,16 @@ type Parameters<T extends (...args: any) => any> = T extends (...args: infer P) 
     : any
   : never[];
 
-export type TypedArgs<A> = A extends { deploy(...args: any): any } ? Parameters<A["deploy"]> : any;
+type TruffleParameters<T extends { (...args: any[]): any }> = T extends { (...args: infer P): any }
+  ? P extends [...infer Rest, any?]
+    ? Rest
+    : any
+  : never;
 
-export type TypedInitArgs = any;
-
-export type ProxyTypedArgs<A> = A extends { deploy(...args: any): any }
-  ? OmitFirstArgument<Parameters<A["deploy"]>>
+export type TypedArgs<A> = A extends { deploy(...args: any): any }
+  ? Parameters<A["deploy"]>
+  : A extends { "new"(...args: any): any }
+  ? TruffleParameters<A["new"]>
   : any;
 
-export type Instance<A, I> = TruffleFactory<I> | EthersFactory<A, I> | PureFactory<I>;
-
-type OmitFirstArgument<T extends any[]> = T extends [any, ...infer U] ? U : never;
+export type Instance<A, I> = TruffleFactory<I> | EthersFactory<A, I> | PureFactory;
