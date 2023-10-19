@@ -45,9 +45,7 @@ extendEnvironment((hre) => {
     return new Migrator(hre);
   });
 
-  hre.storage = lazyObject(() => {
-    return DefaultStorage;
-  });
+  hre.storage = lazyObject(() => DefaultStorage);
 });
 
 // TODO: override the `clean` task
@@ -62,7 +60,7 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
     types.int,
   )
   .addOptionalParam("skip", "The number of migration to skip. Overrides only parameter.", undefined, types.int)
-  .addFlag("verify", "The flag indicating whether the verification of the contract is needed.")
+  .addOptionalParam("verify", "The enum defining the verification strategy.", undefined, types.string)
   .addFlag("force", "The flag indicating whether the compilation is forced.")
   .addOptionalParam(
     "confirmations",
