@@ -11,7 +11,7 @@ import {
 } from "../fixture-projects/hardhat-project-repeats-typechain-ethers/typechain-types";
 import { useEnvironment } from "../helpers";
 
-describe("TransactionStorage", async () => {
+describe.only("TransactionStorage", async () => {
   useEnvironment("repeats-typechain-ethers");
 
   beforeEach(async function () {
