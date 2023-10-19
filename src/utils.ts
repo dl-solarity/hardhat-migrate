@@ -1,6 +1,7 @@
-import { AddressLike, hexlify, id } from "ethers";
-import { realpathSync } from "fs";
+/* eslint-disable no-console */
 import { join } from "path";
+import { realpathSync, existsSync } from "fs";
+import { AddressLike, Network, hexlify, id } from "ethers";
 
 import { isBytes } from "@ethersproject/bytes";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
@@ -9,13 +10,9 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { MigrateError } from "./errors";
 
-import { Adapter } from "./deployer/adapters/Adapter";
-import { EthersAdapter } from "./deployer/adapters/EthersAdapter";
-import { PureAdapter } from "./deployer/adapters/PureAdapter";
-import { TruffleAdapter } from "./deployer/adapters/TruffleAdapter";
-import { EthersFactory, Instance, PureFactory, TruffleFactory } from "./types/adapter";
-import { Bytecode } from "./types/deployer";
 import { KeyTxFields } from "./types/tools";
+import { Bytecode } from "./types/deployer";
+import { EthersFactory, PureFactory, TruffleFactory } from "./types/adapter";
 
 export async function getSignerHelper(
   hre: HardhatRuntimeEnvironment,
@@ -27,7 +24,7 @@ export async function getSignerHelper(
 
   const address = await hre.ethers.resolveAddress(from, hre.ethers.provider);
 
-  return hre.ethers.getSigner(address);
+  return hre.ethers.getSigner(address as string);
 }
 
 export function underline(str: string): string {
@@ -35,23 +32,11 @@ export function underline(str: string): string {
 }
 
 export function resolvePathToFile(path: string, file: string = ""): string {
+  if (!existsSync(join(path, file))) {
+    path = "./";
+  }
+
   return join(realpathSync(path), file);
-}
-
-export function resolveAdapter<A, I>(hre: HardhatRuntimeEnvironment, contract: Instance<A, I>): Adapter {
-  if (isEthersFactory(contract)) {
-    return new EthersAdapter(hre);
-  }
-
-  if (isTruffleFactory(contract)) {
-    return new TruffleAdapter(hre);
-  }
-
-  if (isPureFactory(contract)) {
-    return new PureAdapter(hre);
-  }
-
-  throw new MigrateError("Unknown Contract Factory Type");
 }
 
 export function isEthersFactory<A, I>(instance: any): instance is EthersFactory<A, I> {
@@ -62,8 +47,16 @@ export function isTruffleFactory<I>(instance: any): instance is TruffleFactory<I
   return instance instanceof Function && instance.prototype.constructor !== undefined;
 }
 
-export function isPureFactory<I>(instance: any): instance is PureFactory<I> {
+export function isPureFactory(instance: any): instance is PureFactory {
   return instance.contractName !== undefined;
+}
+
+export async function getNetwork(hre: HardhatRuntimeEnvironment): Promise<Network> {
+  return hre.ethers.provider.getNetwork();
+}
+
+export async function getChainId(hre: HardhatRuntimeEnvironment): Promise<number> {
+  return Number(await hre.ethers.provider.send("eth_chainId"));
 }
 
 export function toJSON(data: any): string {
@@ -83,7 +76,12 @@ export function bytecodeHash(bytecode: any): string {
 }
 
 export function createHash(keyTxFields: KeyTxFields): string {
-  const obj: KeyTxFields = { data: keyTxFields.data, from: keyTxFields.from, chainId: keyTxFields.chainId };
+  const obj: KeyTxFields = {
+    data: keyTxFields.data,
+    from: keyTxFields.from,
+    chainId: keyTxFields.chainId,
+    instanceName: keyTxFields.instanceName,
+  };
 
   return id(toJSON(obj));
 }
@@ -162,7 +160,7 @@ function _generateDescriptor(propertyName: string, descriptor: PropertyDescripto
     try {
       const result = method.apply(this, args);
 
-      // Check if method is asynchronous
+      // Check if the method is asynchronous
       if (result && result instanceof Promise) {
         // Return promise
         return result.catch((e: any) => {
