@@ -16,9 +16,10 @@ import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
 import { DefaultStorage } from "./tools/storage/Storage";
 
 import { MigrateConfig } from "./types/migrations";
+import { Verifier } from "./verifier/Verifier";
 
 export { Deployer } from "./deployer/Deployer";
-export { Sender } from "./sender/Sender";
+export { Verifier } from "./verifier/Verifier";
 
 extendConfig(migrateConfigExtender);
 
@@ -34,6 +35,7 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
   await ArtifactProcessor.parseArtifacts(env);
 
   Reporter.init(env);
+  Verifier.init(env);
 
   await new Migrator(env).migrate();
 };

@@ -1,5 +1,5 @@
-import { readdirSync, statSync } from "fs";
 import { basename } from "path";
+import { readdirSync, statSync } from "fs";
 
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -12,17 +12,14 @@ import { MigrateError } from "../errors";
 
 import { MigrateConfig } from "../types/migrations";
 
-import { Sender } from "../sender/Sender";
-
 import { Deployer } from "../deployer/Deployer";
-import { Reporter } from "../tools/reporter/Reporter";
-import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 import { Verifier } from "../verifier/Verifier";
+
+import { Reporter } from "../tools/reporter/Reporter";
+import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 
 export class Migrator {
   private readonly _deployer: Deployer;
-  private readonly _verifier: Verifier;
-  private readonly _sender: Sender;
 
   private readonly _migrationFiles: string[];
 
@@ -31,8 +28,6 @@ export class Migrator {
     private _config: MigrateConfig = _hre.config.migrate,
   ) {
     this._deployer = new Deployer(_hre);
-    this._verifier = new Verifier(_hre);
-    this._sender = new Sender(_hre);
 
     this._migrationFiles = this._getMigrationFiles();
   }
@@ -46,7 +41,7 @@ export class Migrator {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const migration = require(resolvePathToFile(this._config.pathToMigrations, element));
 
-        await migration(this._deployer, this._sender);
+        await migration(this._deployer, Verifier);
       } catch (e: unknown) {
         if (e instanceof MigrateError) {
           throw new HardhatPluginError(pluginName, e.message, e);
@@ -56,7 +51,7 @@ export class Migrator {
       }
     }
 
-    await this._verifier.verifyBatch(TransactionProcessor.restoreSavedVerificationFunctions());
+    await Verifier.verifyBatch(VerificationProcessor.restoreSavedVerificationFunctions());
 
     await Reporter.summary();
   }
