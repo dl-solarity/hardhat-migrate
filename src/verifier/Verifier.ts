@@ -12,17 +12,15 @@ import { Reporter } from "../tools/reporter/Reporter";
 import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 
 export class Verifier {
-  private static _etherscanConfig: any;
-  private static _config: MigrateConfig;
-  private static _hre: HardhatRuntimeEnvironment;
+  private _etherscanConfig: any;
+  private _config: MigrateConfig;
 
-  public static init(hre: HardhatRuntimeEnvironment) {
-    this._hre = hre;
-    this._etherscanConfig = (hre.config as any).etherscan;
-    this._config = hre.config.migrate;
+  constructor(private _hre: HardhatRuntimeEnvironment) {
+    this._etherscanConfig = (_hre.config as any).etherscan;
+    this._config = _hre.config.migrate;
   }
 
-  public static async processVerification(verifierArgs: VerifierArgs): Promise<void> {
+  public async processVerification(verifierArgs: VerifierArgs): Promise<void> {
     if (!this._config) {
       return;
     }
@@ -43,7 +41,7 @@ export class Verifier {
   }
 
   @catchError
-  public static async verify(verifierArgs: VerifierArgs): Promise<void> {
+  public async verify(verifierArgs: VerifierArgs): Promise<void> {
     const { contractAddress, contractName, constructorArguments } = verifierArgs;
 
     const instance = await this._getEtherscanInstance(this._hre);
@@ -64,7 +62,7 @@ export class Verifier {
   }
 
   @catchError
-  public static async verifyBatch(verifierButchArgs: VerifierArgs[]) {
+  public async verifyBatch(verifierButchArgs: VerifierArgs[]) {
     if (!this._config.verify) {
       return;
     }
@@ -79,7 +77,7 @@ export class Verifier {
   }
 
   @catchError
-  private static async _tryVerify(
+  private async _tryVerify(
     instance: Etherscan,
     contractAddress: string,
     contractName: string,
@@ -98,7 +96,7 @@ export class Verifier {
   }
 
   @catchError
-  private static _handleVerificationError(contractAddress: string, contractName: string, error: any) {
+  private _handleVerificationError(contractAddress: string, contractName: string, error: any) {
     if (error.message.toLowerCase().includes("already verified")) {
       Reporter.reportAlreadyVerified(contractAddress, contractName);
       return;
@@ -108,7 +106,7 @@ export class Verifier {
   }
 
   @catchError
-  private static async _getEtherscanInstance(hre: HardhatRuntimeEnvironment): Promise<Etherscan> {
+  private async _getEtherscanInstance(hre: HardhatRuntimeEnvironment): Promise<Etherscan> {
     const chainConfig = await Etherscan.getCurrentChainConfig(
       hre.network.name,
       hre.network.provider,
@@ -119,7 +117,7 @@ export class Verifier {
   }
 
   @suppressLogs
-  private static async _tryRunVerificationTask(contractAddress: string, contractName: string, args: Args) {
+  private async _tryRunVerificationTask(contractAddress: string, contractName: string, args: Args) {
     await this._hre.run("verify:verify", {
       address: contractAddress,
       constructorArguments: args,

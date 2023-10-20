@@ -25,9 +25,11 @@ import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 @catchError
 export class DeployerCore {
   private _config: MigrateConfig;
+  private _verifier: Verifier;
 
   constructor(private _hre: HardhatRuntimeEnvironment) {
     this._config = _hre.config.migrate;
+    this._verifier = new Verifier(_hre);
   }
 
   public async deploy(deployParams: ContractDeployParams, args: Args, parameters: OverridesAndLibs): Promise<string> {
@@ -94,7 +96,7 @@ export class DeployerCore {
 
     TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);
 
-    await Verifier.processVerification({
+    await this._verifier.processVerification({
       contractAddress,
       contractName: tx.contractName,
       constructorArguments: args,

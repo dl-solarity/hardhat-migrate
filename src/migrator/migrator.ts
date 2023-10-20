@@ -20,6 +20,7 @@ import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 
 export class Migrator {
   private readonly _deployer: Deployer;
+  private readonly _verifier: Verifier;
 
   private readonly _migrationFiles: string[];
 
@@ -28,6 +29,7 @@ export class Migrator {
     private _config: MigrateConfig = _hre.config.migrate,
   ) {
     this._deployer = new Deployer(_hre);
+    this._verifier = new Verifier(_hre);
 
     this._migrationFiles = this._getMigrationFiles();
   }
@@ -41,7 +43,7 @@ export class Migrator {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const migration = require(resolvePathToFile(this._config.pathToMigrations, element));
 
-        await migration(this._deployer, Verifier);
+        await migration(this._deployer, this._verifier);
       } catch (e: unknown) {
         if (e instanceof MigrateError) {
           throw new HardhatPluginError(pluginName, e.message, e);
@@ -51,7 +53,7 @@ export class Migrator {
       }
     }
 
-    await Verifier.verifyBatch(VerificationProcessor.restoreSavedVerificationFunctions());
+    await this._verifier.verifyBatch(VerificationProcessor.restoreSavedVerificationFunctions());
 
     await Reporter.summary();
   }
