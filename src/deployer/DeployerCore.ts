@@ -33,17 +33,25 @@ export class DeployerCore {
   }
 
   public async deploy(deployParams: ContractDeployParams, args: Args, parameters: OverridesAndLibs): Promise<string> {
-    const contractName = ArtifactProcessor.getContractName(deployParams.bytecode);
+    const contractName =
+      deployParams.contractName === undefined
+        ? ArtifactProcessor.tryGetContractName(deployParams.bytecode)
+        : deployParams.contractName;
 
-    deployParams.bytecode = await Linker.linkBytecode(this._hre, deployParams.bytecode, parameters.libraries || {});
+    deployParams.bytecode = await Linker.linkBytecode(
+      this._hre,
+      contractName,
+      deployParams.bytecode,
+      parameters.libraries || {},
+    );
 
     const tx: ContractDeployTransactionWithContractName = {
       ...(await this._createDeployTransaction(deployParams, args, parameters)),
       contractName: contractName,
     };
 
-    if (this._config.continuePreviousDeployment) {
-      return this._tryRecoverContractAddress(tx, args);
+    if (this._config.continue) {
+      return this._recoverContractAddress(tx, args);
     } else {
       return this._processContractDeploymentTransaction(tx, args);
     }
@@ -63,9 +71,9 @@ export class DeployerCore {
     };
   }
 
-  private async _tryRecoverContractAddress(tx: ContractDeployTransactionWithContractName, args: Args): Promise<string> {
+  private async _recoverContractAddress(tx: ContractDeployTransactionWithContractName, args: Args): Promise<string> {
     try {
-      const contractAddress = TransactionProcessor.tryRestoreContractAddressByKeyFields(tx);
+      const contractAddress = await TransactionProcessor.tryRestoreContractAddressByKeyFields(tx, this._hre);
 
       Reporter.notifyContractRecovery(tx.contractName, contractAddress);
 

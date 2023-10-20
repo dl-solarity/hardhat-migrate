@@ -15,6 +15,7 @@ export type ContractDeployTransactionWithContractName = ContractDeployTransactio
 export interface ContractDeployParams {
   abi: Interface;
   bytecode: string;
+  contractName?: string;
 }
 
 export interface Link {

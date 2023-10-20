@@ -30,7 +30,7 @@ export class Deployer {
 
   public async deploy<T, A = T, I = any>(
     contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never),
-    args: TypedArgs<A>,
+    args: TypedArgs<A> = [] as TypedArgs<A>,
     parameters: OverridesAndLibs = {},
   ): Promise<I> {
     const adapter = this._resolveAdapter(this._hre, contract);
@@ -45,9 +45,11 @@ export class Deployer {
   public async deployed<A, I>(contract: Instance<A, I>): Promise<I> {
     const adapter = this._resolveAdapter(this._hre, contract);
 
-    const contractName = ArtifactProcessor.getContractName((await adapter.getContractDeployParams(contract)).bytecode);
+    const contractName = ArtifactProcessor.tryGetContractName(
+      (await adapter.getContractDeployParams(contract)).bytecode,
+    );
 
-    const contractAddress = TransactionProcessor.tryRestoreContractAddressByName(contractName);
+    const contractAddress = await TransactionProcessor.tryRestoreContractAddressByName(this._hre, contractName);
 
     return adapter.toInstance(contract, contractAddress, await getSignerHelper(this._hre));
   }

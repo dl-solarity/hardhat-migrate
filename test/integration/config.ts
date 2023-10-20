@@ -59,7 +59,7 @@ describe("config", () => {
     });
 
     it("should apply continuePreviousDeployment", async function () {
-      assert.isFalse(loadedOptions.continuePreviousDeployment);
+      assert.isFalse(loadedOptions.continue);
     });
   });
 
@@ -133,7 +133,7 @@ describe("config", () => {
     });
 
     it("should set to default continuePreviousDeployment", async function () {
-      assert.isFalse(loadedOptions.continuePreviousDeployment);
+      assert.isFalse(loadedOptions.continue);
     });
   });
 });
