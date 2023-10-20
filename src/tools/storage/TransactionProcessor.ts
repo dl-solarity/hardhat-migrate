@@ -7,7 +7,7 @@ import { MigrateError } from "../../errors";
 import { catchError, createHash } from "../../utils";
 
 import { KeyTxFields } from "../../types/tools";
-import { validateKeyTxFields } from "../../types/type-cheks";
+import { validateKeyTxFields } from "../../types/type-checks";
 import { TruffleTransactionResponse } from "../../types/deployer";
 
 @catchError

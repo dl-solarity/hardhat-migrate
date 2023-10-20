@@ -16,7 +16,7 @@ import { PureEthersAdapter } from "./adapters/PureEthersAdapter";
 
 import { OverridesAndLibs } from "../types/deployer";
 import { Instance, TypedArgs } from "../types/adapter";
-import { isContractFactory, isEthersFactory, isPureFactory, isTruffleFactory } from "../types/type-cheks";
+import { isContractFactory, isEthersFactory, isPureFactory, isTruffleFactory } from "../types/type-checks";
 
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
@@ -33,7 +33,7 @@ export class Deployer {
     args: TypedArgs<A>,
     parameters: OverridesAndLibs = {},
   ): Promise<I> {
-    const adapter = this.resolveAdapter(this._hre, contract);
+    const adapter = this._resolveAdapter(this._hre, contract);
 
     const deploymentParams = await adapter.getContractDeployParams(contract);
 
@@ -43,7 +43,7 @@ export class Deployer {
   }
 
   public async deployed<A, I>(contract: Instance<A, I>): Promise<I> {
-    const adapter = this.resolveAdapter(this._hre, contract);
+    const adapter = this._resolveAdapter(this._hre, contract);
 
     const contractName = ArtifactProcessor.getContractName((await adapter.getContractDeployParams(contract)).bytecode);
 
@@ -57,10 +57,18 @@ export class Deployer {
    * Used for backward compatibility with Truffle migrations.
    */
   public async link<A, I>(library: any, instance: Instance<A, I>): Promise<void> {
-    await this.resolveAdapter(this._hre, instance).link(library, instance);
+    await new TruffleAdapter(this._hre).link(library, instance);
   }
 
-  public resolveAdapter<A, I>(hre: HardhatRuntimeEnvironment, contract: Instance<A, I>): Adapter {
+  public async getSigner(from?: string): Promise<Signer> {
+    return getSignerHelper(this._hre, from);
+  }
+
+  public async getChainId(): Promise<bigint> {
+    return getChainId(this._hre);
+  }
+
+  private _resolveAdapter<A, I>(hre: HardhatRuntimeEnvironment, contract: Instance<A, I>): Adapter {
     if (isEthersFactory(contract)) {
       return new EthersAdapter(hre);
     }
@@ -78,13 +86,5 @@ export class Deployer {
     }
 
     throw new MigrateError("Unknown Contract Factory Type");
-  }
-
-  public async getSigner(from?: string): Promise<Signer> {
-    return getSignerHelper(this._hre, from);
-  }
-
-  public async getChainId(): Promise<bigint> {
-    return getChainId(this._hre);
   }
 }

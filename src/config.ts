@@ -42,7 +42,6 @@ export const mergeConfigs = (
 };
 
 const definedProps = (obj: Partial<MigrateConfig>): Partial<MigrateConfig> =>
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Object.fromEntries(Object.entries(obj).filter(([k, v]) => v !== undefined)) as Partial<MigrateConfig>;
+  Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as Partial<MigrateConfig>;
 
 const isRelativePath = (path?: string): boolean => path === undefined || !isAbsolute(path);

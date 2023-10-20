@@ -4,8 +4,6 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { catchError } from "../../utils";
 
-import { MigrateError } from "../../errors";
-
 import { Instance } from "../../types/adapter";
 import { MigrateConfig } from "../../types/migrations";
 import { ContractDeployParams } from "../../types/deployer";
@@ -23,11 +21,6 @@ export abstract class Adapter {
       abi: this._getInterface(instance),
       bytecode: this._getRawBytecode(instance),
     };
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async link(_instance: any, _library: any): Promise<void> {
-    throw new MigrateError("Linking is not supported with provided Factory.");
   }
 
   public abstract toInstance<A, I>(instance: Instance<A, I>, address: string, signer: any): Promise<I>;
