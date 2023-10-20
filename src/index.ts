@@ -75,4 +75,5 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
     undefined,
     types.string,
   )
+  .addFlag("continue", "The flag indicating whether the previous deployment should be continued.")
   .setAction(migrate);
