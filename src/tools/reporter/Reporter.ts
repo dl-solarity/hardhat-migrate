@@ -101,13 +101,19 @@ export class Reporter {
   }
 
   public static notifyDeploymentInsteadOfRecovery(contractName: string): void {
-    const output = `\nUnfortunately, we can't recover contract address for ${contractName}. Deploying instead...`;
+    const output = `\nCan't recover contract address for ${contractName}. Deploying instead...`;
+
+    console.log(output);
+  }
+
+  public static notifyDeploymentOfMissingLibrary(libraryName: string): void {
+    const output = `\nDeploying missing library ${libraryName}...`;
 
     console.log(output);
   }
 
   public static notifyTransactionSendingInsteadOfRecovery(contractMethod: string): void {
-    const output = `\nUnfortunately, we can't recover transaction for ${contractMethod}. Sending instead...`;
+    const output = `\nCan't recover transaction for ${contractMethod}. Sending instead...`;
 
     console.log(output);
   }
@@ -196,8 +202,18 @@ export class Reporter {
     console.log("");
   }
 
+  private static async _reportChainInfo() {
+    console.log(`> ${"Network:".padEnd(20)} ${(await this._getNetwork()).name}`);
+
+    console.log(`> ${"Network id:".padEnd(20)} ${await this._getChainId()}`);
+  }
+
   private static async _getNetwork(): Promise<Network> {
-    return this._hre.ethers.provider.getNetwork();
+    try {
+      return this._hre.ethers.provider.getNetwork();
+    } catch {
+      return new Network("Local Ethereum", 1337);
+    }
   }
 
   private static async _getChainId(): Promise<number> {
@@ -206,12 +222,6 @@ export class Reporter {
     } catch {
       return 1337;
     }
-  }
-
-  private static async _reportChainInfo() {
-    console.log(`> ${"Network:".padEnd(20)} ${(await this._getNetwork()).name}`);
-
-    console.log(`> ${"Network id:".padEnd(20)} ${await this._getChainId()}`);
   }
 
   private static async _getExplorerUrl(): Promise<string> {
