@@ -1,4 +1,4 @@
-import { ContractDeployTransaction, Overrides, Signer, toBigInt, TransactionResponse } from "ethers";
+import { ContractDeployTransaction, Overrides, Signer, TransactionResponse } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -12,7 +12,7 @@ import {
   Args,
   ContractDeployParams,
   ContractDeployTransactionWithContractName,
-  OverridesAndLibs
+  OverridesAndLibs,
 } from "../types/deployer";
 import { MigrateConfig } from "../types/migrations";
 
@@ -33,21 +33,18 @@ export class DeployerCore {
   public async deploy(deployParams: ContractDeployParams, args: Args, parameters: OverridesAndLibs): Promise<string> {
     const contractName = ArtifactProcessor.getContractName(deployParams.bytecode);
 
-    deployParams.bytecode = await Linker.linkBytecode(deployParams.bytecode, parameters.libraries || {});
+    deployParams.bytecode = await Linker.linkBytecode(this._hre, deployParams.bytecode, parameters.libraries || {});
 
     const tx: ContractDeployTransactionWithContractName = {
       ...(await this._createDeployTransaction(deployParams, args, parameters)),
       contractName: contractName,
     };
 
-    let contractAddress: string;
     if (this._config.continuePreviousDeployment) {
-      contractAddress = await this._tryRecoverContractAddress(tx, args);
+      return this._tryRecoverContractAddress(tx, args);
     } else {
-      contractAddress = await this._processContractDeploymentTransaction(tx, args);
+      return this._processContractDeploymentTransaction(tx, args);
     }
-
-    return contractAddress;
   }
 
   private async _createDeployTransaction(
@@ -57,24 +54,21 @@ export class DeployerCore {
   ): Promise<ContractDeployTransaction> {
     const factory = new this._hre.ethers.ContractFactory(contractParams.abi, contractParams.bytecode);
 
-    const chainId = await getChainId(this._hre);
-    const from = (await getSignerHelper(this._hre, txOverrides.from)).address;
-
     return {
-      chainId: toBigInt(chainId),
-      from,
+      chainId: await getChainId(this._hre),
+      from: (await getSignerHelper(this._hre, txOverrides.from)).address,
       ...(await factory.getDeployTransaction(...args, txOverrides)),
     };
   }
 
   private async _tryRecoverContractAddress(tx: ContractDeployTransactionWithContractName, args: Args): Promise<string> {
     try {
-      const contractAddress = TransactionProcessor.tryRestoreSavedContractAddress(tx);
+      const contractAddress = TransactionProcessor.tryRestoreContractAddressByKeyFields(tx);
 
       Reporter.notifyContractRecovery(tx.contractName, contractAddress);
 
       return contractAddress;
-    } catch (e) {
+    } catch {
       Reporter.notifyDeploymentInsteadOfRecovery(tx.contractName);
 
       return this._processContractDeploymentTransaction(tx, args);

@@ -50,28 +50,15 @@ export class Verifier {
 
     if (await instance.isVerified(contractAddress)) {
       Reporter.reportAlreadyVerified(contractAddress, contractName);
+
       return;
     }
 
     for (let attempts = 0; attempts < this._config.attempts; attempts++) {
       try {
-        await this._verificationTask(contractAddress, contractName, constructorArguments);
-
-        const status = await instance.getVerificationStatus(contractAddress);
-
-        if (status.isSuccess()) {
-          Reporter.reportSuccessfulVerification(contractAddress, contractName);
-          return;
-        } else {
-          Reporter.reportVerificationError(contractAddress, contractName, status.message);
-        }
+        await this._tryVerify(instance, contractAddress, contractName, constructorArguments);
       } catch (e: any) {
-        if (e.message.toLowerCase().includes("already verified")) {
-          Reporter.reportAlreadyVerified(contractAddress, contractName);
-          return;
-        } else {
-          Reporter.reportVerificationError(contractAddress, contractName, e.message);
-        }
+        this._handleVerificationError(contractAddress, contractName, e);
       }
     }
   }
@@ -92,6 +79,35 @@ export class Verifier {
   }
 
   @catchError
+  private static async _tryVerify(
+    instance: Etherscan,
+    contractAddress: string,
+    contractName: string,
+    constructorArguments: Args,
+  ) {
+    await this._tryRunVerificationTask(contractAddress, contractName, constructorArguments);
+
+    const status = await instance.getVerificationStatus(contractAddress);
+
+    if (status.isSuccess()) {
+      Reporter.reportSuccessfulVerification(contractAddress, contractName);
+      return;
+    } else {
+      Reporter.reportVerificationError(contractAddress, contractName, status.message);
+    }
+  }
+
+  @catchError
+  private static _handleVerificationError(contractAddress: string, contractName: string, error: any) {
+    if (error.message.toLowerCase().includes("already verified")) {
+      Reporter.reportAlreadyVerified(contractAddress, contractName);
+      return;
+    } else {
+      Reporter.reportVerificationError(contractAddress, contractName, error.message);
+    }
+  }
+
+  @catchError
   private static async _getEtherscanInstance(hre: HardhatRuntimeEnvironment): Promise<Etherscan> {
     const chainConfig = await Etherscan.getCurrentChainConfig(
       hre.network.name,
@@ -103,7 +119,7 @@ export class Verifier {
   }
 
   @suppressLogs
-  private static async _verificationTask(contractAddress: string, contractName: string, args: Args) {
+  private static async _tryRunVerificationTask(contractAddress: string, contractName: string, args: Args) {
     await this._hre.run("verify:verify", {
       address: contractAddress,
       constructorArguments: args,

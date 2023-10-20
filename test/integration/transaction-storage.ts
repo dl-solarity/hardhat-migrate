@@ -1,17 +1,19 @@
 import { assert, expect } from "chai";
 import { ContractFactory, ZeroAddress } from "ethers";
 
+import { useEnvironment } from "../helpers";
+
 import { Deployer } from "../../src/deployer/Deployer";
 import { ArtifactProcessor } from "../../src/tools/storage/ArtifactProcessor";
 import { TransactionStorage } from "../../src/tools/storage/Storage";
 import { TransactionProcessor } from "../../src/tools/storage/TransactionProcessor";
+
 import {
   ContractWithConstructorArguments__factory,
   ContractWithPayableConstructor__factory,
 } from "../fixture-projects/hardhat-project-repeats-typechain-ethers/typechain-types";
-import { useEnvironment } from "../helpers";
 
-describe.only("TransactionStorage", async () => {
+describe("TransactionStorage", async () => {
   useEnvironment("repeats-typechain-ethers");
 
   beforeEach(async function () {
@@ -22,29 +24,7 @@ describe.only("TransactionStorage", async () => {
     TransactionStorage.clear();
   });
 
-  describe("saveDeploymentTransaction()", () => {
-    it("should save deployment transaction", function () {
-      const tx = { data: "", chainId: BigInt(0), from: "" };
-
-      TransactionProcessor.saveDeploymentTransaction(tx, "name", "123");
-
-      assert.equal(TransactionProcessor.tryRestoreSavedContractAddress(tx), "123");
-    });
-
-    it("should save deployment transaction by name", function () {
-      const tx = { data: "", chainId: BigInt(0), from: "" };
-
-      const contractName = "Bla";
-
-      const contractAddress = "123";
-
-      TransactionProcessor.saveDeploymentTransaction(tx, contractName, contractAddress);
-
-      assert(TransactionProcessor.tryRestoreSavedContractAddress(contractName), contractAddress);
-    });
-  });
-
-  describe("via Deployer", function () {
+  describe("saveDeploymentTransaction() via Deployer", function () {
     let deployer: Deployer;
 
     beforeEach(function () {
@@ -59,16 +39,19 @@ describe.only("TransactionStorage", async () => {
         ContractWithConstructorArguments__factory.bytecode,
       );
 
-      const tx = await factory.getDeployTransaction("hello");
+      const tx = await factory.getDeployTransaction("hello", {
+        from: await (await deployer.getSigner()).getAddress(),
+        chainId: await deployer.getChainId(),
+      });
 
-      assert.equal(TransactionProcessor.tryRestoreSavedContractAddress(tx), await contract.getAddress());
+      assert.equal(TransactionProcessor.tryRestoreContractAddressByKeyFields(tx), await contract.getAddress());
     });
 
     it("should save deployment transaction by name", async function () {
       const contract = await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
 
       assert.equal(
-        TransactionProcessor.tryRestoreSavedContractAddress(
+        TransactionProcessor.tryRestoreContractAddressByName(
           "contracts/another-contracts/Contracts.sol:ContractWithConstructorArguments",
         ),
         await contract.getAddress(),
@@ -84,9 +67,13 @@ describe.only("TransactionStorage", async () => {
         ContractWithPayableConstructor__factory.bytecode,
       );
 
-      const tx = await factory.getDeployTransaction({ value: value });
+      const tx = await factory.getDeployTransaction({
+        value: value,
+        from: await (await deployer.getSigner()).getAddress(),
+        chainId: await deployer.getChainId(),
+      });
 
-      assert.equal(TransactionProcessor.tryRestoreSavedContractAddress(tx), await contract.getAddress());
+      assert.equal(TransactionProcessor.tryRestoreContractAddressByKeyFields(tx), await contract.getAddress());
     });
 
     it("should differ contracts with chainId", async function () {
@@ -97,24 +84,12 @@ describe.only("TransactionStorage", async () => {
         ContractWithConstructorArguments__factory.bytecode,
       );
 
-      const tx = await factory.getDeployTransaction("hello", { chainId: 1 });
+      const data = await factory.getDeployTransaction("hello", {
+        chainId: 1,
+        from: await (await deployer.getSigner()).getAddress(),
+      });
 
-      expect(() => TransactionProcessor.tryRestoreSavedContractAddress(tx)).to.throw(
-        "Transaction not found in storage",
-      );
-    });
-
-    it("should differ contracts with chainId", async function () {
-      await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
-
-      const factory = new ContractFactory(
-        ContractWithConstructorArguments__factory.abi,
-        ContractWithConstructorArguments__factory.bytecode,
-      );
-
-      const tx = await factory.getDeployTransaction("hello", { chainId: 1 });
-
-      expect(() => TransactionProcessor.tryRestoreSavedContractAddress(tx)).to.throw(
+      expect(() => TransactionProcessor.tryRestoreContractAddressByKeyFields(data)).to.throw(
         "Transaction not found in storage",
       );
     });
@@ -127,9 +102,12 @@ describe.only("TransactionStorage", async () => {
         ContractWithConstructorArguments__factory.bytecode,
       );
 
-      const tx = await factory.getDeployTransaction("hello", { from: ZeroAddress });
+      const tx = await factory.getDeployTransaction("hello", {
+        from: ZeroAddress,
+        chainId: await deployer.getChainId(),
+      });
 
-      expect(() => TransactionProcessor.tryRestoreSavedContractAddress(tx)).to.throw(
+      expect(() => TransactionProcessor.tryRestoreContractAddressByKeyFields(tx)).to.throw(
         "Transaction not found in storage",
       );
     });
@@ -142,9 +120,13 @@ describe.only("TransactionStorage", async () => {
         ContractWithConstructorArguments__factory.bytecode,
       );
 
-      const tx = await factory.getDeployTransaction("hello", { nonce: 0 });
+      const data = await factory.getDeployTransaction("hello", {
+        nonce: 0,
+        from: await (await deployer.getSigner()).getAddress(),
+        chainId: await deployer.getChainId(),
+      });
 
-      assert.equal(TransactionProcessor.tryRestoreSavedContractAddress(tx), await contract.getAddress());
+      assert.equal(TransactionProcessor.tryRestoreContractAddressByKeyFields(data), await contract.getAddress());
     });
 
     it("should differ contracts with args", async function () {
@@ -155,9 +137,12 @@ describe.only("TransactionStorage", async () => {
         ContractWithConstructorArguments__factory.bytecode,
       );
 
-      const tx = await factory.getDeployTransaction("hello2");
+      const data = await factory.getDeployTransaction("hello2", {
+        from: await (await deployer.getSigner()).getAddress(),
+        chainId: await deployer.getChainId(),
+      });
 
-      expect(() => TransactionProcessor.tryRestoreSavedContractAddress(tx)).to.throw(
+      expect(() => TransactionProcessor.tryRestoreContractAddressByKeyFields(data)).to.throw(
         "Transaction not found in storage",
       );
     });

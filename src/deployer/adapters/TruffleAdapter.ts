@@ -4,8 +4,9 @@ import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
 
 import { Adapter } from "./Adapter";
 
-import { bytecodeToString, catchError } from "../../utils";
+import { bytecodeToString, catchError, getChainId } from "../../utils";
 
+import { KeyTxFields } from "../../types/tools";
 import { TruffleFactory } from "../../types/adapter";
 import { BaseTruffleMethod, TruffleTransactionResponse } from "../../types/deployer";
 
@@ -26,7 +27,7 @@ export class TruffleAdapter extends Adapter {
   public async toInstance<I>(instance: TruffleFactory<I>, address: string, signer: Signer): Promise<I> {
     const contract = this._hre.artifacts.require(instance.contractName!);
 
-    this._insertHandlers(instance, contract, address, await signer.getAddress());
+    this._insertHandlers(instance, contract, await signer.getAddress());
 
     return contract.at(address);
   }
@@ -39,7 +40,7 @@ export class TruffleAdapter extends Adapter {
     return bytecodeToString(instance.bytecode);
   }
 
-  protected _insertHandlers<I>(instance: TruffleFactory<I>, contract: I, to: string, from: string): I {
+  protected _insertHandlers<I>(instance: TruffleFactory<I>, contract: I, from: string): I {
     const contractName = ArtifactProcessor.getContractName(this._getRawBytecode(instance)).split(":")[1];
 
     for (const methodFragment of this._getContractMethods(instance)) {
@@ -47,7 +48,7 @@ export class TruffleAdapter extends Adapter {
 
       const oldMethod: BaseTruffleMethod = (contract as any)[methodName];
 
-      const newMethod = this._wrapOldMethod(contractName, methodName, methodFragment, oldMethod, to, from);
+      const newMethod = this._wrapOldMethod(contractName, methodName, methodFragment, oldMethod, from);
 
       defineProperties<any>(newMethod, {
         oldMethod,
@@ -68,21 +69,20 @@ export class TruffleAdapter extends Adapter {
     methodName: string,
     methodFragments: FunctionFragment,
     oldMethod: BaseTruffleMethod,
-    to: string,
     from: string,
   ): (...args: any[]) => Promise<TruffleTransactionResponse> {
     return async (...args: any[]): Promise<TruffleTransactionResponse> => {
-      const tx = await this._buildContractDeployTransaction(args, to, from);
+      const onlyToSaveTx = await this._buildContractDeployTransaction(args, from);
 
       const methodString = this._getMethodString(contractName, methodName, methodFragments, ...args);
 
       let txResult: TruffleTransactionResponse;
       if (this._config.continuePreviousDeployment) {
-        return this._recoverTransaction(methodString, tx, oldMethod, args);
+        return this._recoverTransaction(methodString, onlyToSaveTx, oldMethod, args);
       } else {
         txResult = await oldMethod(...args);
 
-        TransactionProcessor.saveTransaction(tx);
+        TransactionProcessor.saveTransaction(onlyToSaveTx);
 
         await Reporter.reportTruffleTransaction(txResult, methodString);
       }
@@ -129,11 +129,16 @@ export class TruffleAdapter extends Adapter {
     return txResponse;
   }
 
-  private _buildContractDeployTransaction(args: any[], to: string, from: string): ContractTransaction {
-    return {
-      to: to,
+  /**
+   * @dev Build a transaction ONLY to save it in the storage.
+   */
+  private async _buildContractDeployTransaction(args: any[], from: string): Promise<ContractTransaction> {
+    const tx: KeyTxFields = {
       data: JSON.stringify(args),
       from: from,
+      chainId: await getChainId(this._hre),
     };
+
+    return tx as ContractTransaction;
   }
 }

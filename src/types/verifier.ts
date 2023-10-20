@@ -33,9 +33,9 @@ export interface ChainRecord {
 
 export const predefinedChains: Record<number, ChainRecord> = {
   1337: {
-    name: "Local Ethereum Testnet",
+    name: "Local Ethereum",
     chain: "ETH",
-    title: "Local Testnet",
+    title: "Local",
     rpc: ["http://127.0.0.1:8545"],
     faucets: [],
     nativeCurrency: {
@@ -59,9 +59,9 @@ export const predefinedChains: Record<number, ChainRecord> = {
     ],
   },
   31337: {
-    name: "Local Ethereum Testnet",
+    name: "Local Ethereum",
     chain: "ETH",
-    title: "Local Testnet",
+    title: "Local",
     rpc: ["http://127.0.0.1:8545"],
     faucets: [],
     nativeCurrency: {

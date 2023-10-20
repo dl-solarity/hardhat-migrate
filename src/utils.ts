@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { join } from "path";
 import { realpathSync, existsSync } from "fs";
-import { AddressLike, Network, hexlify, id } from "ethers";
+import { AddressLike, hexlify, id, toBigInt } from "ethers";
 
 import { isBytes } from "@ethersproject/bytes";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
@@ -12,7 +12,6 @@ import { MigrateError } from "./errors";
 
 import { KeyTxFields } from "./types/tools";
 import { Bytecode } from "./types/deployer";
-import { EthersFactory, PureFactory, TruffleFactory } from "./types/adapter";
 
 export async function getSignerHelper(
   hre: HardhatRuntimeEnvironment,
@@ -39,24 +38,8 @@ export function resolvePathToFile(path: string, file: string = ""): string {
   return join(realpathSync(path), file);
 }
 
-export function isEthersFactory<A, I>(instance: any): instance is EthersFactory<A, I> {
-  return instance.createInterface !== undefined;
-}
-
-export function isTruffleFactory<I>(instance: any): instance is TruffleFactory<I> {
-  return instance instanceof Function && instance.prototype.constructor !== undefined;
-}
-
-export function isPureFactory(instance: any): instance is PureFactory {
-  return instance.contractName !== undefined;
-}
-
-export async function getNetwork(hre: HardhatRuntimeEnvironment): Promise<Network> {
-  return hre.ethers.provider.getNetwork();
-}
-
-export async function getChainId(hre: HardhatRuntimeEnvironment): Promise<number> {
-  return Number(await hre.ethers.provider.send("eth_chainId"));
+export async function getChainId(hre: HardhatRuntimeEnvironment): Promise<bigint> {
+  return toBigInt(await hre.ethers.provider.send("eth_chainId"));
 }
 
 export function toJSON(data: any): string {
@@ -80,7 +63,6 @@ export function createHash(keyTxFields: KeyTxFields): string {
     data: keyTxFields.data,
     from: keyTxFields.from,
     chainId: keyTxFields.chainId,
-    instanceName: keyTxFields.instanceName,
   };
 
   return id(toJSON(obj));

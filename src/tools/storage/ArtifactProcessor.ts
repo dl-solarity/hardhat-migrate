@@ -1,10 +1,10 @@
-import { MigrateError } from "../../errors";
-
-import { bytecodeHash, catchError } from "../../utils";
-
 import { Artifact, HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { ArtifactStorage } from "./Storage";
+
+import { MigrateError } from "../../errors";
+
+import { bytecodeHash, catchError } from "../../utils";
 
 import { ArtifactExtended, Bytecode, NeededLibrary } from "../../types/deployer";
 
@@ -27,6 +27,16 @@ export class ArtifactProcessor {
       ArtifactStorage.set(name, contract);
       ArtifactStorage.set(bytecodeHash(artifact.bytecode), contract);
     }
+  }
+
+  public static getArtifact(contractName: string): ArtifactExtended {
+    const artifact = ArtifactStorage.get(contractName);
+
+    if (!artifact) {
+      throw new MigrateError(`Artifact not found`);
+    }
+
+    return artifact;
   }
 
   public static getExtendedArtifact(bytecode: string): ArtifactExtended {
