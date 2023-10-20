@@ -38,7 +38,7 @@ export class DeployerCore {
         ? ArtifactProcessor.tryGetContractName(deployParams.bytecode)
         : deployParams.contractName;
 
-    deployParams.bytecode = await Linker.linkBytecode(
+    deployParams.bytecode = await Linker.tryLinkBytecode(
       this._hre,
       contractName,
       deployParams.bytecode,

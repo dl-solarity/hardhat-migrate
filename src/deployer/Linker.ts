@@ -20,7 +20,7 @@ export class Linker {
     return bytecodeToString(bytecode).indexOf("__") === -1;
   }
 
-  public static async linkBytecode(
+  public static async tryLinkBytecode(
     hre: HardhatRuntimeEnvironment,
     contractName: string,
     bytecode: string,
