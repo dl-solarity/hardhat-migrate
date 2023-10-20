@@ -11,12 +11,11 @@ import {
 
 import { Adapter } from "./Adapter";
 
-import { bytecodeToString, catchError } from "../../utils";
+import { bytecodeToString, catchError, getChainId } from "../../utils";
 
 import { EthersFactory } from "../../types/adapter";
 
 import { Reporter } from "../../tools/reporter/Reporter";
-import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 
 @catchError
@@ -24,7 +23,7 @@ export class EthersAdapter extends Adapter {
   public async toInstance<A, I>(instance: EthersFactory<A, I>, address: string, signer: Signer): Promise<I> {
     const contract = new BaseContract(address, this._getInterface(instance), signer) as unknown as I;
 
-    return this._insertHandlers(instance, contract);
+    return this._insertHandlers(instance, contract, await signer.getAddress(), address);
   }
 
   protected _getInterface<A, I>(instance: EthersFactory<A, I>): Interface {
@@ -35,15 +34,27 @@ export class EthersAdapter extends Adapter {
     return bytecodeToString(instance.bytecode);
   }
 
-  protected _insertHandlers<A, I>(instance: EthersFactory<A, I>, contract: I): I {
-    const contractName = ArtifactProcessor.getContractName(this._getRawBytecode(instance)).split(":")[1];
+  protected _insertHandlers<A, I>(instance: EthersFactory<A, I>, contract: I, from: string, to: string): I {
+    const contractName = this.tryGetContractName(instance);
 
     for (const methodFragments of this._getContractMethods(instance)) {
+      if (methodFragments.stateMutability === "view") {
+        continue;
+      }
+
       const methodName = methodFragments.format();
+      const shortName = methodName.split("(")[0];
 
       const oldMethod: BaseContractMethod = (contract as any)[methodName];
 
-      const newMethod = this._wrapOldMethod(contractName, methodName, methodFragments, oldMethod);
+      let isMethodSet: boolean = false;
+      if (((contract as any)[shortName] as any).isSet) {
+        (contract as any)[shortName] = undefined;
+
+        isMethodSet = true;
+      }
+
+      const newMethod = this._wrapOldMethod(contractName, methodName, methodFragments, oldMethod, from, to);
 
       defineProperties<any>(newMethod, {
         name: oldMethod.name,
@@ -53,10 +64,15 @@ export class EthersAdapter extends Adapter {
         send: oldMethod.send,
         staticCall: oldMethod.staticCall,
         staticCallResult: oldMethod.staticCallResult,
+        isSet: true,
       });
       Object.defineProperty(newMethod, "fragment", oldMethod.fragment);
 
       (contract as any)[methodName] = newMethod;
+
+      if (!isMethodSet) {
+        (contract as any)[shortName] = newMethod;
+      }
     }
 
     return contract;
@@ -67,13 +83,18 @@ export class EthersAdapter extends Adapter {
     methodName: string,
     methodFragments: FunctionFragment,
     oldMethod: BaseContractMethod,
+    from: string,
+    to: string,
   ): (...args: any[]) => Promise<ContractTransactionResponse> {
     return async (...args: any[]): Promise<ContractTransactionResponse> => {
       const tx = await oldMethod.populateTransaction(...args);
+      tx.from = from;
+      tx.to = to;
+      tx.chainId = await getChainId(this._hre);
 
       const methodString = this._getMethodString(contractName, methodName, methodFragments, ...args);
 
-      if (this._config.continuePreviousDeployment) {
+      if (this._config.continue) {
         return this._recoverTransaction(methodString, tx, oldMethod, args);
       } else {
         return this._sendTransaction(methodString, tx, oldMethod, args);
@@ -88,7 +109,7 @@ export class EthersAdapter extends Adapter {
     args: any[],
   ) {
     try {
-      return this._tryRecoverTransaction(methodString, tx);
+      return await this._tryRecoverTransaction(methodString, tx);
     } catch {
       Reporter.notifyTransactionSendingInsteadOfRecovery(methodString);
 
@@ -117,5 +138,20 @@ export class EthersAdapter extends Adapter {
     await Reporter.reportTransaction(txResponse, methodString);
 
     return txResponse;
+  }
+
+  protected _getMethodString(
+    contractName: string,
+    methodName: string,
+    methodFragment: FunctionFragment,
+    ...args: any[]
+  ): string {
+    let argsString = "";
+
+    for (let i = 0; i < args.length; i++) {
+      argsString += `${methodFragment.inputs[i].name}:${args[i]}${i === args.length - 1 ? "" : ", "}`;
+    }
+
+    return `${contractName}.${methodName}(${argsString})`;
   }
 }
