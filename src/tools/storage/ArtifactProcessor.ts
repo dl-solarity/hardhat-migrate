@@ -29,7 +29,7 @@ export class ArtifactProcessor {
     }
   }
 
-  public static getArtifact(contractName: string): ArtifactExtended {
+  public static tryGetArtifact(contractName: string): ArtifactExtended {
     const artifact = ArtifactStorage.get(contractName);
 
     if (!artifact) {
@@ -39,7 +39,7 @@ export class ArtifactProcessor {
     return artifact;
   }
 
-  public static getExtendedArtifact(bytecode: string): ArtifactExtended {
+  public static tryGetExtendedArtifact(bytecode: string): ArtifactExtended {
     const artifact = ArtifactStorage.get(bytecodeHash(bytecode));
 
     if (!artifact) {
@@ -49,7 +49,7 @@ export class ArtifactProcessor {
     return artifact;
   }
 
-  public static getContractName(bytecode: Bytecode): string {
+  public static tryGetContractName(bytecode: Bytecode): string {
     const artifact = ArtifactStorage.get(bytecodeHash(bytecode)) as ArtifactExtended;
 
     if (!artifact) {
