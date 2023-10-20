@@ -1,16 +1,25 @@
 import "hardhat/types/config";
+import "hardhat/types/runtime";
 
-import { MigrateConfig, MigrateUserConfig } from "./types";
-import { EtherscanConfig, EtherscanUserConfig } from "@nomiclabs/hardhat-etherscan/src/types";
+import { Migrator } from "./migrator/migrator";
+
+import { MigrateConfig } from "./types/migrations";
+
+import { MigrateStorage } from "./tools/storage/MigrateStorage";
 
 declare module "hardhat/types/config" {
   interface HardhatConfig {
     migrate: MigrateConfig;
-    etherscan: EtherscanConfig;
   }
 
   interface HardhatUserConfig {
-    migrate?: MigrateUserConfig;
-    etherscan?: EtherscanUserConfig;
+    migrate?: Partial<MigrateConfig>;
+  }
+}
+
+declare module "hardhat/types/runtime" {
+  export interface HardhatRuntimeEnvironment {
+    migrator: Migrator;
+    storage: MigrateStorage;
   }
 }
