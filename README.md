@@ -48,7 +48,7 @@ It is also **mandatory** to specify the naming convention for migrations such as
 ## Tasks
 
 - `migrate` task, which allows you to deploy and automatically verify contracts.
-- `migrate:verify` task, which helps you verify already deployed contracts.
+<!-- - `migrate:verify` task, which helps you verify already deployed contracts. -->
 
 > :warning: **Hardhat Config**: Make sure they are follow the docs from `@nomicfoundation/hardhat-verify`.
 
@@ -80,7 +80,7 @@ module.exports = {
     skip: -1,
     txConfirmations: 1,
     verifyConfirmations: 0,
-    verify: VerifyStrategy.AtTheEnd,
+    verify: "at-the-end",
     attempts: 0,
     pathToMigrations: "./deploy",
     skipVerificationErrors: ["already verified"],
@@ -99,6 +99,9 @@ module.exports = {
 - `txConfirmations` : The number of confirmations to wait for after the transaction is mined.
 - `verifyConfirmations` : The number of confirmations to wait for before sending a request to etherscan.
 - `verify` : The strategy of verification. The user can choose between `immediately`, `at-the-end` and `none`.
+  - `immediately`: the verification will start immediately after the contract is deployed. However, the execution will wait `verifyConfirmations` number of blocks before sending a request to etherscan.
+  - `at-the-end`: the verification will start after all migrations are applied.
+  - `none`: the verification will not be performed.
 - `attempts`: The number of attempts to verify the contract.
 - `pathToMigrations` : The path to the folder with the specified migrations.
 - `skipVerificationErrors` : The user can specify custom verification errors that will be omitted and just be printed
@@ -127,7 +130,7 @@ npx hardhat migrate --network sepolia --from 1 --to 2
 
 In this case, migrations 1 through 2 (both) will be applied without the automatic verification.
 
-### Verifying
+<!-- ### Verifying
 
 > _This plugin has a `migrate:verify` task, to learn how to use it, see the example project._
 
@@ -137,7 +140,7 @@ In this case, migrations 1 through 2 (both) will be applied without the automati
 npx hardhat verify --network goerli DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
 ```
 
-Other examples of manual contract verification can be found here [@nomicfoundation/hardhat-verify](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify)
+Other examples of manual contract verification can be found here [@nomicfoundation/hardhat-verify](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify) -->
 
 ## How it works
 
@@ -160,28 +163,30 @@ Parameters: `from`, `to`, `only` and `skip` affect the selection of the migratio
 
 ### Deployer
 
-Deployer contains two functions that are used to deploy contracts:
+Deployer contains the following functionality:
 
-- **Deployment function**
+- **deploy()**
 
 Under the hood, it uses `ContractFactory` from [@ethers](https://www.npmjs.com/package/ethers) to deploy the contracts.
 
-After that, if the user had set the `verify` flag, the contract would be automatically verified. However,
-the execution will wait `verifyConfirmations` number of blocks before sending a request to etherscan.
+- **deployed()**
+
+Returns the deployed contract instance.
 
 - **Link function**
+
+Used for backward compatibility with Truffle migrations.
 
 The link function of the `TruffleContract` class from the [@nomiclabs/hardhat-truffle5](https://www.npmjs.com/package/@nomiclabs/hardhat-truffle5)
 package is used to link external libraries to a contract.
 
 ### Verifier
 
-If the `verify` flag is set, automatic verification will start immediately after the contract is deployed.
 For a list of parameters that affect the verification process, see [Parameter Explanation](https://github.com/dl-solarity/hardhat-migrate#parameter-explanation).
 
 If verification fails, the `attempts` parameter indicates how many additional requests will be made before the migration process is terminated.
 
-The user can also define which verification errors are irrelevant and have to be ignored using the `skipVerificationErrors` parameter. By default, the `already verified` error is omitted.
+<!-- The user can also define which verification errors are irrelevant and have to be ignored using the `skipVerificationErrors` parameter. By default, the `already verified` error is omitted. -->
 
 ## Known limitations
 
