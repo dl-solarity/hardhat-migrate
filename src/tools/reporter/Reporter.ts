@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-import axios from "axios";
-
 import ora from "ora";
+import axios from "axios";
+import BigNumber from "bignumber.js";
 
 import { Network, TransactionReceipt, TransactionResponse } from "ethers";
 
@@ -40,7 +40,7 @@ export class Reporter {
   public static async summary() {
     const output =
       `> ${"Total transactions:".padEnd(20)} ${this.totalTransactions}\n` +
-      `> ${"Final cost:".padEnd(20)} ${this.totalCost.toString()} ${await this._getNativeSymbol()}\n`;
+      `> ${"Final cost:".padEnd(20)} ${this.castAmount(this.totalCost, await this._getNativeSymbol())}\n`;
 
     console.log(output);
   }
@@ -154,6 +154,10 @@ export class Reporter {
 
   private static _parseTransactionTitle(tx: TransactionResponse, instanceName: string): string {
     if (tx.to === null) {
+      if (instanceName.split(":").length == 1) {
+        return `Deploying ${instanceName}`;
+      }
+
       return `Deploying${instanceName ? " " + instanceName.split(":")[1] : ""}`;
     }
 
@@ -175,21 +179,43 @@ export class Reporter {
       output += `> contractAddress: ${tx.contractAddress}\n`;
     }
 
+    const nativeSymbol = await this._getNativeSymbol();
+
     output += `> blockNumber: ${tx.blockNumber}\n`;
 
     output += `> blockTimestamp: ${(await tx.getBlock()).timestamp}\n`;
 
     output += `> account: ${tx.from}\n`;
 
-    output += `> balance: ${await tx.provider.getBalance(tx.from)} ${await this._getNativeSymbol()}\n`;
+    output += `> balance: ${this.castAmount(await tx.provider.getBalance(tx.from), nativeSymbol)}\n`;
 
-    output += `> gasUsed: ${tx.gasUsed.toString()}\n`;
+    output += `> gasUsed: ${tx.gasUsed}\n`;
 
-    output += `> gasPrice: ${tx.gasPrice.toString()} ${await this._getNativeSymbol()}\n`;
+    output += `> gasPrice: ${this.castAmount(tx.gasPrice, nativeSymbol)}\n`;
 
-    output += `> fee: ${tx.fee.toString()} ${await this._getNativeSymbol()}\n`;
+    output += `> fee: ${this.castAmount(tx.fee, nativeSymbol)}\n`;
 
     console.log(output);
+  }
+
+  public static castAmount(value: bigint, nativeSymbol: string): string {
+    if (value < 10n ** 12n) {
+      return this._toGWei(value) + " GWei";
+    }
+
+    return this._toEther(value) + ` ${nativeSymbol}`;
+  }
+
+  private static _toEther(value: bigint): string {
+    return BigNumber(value.toString())
+      .div(10 ** 18)
+      .toFixed();
+  }
+
+  private static _toGWei(value: bigint): string {
+    return BigNumber(value.toString())
+      .div(10 ** 9)
+      .toFixed();
   }
 
   private static _reportMigrationFiles(files: string[]) {
