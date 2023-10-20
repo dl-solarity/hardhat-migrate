@@ -1,13 +1,16 @@
-import { isAddress, resolveAddress } from "ethers";
+import { Interface, isAddress, resolveAddress } from "ethers";
 
-import { Artifact, Libraries } from "hardhat/types";
+import { Artifact, HardhatRuntimeEnvironment, Libraries } from "hardhat/types";
+
+import { DeployerCore } from "./DeployerCore";
 
 import { MigrateError } from "../errors";
 
 import { bytecodeToString, catchError } from "../utils";
 
-import { ArtifactExtended, Bytecode, Link, NeededLibrary } from "../types/deployer";
+import { ArtifactExtended, Bytecode, ContractDeployParams, Link, NeededLibrary } from "../types/deployer";
 
+import { Reporter } from "../tools/reporter/Reporter";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 
@@ -19,7 +22,11 @@ export class Linker {
     }
   }
 
-  public static async linkBytecode(bytecode: string, libraries: Libraries): Promise<string> {
+  public static async linkBytecode(
+    hre: HardhatRuntimeEnvironment,
+    bytecode: string,
+    libraries: Libraries,
+  ): Promise<string> {
     const artifact: ArtifactExtended = ArtifactProcessor.getExtendedArtifact(bytecode);
     const neededLibraries = artifact.neededLibraries;
 
@@ -37,7 +44,8 @@ export class Linker {
     }
 
     if (linksToApply.size < neededLibraries.length) {
-      const separatelyDeployedLibraries = this._findMissingLibraries(
+      const separatelyDeployedLibraries = await this._findMissingLibraries(
+        hre,
         neededLibraries.filter((lib) => !linksToApply.has(`${lib.sourceName}:${lib.libName}`)),
       );
 
@@ -102,12 +110,15 @@ export class Linker {
     return neededLibrary;
   }
 
-  private static _findMissingLibraries(missingLibraries: { sourceName: string; libName: string }[]): Map<string, Link> {
+  private static async _findMissingLibraries(
+    hre: HardhatRuntimeEnvironment,
+    missingLibraries: { sourceName: string; libName: string }[],
+  ): Promise<Map<string, Link>> {
     const missingLibrariesMap: Map<string, Link> = new Map();
 
     for (const missingLibrary of missingLibraries) {
       const lib = `${missingLibrary.sourceName}:${missingLibrary.libName}`;
-      const address = TransactionProcessor.tryRestoreSavedContractAddress(lib);
+      const address = await this._getOrDeployLibrary(hre, lib);
 
       if (isAddress(address)) {
         missingLibrariesMap.set(lib, {
@@ -148,5 +159,24 @@ export class Linker {
     }
 
     return bytecode;
+  }
+
+  private static async _getOrDeployLibrary(hre: HardhatRuntimeEnvironment, libraryName: string) {
+    try {
+      return TransactionProcessor.tryRestoreContractAddressByName(libraryName);
+    } catch {
+      const artifact = ArtifactProcessor.getArtifact(libraryName);
+
+      const core = new DeployerCore(hre);
+
+      const deployParams: ContractDeployParams = {
+        abi: Interface.from(artifact.abi),
+        bytecode: artifact.bytecode,
+      };
+
+      Reporter.notifyDeploymentOfMissingLibrary(libraryName);
+
+      return core.deploy(deployParams, [], {});
+    }
   }
 }
