@@ -6,6 +6,8 @@ import { extendConfig, extendEnvironment, task, types } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 import { ActionType } from "hardhat/types";
 
+import "./type-extensions";
+
 import { mergeConfigs, migrateConfigExtender } from "./config";
 import { TASK_MIGRATE } from "./constants";
 
