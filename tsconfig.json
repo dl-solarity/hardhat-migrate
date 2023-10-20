@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "module": "commonjs",
     "declaration": true,
     "declarationMap": true,
@@ -11,7 +11,19 @@
     "skipDefaultLibCheck": true,
     "skipLibCheck": true,
     "outDir": "./dist",
-    "composite": true
+    "experimentalDecorators": true,
+    "types": [
+      "@nomiclabs/hardhat-truffle5"
+    ]
   },
-  "exclude": ["./dist", "./node_modules", "./test/**/hardhat.config.ts", "./publish"]
+  "exclude": [
+    "./dist",
+    "./node_modules",
+    "./test/**/hardhat.config.ts",
+    "./publish"
+  ],
+  "include": [
+    "src",
+    "test",
+  ]
 }
