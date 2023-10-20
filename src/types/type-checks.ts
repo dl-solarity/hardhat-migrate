@@ -1,27 +1,54 @@
 import { ContractFactory } from "ethers";
 
-import { KeyTxFields } from "./tools";
-
 import { EthersFactory, PureFactory, TruffleFactory } from "./adapter";
+import { KeyDeploymentFields, KeyTransactionFields } from "./tools";
 
 import { MigrateError } from "../errors";
 
-export function validateKeyTxFields(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+export function validateKeyDeploymentFieldsFields(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
 
   descriptor.value = function (...args: any[]) {
-    const key = args[0] as KeyTxFields;
+    const key = args[0] as KeyDeploymentFields;
 
-    if (!key.data || key.data == "") {
-      throw new MigrateError(`KeyTxFields.data is not valid`);
+    if (!key.data || key.data === "") {
+      throw new MigrateError(`KeyDeploymentFields.data is not valid`);
     }
 
-    if (!key.from || key.from == "") {
-      throw new MigrateError(`KeyTxFields.from is not valid`);
+    if (!key.from || key.from === "") {
+      throw new MigrateError(`KeyDeploymentFields.from is not valid`);
     }
 
-    if (!key.chainId || key.chainId.toString() == "0") {
-      throw new MigrateError(`KeyTxFields.chainId is not valid`);
+    if (!key.chainId || key.chainId === 0n) {
+      throw new MigrateError(`KeyDeploymentFields.chainId is not valid`);
+    }
+
+    return originalMethod.apply(this, args);
+  };
+
+  return descriptor;
+}
+
+export function validateKeyTxFieldsFields(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  const originalMethod = descriptor.value;
+
+  descriptor.value = function (...args: any[]) {
+    const key = args[0] as KeyTransactionFields;
+
+    if (!key.data || key.data === "") {
+      throw new MigrateError(`KeyDeploymentFields.data is not valid`);
+    }
+
+    if (!key.from || key.from === "") {
+      throw new MigrateError(`KeyDeploymentFields.from is not valid`);
+    }
+
+    if (!key.chainId || key.chainId === 0n) {
+      throw new MigrateError(`KeyDeploymentFields.chainId is not valid`);
+    }
+
+    if (!key.to || key.to === "") {
+      throw new MigrateError(`KeyDeploymentFields.to is not valid`);
     }
 
     return originalMethod.apply(this, args);

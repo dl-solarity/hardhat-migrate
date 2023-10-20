@@ -10,7 +10,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { MigrateError } from "./errors";
 
-import { KeyTxFields } from "./types/tools";
+import { KeyDeploymentFields, KeyTransactionFields } from "./types/tools";
 import { Bytecode } from "./types/deployer";
 
 export async function getSignerHelper(
@@ -58,14 +58,29 @@ export function bytecodeHash(bytecode: any): string {
   return id(bytecodeToString(bytecode));
 }
 
-export function createHash(keyTxFields: KeyTxFields): string {
-  const obj: KeyTxFields = {
+export function createKeyDeploymentFieldsHash(keyTxFields: KeyDeploymentFields): string {
+  const obj: KeyDeploymentFields = {
     data: keyTxFields.data,
     from: keyTxFields.from,
     chainId: keyTxFields.chainId,
   };
 
   return id(toJSON(obj));
+}
+
+export function createKeyTxFieldsHash(keyTxFields: KeyTransactionFields): string {
+  const obj: KeyTransactionFields = {
+    data: keyTxFields.data,
+    from: keyTxFields.from,
+    chainId: keyTxFields.chainId,
+    to: keyTxFields.to,
+  };
+
+  return id(toJSON(obj));
+}
+
+export async function isDeployedContractAddress(hre: HardhatRuntimeEnvironment, address: string): Promise<boolean> {
+  return (await hre.ethers.provider.getCode(address)) !== "0x";
 }
 
 export function bytecodeToString(bytecode: Bytecode): string {
