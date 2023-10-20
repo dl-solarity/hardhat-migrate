@@ -13,7 +13,7 @@ import { Migrator } from "./migrator/migrator";
 import { Reporter } from "./tools/reporter/Reporter";
 
 import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
-import { DefaultStorage } from "./tools/storage/Storage";
+import { DefaultStorage } from "./tools/storage/MigrateStorage";
 
 import { MigrateConfig } from "./types/migrations";
 import { Verifier } from "./verifier/Verifier";

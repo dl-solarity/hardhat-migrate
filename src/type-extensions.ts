@@ -5,7 +5,7 @@ import { Migrator } from "./migrator/migrator";
 
 import { MigrateConfig } from "./types/migrations";
 
-import { Storage } from "./tools/storage/Storage";
+import { MigrateStorage } from "./tools/storage/MigrateStorage";
 
 declare module "hardhat/types/config" {
   interface HardhatConfig {
@@ -20,6 +20,6 @@ declare module "hardhat/types/config" {
 declare module "hardhat/types/runtime" {
   export interface HardhatRuntimeEnvironment {
     migrator: Migrator;
-    storage: Storage;
+    storage: MigrateStorage;
   }
 }

@@ -1,4 +1,4 @@
-import { VerificationStorage } from "./Storage";
+import { VerificationStorage } from "./MigrateStorage";
 
 import { catchError } from "../../utils";
 

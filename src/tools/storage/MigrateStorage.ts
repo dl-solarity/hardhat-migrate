@@ -9,23 +9,23 @@ import { catchError, resolvePathToFile, toJSON } from "../../utils";
 import { StorageNamespaces } from "../../types/tools";
 
 @catchError
-export class Storage {
+export class MigrateStorage {
   private static readonly _fileName = ".storage.json";
 
-  private static _state: Record<string, any> = lazyObject(() => Storage._readFullStateFromFile());
+  private static _state: Record<string, any> = lazyObject(() => MigrateStorage._readFullStateFromFile());
 
   constructor(private _namespace: StorageNamespaces = StorageNamespaces.Storage) {
-    if (!Storage._state[this._namespace]) {
-      Storage._state[this._namespace] = {};
+    if (!MigrateStorage._state[this._namespace]) {
+      MigrateStorage._state[this._namespace] = {};
     }
   }
 
   public get(key: string): any {
-    return Storage._state[this._namespace][key];
+    return MigrateStorage._state[this._namespace][key];
   }
 
   public getAll(): Record<string, any> {
-    return Storage._state[this._namespace];
+    return MigrateStorage._state[this._namespace];
   }
 
   public set(key: string, value: any, force = false): void {
@@ -33,9 +33,9 @@ export class Storage {
       throw new MigrateError(`Key already exists`);
     }
 
-    Storage._state[this._namespace][key] = value;
+    MigrateStorage._state[this._namespace][key] = value;
 
-    Storage._saveStateToFile();
+    MigrateStorage._saveStateToFile();
   }
 
   public delete(key: string, force = false): void {
@@ -43,19 +43,19 @@ export class Storage {
       throw new MigrateError(`Key not found`);
     }
 
-    delete Storage._state[this._namespace][key];
+    delete MigrateStorage._state[this._namespace][key];
 
-    Storage._saveStateToFile();
+    MigrateStorage._saveStateToFile();
   }
 
   public has(key: string): boolean {
-    return Storage._state[this._namespace][key] !== undefined;
+    return MigrateStorage._state[this._namespace][key] !== undefined;
   }
 
   public clear(): void {
-    Storage._state[this._namespace] = {};
+    MigrateStorage._state[this._namespace] = {};
 
-    Storage._saveStateToFile();
+    MigrateStorage._saveStateToFile();
   }
 
   private static _stateExistsInFile(): boolean {
@@ -63,14 +63,14 @@ export class Storage {
   }
 
   private static _saveStateToFile() {
-    writeFileSync(this._filePath(), toJSON(Storage._state), {
+    writeFileSync(this._filePath(), toJSON(MigrateStorage._state), {
       flag: "w",
       encoding: "utf8",
     });
   }
 
   private static _readFullStateFromFile(): Record<string, Record<string, any>> {
-    if (!Storage._stateExistsInFile()) {
+    if (!MigrateStorage._stateExistsInFile()) {
       return {};
     }
 
@@ -82,11 +82,11 @@ export class Storage {
   }
 
   private static _filePath(): string {
-    return resolvePathToFile("artifacts/build-info", Storage._fileName);
+    return resolvePathToFile("artifacts/build-info", MigrateStorage._fileName);
   }
 }
 
-export const DefaultStorage = lazyObject(() => new Storage(StorageNamespaces.Storage));
-export const TransactionStorage = lazyObject(() => new Storage(StorageNamespaces.Transactions));
-export const ArtifactStorage = lazyObject(() => new Storage(StorageNamespaces.Artifacts));
-export const VerificationStorage = lazyObject(() => new Storage(StorageNamespaces.Verification));
+export const DefaultStorage = lazyObject(() => new MigrateStorage(StorageNamespaces.Storage));
+export const TransactionStorage = lazyObject(() => new MigrateStorage(StorageNamespaces.Transactions));
+export const ArtifactStorage = lazyObject(() => new MigrateStorage(StorageNamespaces.Artifacts));
+export const VerificationStorage = lazyObject(() => new MigrateStorage(StorageNamespaces.Verification));

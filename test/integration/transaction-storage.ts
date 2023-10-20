@@ -5,7 +5,7 @@ import { useEnvironment } from "../helpers";
 
 import { Deployer } from "../../src/deployer/Deployer";
 import { ArtifactProcessor } from "../../src/tools/storage/ArtifactProcessor";
-import { TransactionStorage } from "../../src/tools/storage/Storage";
+import { TransactionStorage } from "../../src/tools/storage/MigrateStorage";
 import { TransactionProcessor } from "../../src/tools/storage/TransactionProcessor";
 
 import {

@@ -1,6 +1,6 @@
 import { Artifact, HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { ArtifactStorage } from "./Storage";
+import { ArtifactStorage } from "./MigrateStorage";
 
 import { MigrateError } from "../../errors";
 

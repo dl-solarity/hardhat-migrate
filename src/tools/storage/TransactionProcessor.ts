@@ -1,6 +1,6 @@
 import { ContractTransaction, ContractTransactionResponse, isAddress } from "ethers";
 
-import { TransactionStorage } from "./Storage";
+import { TransactionStorage } from "./MigrateStorage";
 
 import { MigrateError } from "../../errors";
 
