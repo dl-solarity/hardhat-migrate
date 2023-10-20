@@ -13,7 +13,7 @@ export interface MigrateConfig {
   to: number;
 
   /*
-   * The number of the migration that will be applied. Overrides from and to parameters.
+   * The number of the migrations that will be applied. Overrides from and to parameters.
    */
   only: number;
 
@@ -23,14 +23,19 @@ export interface MigrateConfig {
   skip: number;
 
   /*
-   * The number defining after how many blocks the verification should start.
+   * The number defining how many confirmations each transaction should have.
    */
-  confirmations: number;
+  txConfirmations: number;
 
   /*
-   * The flag indicating whether the verification of the contract is needed.
+   * The number defining after how many blocks the verification should start.
    */
-  verify: boolean;
+  verifyConfirmations: number;
+
+  /*
+   * The strategy of the verification.
+   */
+  verify: VerifyStrategy;
 
   /*
    * The number of attempts to verify the contract.
@@ -57,4 +62,10 @@ export interface MigrateConfig {
    * The flag indicating whether the previous deployment should be continued.
    */
   continuePreviousDeployment: boolean;
+}
+
+export enum VerifyStrategy {
+  Immediately = "immediately",
+  AtTheEnd = "at-the-end",
+  None = "none",
 }

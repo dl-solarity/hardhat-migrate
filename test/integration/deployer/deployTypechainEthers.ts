@@ -1,12 +1,13 @@
 import { expect } from "chai";
+import { ZeroAddress } from "ethers";
 
 import { useEnvironment } from "../../helpers";
 
 import { Deployer } from "../../../src/deployer/Deployer";
 
-import { ZeroAddress } from "ethers";
+import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
 import { ArtifactProcessor } from "../../../src/tools/storage/ArtifactProcessor";
-import { TransactionStorage } from "../../../src/tools/storage/Storage";
+
 import {
   ContractWithConstructorArguments__factory,
   ContractWithExternalLibrary__factory,
@@ -14,7 +15,7 @@ import {
   Library2__factory,
 } from "../../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
 
-describe("deployer", () => {
+describe("Ehters Typechain -- Deployer", () => {
   describe("deploy()", () => {
     useEnvironment("minimal-typechain-ethers");
 
@@ -55,16 +56,14 @@ describe("deployer", () => {
       ).to.be.not.rejected;
     });
 
-    it("should not deploy if bytecode was not linked", async function () {
-      await expect(deployer.deploy(ContractWithExternalLibrary__factory, [], {})).to.be.rejected;
-    });
-
     it("should deploy contract with memorized libraries", async function () {
-      await expect(deployer.deploy(ContractWithExternalLibrary__factory, [], {})).to.be.rejected;
-
       await deployer.deploy(Library1__factory, []);
       await deployer.deploy(Library2__factory, []);
 
+      await expect(deployer.deploy(ContractWithExternalLibrary__factory, [], {})).to.be.not.rejected;
+    });
+
+    it("should deploy contract with libraries without libraries pre-deploy", async function () {
       await expect(deployer.deploy(ContractWithExternalLibrary__factory, [], {})).to.be.not.rejected;
     });
   });

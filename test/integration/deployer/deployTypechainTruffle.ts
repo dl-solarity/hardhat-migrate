@@ -1,15 +1,15 @@
-import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
-
 import { expect } from "chai";
+import { ZeroAddress } from "ethers";
+
+import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
 
 import { useEnvironment } from "../../helpers";
 
 import { Deployer } from "../../../src/deployer/Deployer";
 
-import { ZeroAddress } from "ethers";
-import { TransactionStorage } from "../../../src/tools/storage/Storage";
+import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
 
-describe("deployer", () => {
+describe("Truffle Typechain deployer", () => {
   describe("deploy()", () => {
     useEnvironment("minimal-typechain-truffle");
 
@@ -57,19 +57,14 @@ describe("deployer", () => {
       ).to.be.not.rejected;
     });
 
-    it("should not deploy if bytecode was not linked", async function () {
-      await expect(deployer.deploy(ContractWithExternalLibraryArtifact, [], {})).to.be.rejected;
-    });
-
     it("should deploy contract with memorized libraries", async function () {
-      await expect(deployer.deploy(ContractWithExternalLibraryArtifact, [], {})).to.be.rejected;
-
       await deployer.deploy(library1Artifact, []);
       await deployer.deploy(library2Artifact, []);
-      await deployer.deploy(ContractWithExternalLibraryArtifact, [], {});
 
-      await deployer.deploy(ContractWithExternalLibraryArtifact, [], {});
+      await expect(deployer.deploy(ContractWithExternalLibraryArtifact, [], {})).to.be.not.rejected;
+    });
 
+    it("should deploy contract without memorized libraries", async function () {
       await expect(deployer.deploy(ContractWithExternalLibraryArtifact, [], {})).to.be.not.rejected;
     });
   });

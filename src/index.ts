@@ -1,4 +1,5 @@
 import "@nomicfoundation/hardhat-ethers";
+import "@nomicfoundation/hardhat-verify";
 
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { extendConfig, extendEnvironment, task, types } from "hardhat/config";
@@ -12,17 +13,18 @@ import { Migrator } from "./migrator/migrator";
 import { Reporter } from "./tools/reporter/Reporter";
 
 import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
-import { DefaultStorage } from "./tools/storage/Storage";
+import { DefaultStorage } from "./tools/storage/MigrateStorage";
 
 import { MigrateConfig } from "./types/migrations";
+import { Verifier } from "./verifier/Verifier";
 
 export { Deployer } from "./deployer/Deployer";
-export { Sender } from "./sender/Sender";
+export { Verifier } from "./verifier/Verifier";
 
 extendConfig(migrateConfigExtender);
 
 const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
-  mergeConfigs(taskArgs, env.config.migrate);
+  env.config.migrate = mergeConfigs(taskArgs, env.config.migrate);
 
   // Make sure that contract artifacts are up-to-date.
   await env.run(TASK_COMPILE, {
@@ -33,37 +35,20 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
   await ArtifactProcessor.parseArtifacts(env);
 
   Reporter.init(env);
+  Verifier.init(env);
 
   await new Migrator(env).migrate();
 };
-
-// TODO: Do we need this?
-// if (tryRequire("@nomiclabs/hardhat-etherscan")) {
-//   task("verify").setAction(async (args, hre, runSuper) => {
-//     const { verify } = await import("./verify-proxy");
-//     return await verify(args, hre, runSuper);
-//   });
-// }
-
-// function tryRequire(id: string) {
-//   try {
-//     require(id);
-//     return true;
-//   } catch (e: unknown) {
-//     // do nothing
-//   }
-//   return false;
-// }
 
 extendEnvironment((hre) => {
   hre.migrator = lazyObject(() => {
     return new Migrator(hre);
   });
 
-  hre.storage = lazyObject(() => {
-    return DefaultStorage;
-  });
+  hre.storage = lazyObject(() => DefaultStorage);
 });
+
+// TODO: override the `clean` task
 
 task(TASK_MIGRATE, "Deploy contracts via migration files")
   .addOptionalParam("from", "The migration number from which the migration will be applied.", undefined, types.int)
@@ -75,7 +60,7 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
     types.int,
   )
   .addOptionalParam("skip", "The number of migration to skip. Overrides only parameter.", undefined, types.int)
-  .addFlag("verify", "The flag indicating whether the verification of the contract is needed.")
+  .addOptionalParam("verify", "The enum defining the verification strategy.", undefined, types.string)
   .addFlag("force", "The flag indicating whether the compilation is forced.")
   .addOptionalParam(
     "confirmations",

@@ -1,6 +1,7 @@
-import { AddressLike, hexlify, id } from "ethers";
-import { realpathSync } from "fs";
+/* eslint-disable no-console */
 import { join } from "path";
+import { realpathSync, existsSync } from "fs";
+import { AddressLike, hexlify, id, toBigInt } from "ethers";
 
 import { isBytes } from "@ethersproject/bytes";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
@@ -9,8 +10,8 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { MigrateError } from "./errors";
 
-import { Bytecode } from "./types/deployer";
 import { KeyTxFields } from "./types/tools";
+import { Bytecode } from "./types/deployer";
 
 export async function getSignerHelper(
   hre: HardhatRuntimeEnvironment,
@@ -22,7 +23,7 @@ export async function getSignerHelper(
 
   const address = await hre.ethers.resolveAddress(from, hre.ethers.provider);
 
-  return hre.ethers.getSigner(address);
+  return hre.ethers.getSigner(address as string);
 }
 
 export function underline(str: string): string {
@@ -30,7 +31,15 @@ export function underline(str: string): string {
 }
 
 export function resolvePathToFile(path: string, file: string = ""): string {
+  if (!existsSync(join(path, file))) {
+    path = "./";
+  }
+
   return join(realpathSync(path), file);
+}
+
+export async function getChainId(hre: HardhatRuntimeEnvironment): Promise<bigint> {
+  return toBigInt(await hre.ethers.provider.send("eth_chainId"));
 }
 
 export function toJSON(data: any): string {
@@ -50,8 +59,11 @@ export function bytecodeHash(bytecode: any): string {
 }
 
 export function createHash(keyTxFields: KeyTxFields): string {
-  // TODO: rewrite
-  const obj = { data: keyTxFields.data, from: keyTxFields.from, chaId: keyTxFields.chainId };
+  const obj: KeyTxFields = {
+    data: keyTxFields.data,
+    from: keyTxFields.from,
+    chainId: keyTxFields.chainId,
+  };
 
   return id(toJSON(obj));
 }
@@ -75,6 +87,16 @@ export function bytecodeToString(bytecode: Bytecode): string {
   return bytecodeHex;
 }
 
+export async function waitForBlock(hre: HardhatRuntimeEnvironment, desiredBlock: number) {
+  return new Promise<void>((resolve) => {
+    hre.ethers.provider.on("block", (blockNumber) => {
+      if (blockNumber == desiredBlock) {
+        resolve();
+      }
+    });
+  });
+}
+
 export function catchError(target: any, propertyName?: string, descriptor?: PropertyDescriptor) {
   // Method decorator
   if (descriptor) {
@@ -95,6 +117,24 @@ export function catchError(target: any, propertyName?: string, descriptor?: Prop
   }
 }
 
+export function suppressLogs(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  const originalMethod = descriptor.value;
+
+  descriptor.value = function (...args: any[]) {
+    const log = console.log;
+
+    console.log = () => {};
+
+    const result = originalMethod.apply(this, args);
+
+    console.log = log;
+
+    return result;
+  };
+
+  return descriptor;
+}
+
 function _generateDescriptor(propertyName: string, descriptor: PropertyDescriptor): PropertyDescriptor {
   const method = descriptor.value;
 
@@ -102,7 +142,7 @@ function _generateDescriptor(propertyName: string, descriptor: PropertyDescripto
     try {
       const result = method.apply(this, args);
 
-      // Check if method is asynchronous
+      // Check if the method is asynchronous
       if (result && result instanceof Promise) {
         // Return promise
         return result.catch((e: any) => {

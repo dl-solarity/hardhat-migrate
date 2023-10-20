@@ -4,7 +4,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { Linker } from "./Linker";
 
-import { catchError, getSignerHelper } from "../utils";
+import { catchError, getChainId, getSignerHelper } from "../utils";
 
 import { MigrateError } from "../errors";
 
@@ -15,6 +15,8 @@ import {
   OverridesAndLibs,
 } from "../types/deployer";
 import { MigrateConfig } from "../types/migrations";
+
+import { Verifier } from "../verifier/Verifier";
 
 import { Reporter } from "../tools/reporter/Reporter";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
@@ -31,23 +33,18 @@ export class DeployerCore {
   public async deploy(deployParams: ContractDeployParams, args: Args, parameters: OverridesAndLibs): Promise<string> {
     const contractName = ArtifactProcessor.getContractName(deployParams.bytecode);
 
-    deployParams.bytecode = await Linker.linkBytecode(deployParams.bytecode, parameters.libraries || {});
+    deployParams.bytecode = await Linker.linkBytecode(this._hre, deployParams.bytecode, parameters.libraries || {});
 
     const tx: ContractDeployTransactionWithContractName = {
       ...(await this._createDeployTransaction(deployParams, args, parameters)),
       contractName: contractName,
     };
 
-    let contractAddress: string;
     if (this._config.continuePreviousDeployment) {
-      contractAddress = await this._tryRecoverContractAddress(tx);
+      return this._tryRecoverContractAddress(tx, args);
     } else {
-      contractAddress = await this._processContractDeploymentTransaction(tx);
+      return this._processContractDeploymentTransaction(tx, args);
     }
-
-    // TODO: Add verification step here.
-
-    return contractAddress;
   }
 
   private async _createDeployTransaction(
@@ -57,12 +54,16 @@ export class DeployerCore {
   ): Promise<ContractDeployTransaction> {
     const factory = new this._hre.ethers.ContractFactory(contractParams.abi, contractParams.bytecode);
 
-    return factory.getDeployTransaction(...args, txOverrides);
+    return {
+      chainId: await getChainId(this._hre),
+      from: (await getSignerHelper(this._hre, txOverrides.from)).address,
+      ...(await factory.getDeployTransaction(...args, txOverrides)),
+    };
   }
 
-  private async _tryRecoverContractAddress(tx: ContractDeployTransactionWithContractName): Promise<string> {
+  private async _tryRecoverContractAddress(tx: ContractDeployTransactionWithContractName, args: Args): Promise<string> {
     try {
-      const contractAddress = TransactionProcessor.tryRestoreSavedContractAddress(tx);
+      const contractAddress = TransactionProcessor.tryRestoreContractAddressByKeyFields(tx);
 
       Reporter.notifyContractRecovery(tx.contractName, contractAddress);
 
@@ -70,11 +71,14 @@ export class DeployerCore {
     } catch {
       Reporter.notifyDeploymentInsteadOfRecovery(tx.contractName);
 
-      return this._processContractDeploymentTransaction(tx);
+      return this._processContractDeploymentTransaction(tx, args);
     }
   }
 
-  private async _processContractDeploymentTransaction(tx: ContractDeployTransactionWithContractName): Promise<string> {
+  private async _processContractDeploymentTransaction(
+    tx: ContractDeployTransactionWithContractName,
+    args: Args,
+  ): Promise<string> {
     const signer: Signer = await getSignerHelper(this._hre, tx.from);
 
     const txResponse = await signer.sendTransaction(tx);
@@ -84,15 +88,23 @@ export class DeployerCore {
       Reporter.reportTransaction(txResponse, tx.contractName),
     ]);
 
+    if (typeof contractAddress !== "string") {
+      throw new MigrateError("Contract deployment failed. Invalid contract address conversion.");
+    }
+
     TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);
+
+    await Verifier.processVerification({
+      contractAddress,
+      contractName: tx.contractName,
+      constructorArguments: args,
+    });
 
     return contractAddress;
   }
 
   private async _waitForDeployment(tx: TransactionResponse): Promise<string> {
-    // this._config.confirmations -- is used only for verification process.
-    // TODO: Create other parameter to pass to tx.wait(). Default must be 1
-    const receipt = await tx.wait();
+    const receipt = await tx.wait(this._config.txConfirmations);
 
     if (receipt) {
       return receipt.contractAddress!;

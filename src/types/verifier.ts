@@ -1,21 +1,6 @@
-import { EtherscanNetworkEntry } from "@nomiclabs/hardhat-etherscan/dist/src/types";
+import { Args } from "./deployer";
 
-/**
- * The Etherscan API parameters from the Hardhat config.
- */
-export interface EtherscanAPIConfig {
-  key: string;
-  endpoints: EtherscanNetworkEntry;
-}
-
-/**
- * The response body from an Etherscan API call.
- */
-export interface EtherscanResponseBody {
-  status: string;
-  message: string;
-  result: any;
-}
+export type VerifierArgs = { contractAddress: string; contractName: string; constructorArguments: Args };
 
 export interface ChainRecord {
   name: string;
@@ -38,7 +23,7 @@ export interface ChainRecord {
   ens?: {
     registry: string;
   };
-  explorers?: {
+  explorers: {
     name: string;
     url: string;
     icon?: string;
@@ -48,44 +33,51 @@ export interface ChainRecord {
 
 export const predefinedChains: Record<number, ChainRecord> = {
   1337: {
-    name: "Geth Testnet",
-    title: "Go Ethereum (Geth) Private Testnet",
+    name: "Local Ethereum",
     chain: "ETH",
+    title: "Local",
     rpc: ["http://127.0.0.1:8545"],
     faucets: [],
     nativeCurrency: {
-      name: "Geth Testnet Ether",
+      name: "Ethereum",
       symbol: "ETH",
       decimals: 18,
     },
-    infoURL: "https://geth.ethereum.org",
-    shortName: "geth",
+    infoURL: "https://ethereum.org",
+    shortName: "eth",
     chainId: 1337,
     networkId: 1337,
-  },
-  31337: {
-    name: "GoChain Testnet",
-    chain: "GO",
-    rpc: ["https://testnet-rpc.gochain.io"],
-    faucets: [],
-    nativeCurrency: {
-      name: "GoChain Coin",
-      symbol: "GO",
-      decimals: 18,
+    slip44: 60,
+    ens: {
+      registry: "0x0000000000000000000000000000000000000000",
     },
-    infoURL: "https://gochain.io",
-    shortName: "got",
-    chainId: 31337,
-    networkId: 31337,
-    slip44: 6060,
     explorers: [
       {
-        name: "GoChain Testnet Explorer",
-        url: "https://testnet-explorer.gochain.io",
-        standard: "EIP3091",
+        name: "Local Explorer",
+        url: "",
+      },
+    ],
+  },
+  31337: {
+    name: "Local Ethereum",
+    chain: "ETH",
+    title: "Local",
+    rpc: ["http://127.0.0.1:8545"],
+    faucets: [],
+    nativeCurrency: {
+      name: "Ethereum",
+      symbol: "ETH",
+      decimals: 18,
+    },
+    infoURL: "https://ethereum.org",
+    shortName: "eth",
+    chainId: 31337,
+    networkId: 31337,
+    explorers: [
+      {
+        name: "Local Explorer",
+        url: "",
       },
     ],
   },
 };
-
-export const defaultCurrencySymbol = "ETH";

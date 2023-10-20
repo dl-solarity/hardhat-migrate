@@ -5,15 +5,16 @@ import { ConfigExtender } from "hardhat/types";
 
 import { pluginName } from "./constants";
 
-import { MigrateConfig } from "./types/migrations";
+import { MigrateConfig, VerifyStrategy } from "./types/migrations";
 
 const defaultConfig: MigrateConfig = {
   from: -1,
   to: -1,
   only: -1,
   skip: -1,
-  confirmations: 0,
-  verify: false,
+  txConfirmations: 1,
+  verifyConfirmations: 0,
+  verify: VerifyStrategy.AtTheEnd,
   attempts: 0,
   pathToMigrations: "./deploy",
   skipVerificationErrors: ["already verified"],
@@ -33,11 +34,15 @@ export const mergeConfigs = (
     return defaultConfig;
   }
 
-  if (!isRelativePath(config.pathToMigrations)) {
+  if (config.pathToMigrations && !isRelativePath(config.pathToMigrations)) {
     throw new HardhatPluginError(pluginName, "config.migrate.pathToMigrations must be a relative path");
   }
 
-  return { ...defaultConfig, ...config };
+  return { ...defaultConfig, ...definedProps(config) };
 };
+
+const definedProps = (obj: Partial<MigrateConfig>): Partial<MigrateConfig> =>
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  Object.fromEntries(Object.entries(obj).filter(([k, v]) => v !== undefined)) as Partial<MigrateConfig>;
 
 const isRelativePath = (path?: string): boolean => path === undefined || !isAbsolute(path);

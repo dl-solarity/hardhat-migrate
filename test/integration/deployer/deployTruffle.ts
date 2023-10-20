@@ -6,7 +6,7 @@ import { useEnvironment } from "../../helpers";
 
 import { Deployer } from "../../../src/deployer/Deployer";
 
-import { TransactionStorage } from "../../../src/tools/storage/Storage";
+import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
 
 describe("deployer", () => {
   describe("deploy()", () => {

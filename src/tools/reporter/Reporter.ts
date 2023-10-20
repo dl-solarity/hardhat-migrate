@@ -11,7 +11,8 @@ import { MigrateError } from "../../errors";
 
 import { catchError, underline } from "../../utils";
 
-import { ChainRecord, defaultCurrencySymbol, predefinedChains } from "../../types/verifier";
+import { TruffleTransactionResponse } from "../../types/deployer";
+import { ChainRecord, predefinedChains } from "../../types/verifier";
 
 @catchError
 export class Reporter {
@@ -32,6 +33,10 @@ export class Reporter {
     console.log("\nStarting migration...\n");
   }
 
+  public static reportMigrationFileBegin(file: string) {
+    console.log(`\n${underline(`Running ${file}...`)}`);
+  }
+
   public static async summary() {
     const output =
       `> ${"Total transactions:".padEnd(20)} ${this.totalTransactions}\n` +
@@ -40,14 +45,14 @@ export class Reporter {
     console.log(output);
   }
 
-  public static async reportTransaction(tx: TransactionResponse | string, misc: string) {
+  public static async reportTransaction(tx: TransactionResponse | string, instanceName: string) {
     if (typeof tx === "string") {
       tx = (await this._hre.ethers.provider.getTransaction(tx))!;
     }
 
     const timeStart = Date.now();
 
-    console.log("\n" + underline(await this._parseTransactionTitle(tx, misc)));
+    console.log("\n" + underline(this._parseTransactionTitle(tx, instanceName)));
 
     console.log(`> explorer: ${await this._getExplorerLink(tx.hash)}`);
 
@@ -58,7 +63,7 @@ export class Reporter {
       1000,
     );
 
-    const wait = tx.wait(1);
+    const wait = tx.wait();
 
     wait.finally(() => {
       clearInterval(spinnerInterval);
@@ -79,14 +84,36 @@ export class Reporter {
     this.totalTransactions++;
   }
 
+  public static async reportTruffleTransaction(tx: TruffleTransactionResponse | string, instanceName: string) {
+    if (typeof tx === "string") {
+      await this.reportTransaction(tx, instanceName);
+
+      return;
+    }
+
+    const transaction = await this._hre.ethers.provider.getTransaction(tx.receipt.transactionHash);
+
+    if (!transaction) {
+      throw new MigrateError("Transaction not found.");
+    }
+
+    await this.reportTransaction(transaction, instanceName);
+  }
+
   public static notifyDeploymentInsteadOfRecovery(contractName: string): void {
-    const output = `\nUnfortunately, we can't recover contract address for ${contractName}. Deploying instead...`;
+    const output = `\nCan't recover contract address for ${contractName}. Deploying instead...`;
+
+    console.log(output);
+  }
+
+  public static notifyDeploymentOfMissingLibrary(libraryName: string): void {
+    const output = `\nDeploying missing library ${libraryName}...`;
 
     console.log(output);
   }
 
   public static notifyTransactionSendingInsteadOfRecovery(contractMethod: string): void {
-    const output = `\nUnfortunately, we can't recover transaction for ${contractMethod}. Sending instead...`;
+    const output = `\nCan't recover transaction for ${contractMethod}. Sending instead...`;
 
     console.log(output);
   }
@@ -103,12 +130,34 @@ export class Reporter {
     console.log(output);
   }
 
-  private static _parseTransactionTitle(tx: TransactionResponse, misc: string): string {
+  public static reportVerificationBatchBegin() {
+    console.log("\nStarting verification of all deployed contracts\n");
+  }
+
+  public static reportSuccessfulVerification(contractAddress: string, contractName: string) {
+    const output = `\nContract ${contractName} (${contractAddress}) verified successfully.\n`;
+
+    console.log(output);
+  }
+
+  public static reportAlreadyVerified(contractAddress: string, contractName: string) {
+    const output = `\nContract ${contractName} (${contractAddress}) already verified.\n`;
+
+    console.log(output);
+  }
+
+  public static reportVerificationError(contractAddress: string, contractName: string, message: string) {
+    const output = `\nContract ${contractName} (${contractAddress}) verification failed: ${message}\n`;
+
+    console.log(output);
+  }
+
+  private static _parseTransactionTitle(tx: TransactionResponse, instanceName: string): string {
     if (tx.to === null) {
-      return `Deploying${misc ? " " + misc.split(":")[1] : ""}`;
+      return `Deploying${instanceName ? " " + instanceName.split(":")[1] : ""}`;
     }
 
-    return `Transaction: ${misc}`;
+    return `Transaction: ${instanceName}`;
   }
 
   private static async _formatPendingTime(tx: TransactionResponse, startTime: number): Promise<string> {
@@ -116,7 +165,7 @@ export class Reporter {
   }
 
   private static async _getExplorerLink(txHash: string): Promise<string> {
-    return (await this._getExplorerUrl()) + "/" + txHash;
+    return (await this._getExplorerUrl()) + "/tx/" + txHash;
   }
 
   private static async _printTransaction(tx: TransactionReceipt) {
@@ -149,14 +198,8 @@ export class Reporter {
     files.forEach((file) => {
       console.log(`> ${file}`);
     });
-  }
 
-  private static async _getNetwork(): Promise<Network> {
-    return this._hre.ethers.provider.getNetwork();
-  }
-
-  private static async _getChainId(): Promise<number> {
-    return Number((await this._getNetwork()).chainId);
+    console.log("");
   }
 
   private static async _reportChainInfo() {
@@ -165,69 +208,67 @@ export class Reporter {
     console.log(`> ${"Network id:".padEnd(20)} ${await this._getChainId()}`);
   }
 
+  private static async _getNetwork(): Promise<Network> {
+    try {
+      return this._hre.ethers.provider.getNetwork();
+    } catch {
+      return new Network("Local Ethereum", 1337);
+    }
+  }
+
+  private static async _getChainId(): Promise<number> {
+    try {
+      return Number((await this._getNetwork()).chainId);
+    } catch {
+      return 1337;
+    }
+  }
+
   private static async _getExplorerUrl(): Promise<string> {
     const chainId = await this._getChainId();
 
     if (predefinedChains[chainId]) {
       const explorers = predefinedChains[chainId].explorers;
 
-      if (!explorers || explorers.length === 0) {
-        return "";
-      }
-
-      return explorers[0].url;
+      return !explorers || explorers.length === 0 ? "" : explorers[0].url;
     }
 
-    try {
-      const chain = await this._getChainMetadataById(chainId);
+    const chain = await this._getChainMetadataById(chainId);
 
-      if (chain) {
-        predefinedChains[chainId] = chain;
-
-        const explorers = predefinedChains[chainId].explorers;
-
-        if (!explorers || explorers.length === 0) {
-          return "";
-        }
-
-        return explorers[0].url;
-      }
-    } catch (e) {
-      console.warn(`Unable to get explorer url for chainId ${chainId}.`, e);
-    }
-
-    return "";
+    return chain.explorers[0].url;
   }
 
   private static async _getNativeSymbol(): Promise<string> {
-    const chainId = Number((await this._hre.ethers.provider.getNetwork()).chainId);
+    const chainId = await this._getChainId();
 
     if (predefinedChains[chainId]) {
       return predefinedChains[chainId].nativeCurrency.symbol;
     }
 
+    const chain = await this._getChainMetadataById(chainId);
+
+    return chain.nativeCurrency.symbol;
+  }
+
+  private static async _getChainMetadataById(chainId: number): Promise<ChainRecord> {
     try {
-      const chain = await this._getChainMetadataById(chainId);
+      const chains = await this._tryGetAllRecords();
+
+      const chain = chains.find((chain) => chain.chainId === chainId);
 
       if (chain) {
         predefinedChains[chainId] = chain;
 
-        return chain.nativeCurrency.symbol;
+        return chain;
       }
-    } catch (e) {
-      console.warn(`Unable to get native symbol for chainId ${chainId}.`, e);
+
+      return predefinedChains[1337];
+    } catch {
+      return predefinedChains[1337];
     }
-
-    return defaultCurrencySymbol;
   }
 
-  private static async _getChainMetadataById(chainId: number): Promise<ChainRecord | undefined> {
-    const chains = await this._getAllRecords();
-
-    return chains.find((chain) => chain.chainId === chainId);
-  }
-
-  private static async _getAllRecords(): Promise<ChainRecord[]> {
+  private static async _tryGetAllRecords(): Promise<ChainRecord[]> {
     const url = "https://chainid.network/chains.json";
     const response = await axios.get(url);
 

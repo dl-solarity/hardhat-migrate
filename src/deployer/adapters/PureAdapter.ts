@@ -1,27 +1,23 @@
+import { Interface, Signer } from "ethers";
+
 import { Adapter } from "./Adapter";
+import { EthersAdapter } from "./EthersAdapter";
 
 import { bytecodeToString, catchError } from "../../utils";
 
-import { Abi } from "../../types/deployer";
 import { PureFactory } from "../../types/adapter";
-
-// TODO: think about BaseContract usage here.
 
 @catchError
 export class PureAdapter extends Adapter {
-  public toInstance<I>(instance: any, address: string): I {
-    if (typeof instance.contractName !== "string") {
-      throw new Error("ContractName must be a string.");
-    }
-
-    return address as unknown as I;
+  public async toInstance(instance: PureFactory, address: string, signer: Signer): Promise<any> {
+    return (await new EthersAdapter(this._hre).toInstance(instance as any, address, signer)) as unknown as any;
   }
 
-  protected _getABI<I>(instance: PureFactory<I>): Abi {
-    return instance.abi;
+  protected _getInterface(instance: PureFactory): Interface {
+    return Interface.from(instance.abi);
   }
 
-  protected _getRawBytecode<I>(instance: PureFactory<I>): string {
+  protected _getRawBytecode(instance: PureFactory): string {
     return bytecodeToString(instance.bytecode);
   }
 }

@@ -1,18 +1,25 @@
+import { Signer } from "ethers";
+
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { DeployerCore } from "./DeployerCore";
+
+import { catchError, getSignerHelper, getChainId } from "../utils";
+
+import { MigrateError } from "../errors";
 
 import { Adapter } from "./adapters/Adapter";
 import { PureAdapter } from "./adapters/PureAdapter";
 import { EthersAdapter } from "./adapters/EthersAdapter";
 import { TruffleAdapter } from "./adapters/TruffleAdapter";
-
-import { catchError, getSignerHelper } from "../utils";
-
-import { MigrateError } from "../errors";
+import { PureEthersAdapter } from "./adapters/PureEthersAdapter";
 
 import { OverridesAndLibs } from "../types/deployer";
-import { EthersFactory, Instance, PureFactory, TruffleFactory, TypedArgs } from "../types/adapter";
+import { Instance, TypedArgs } from "../types/adapter";
+import { isContractFactory, isEthersFactory, isPureFactory, isTruffleFactory } from "../types/type-cheks";
+
+import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
+import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 
 @catchError
 export class Deployer {
@@ -21,12 +28,12 @@ export class Deployer {
     private _core = new DeployerCore(_hre),
   ) {}
 
-  public async deploy<A, I>(
-    contract: Instance<A, I>,
+  public async deploy<T, A = T, I = any>(
+    contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never),
     args: TypedArgs<A>,
     parameters: OverridesAndLibs = {},
   ): Promise<I> {
-    const adapter = this._resolveAdapter(contract);
+    const adapter = this.resolveAdapter(this._hre, contract);
 
     const deploymentParams = await adapter.getContractDeployParams(contract);
 
@@ -35,35 +42,49 @@ export class Deployer {
     return adapter.toInstance(contract, contractAddress, await getSignerHelper(this._hre, parameters.from));
   }
 
-  public async link<A, I>(library: any, instance: Instance<A, I>): Promise<void> {
-    await this._resolveAdapter(instance).link(library, instance);
+  public async deployed<A, I>(contract: Instance<A, I>): Promise<I> {
+    const adapter = this.resolveAdapter(this._hre, contract);
+
+    const contractName = ArtifactProcessor.getContractName((await adapter.getContractDeployParams(contract)).bytecode);
+
+    const contractAddress = TransactionProcessor.tryRestoreContractAddressByName(contractName);
+
+    return adapter.toInstance(contract, contractAddress, await getSignerHelper(this._hre));
   }
 
-  private _resolveAdapter<A, I>(contract: Instance<A, I>): Adapter {
-    if (this.isEthersFactory(contract)) {
-      return new EthersAdapter(this._hre);
+  /**
+   * @deprecated
+   * Used for backward compatibility with Truffle migrations.
+   */
+  public async link<A, I>(library: any, instance: Instance<A, I>): Promise<void> {
+    await this.resolveAdapter(this._hre, instance).link(library, instance);
+  }
+
+  public resolveAdapter<A, I>(hre: HardhatRuntimeEnvironment, contract: Instance<A, I>): Adapter {
+    if (isEthersFactory(contract)) {
+      return new EthersAdapter(hre);
     }
 
-    if (this.isTruffleFactory(contract)) {
-      return new TruffleAdapter(this._hre);
+    if (isTruffleFactory(contract)) {
+      return new TruffleAdapter(hre);
     }
 
-    if (this.isPureFactory(contract)) {
-      return new PureAdapter(this._hre);
+    if (isPureFactory(contract)) {
+      return new PureAdapter(hre);
+    }
+
+    if (isContractFactory(contract)) {
+      return new PureEthersAdapter(hre);
     }
 
     throw new MigrateError("Unknown Contract Factory Type");
   }
 
-  private isEthersFactory<A, I>(instance: any): instance is EthersFactory<A, I> {
-    return instance.createInterface !== undefined;
+  public async getSigner(from?: string): Promise<Signer> {
+    return getSignerHelper(this._hre, from);
   }
 
-  private isTruffleFactory<I>(instance: any): instance is TruffleFactory<I> {
-    return instance instanceof Function && instance.prototype.constructor !== undefined;
-  }
-
-  private isPureFactory<I>(instance: any): instance is PureFactory<I> {
-    return instance.contractName !== undefined;
+  public async getChainId(): Promise<bigint> {
+    return getChainId(this._hre);
   }
 }

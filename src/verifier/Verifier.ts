@@ -1,89 +1,129 @@
-import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { callEtherscanApi, RESPONSE_OK } from "./etherscan-api";
+import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
 
-import { pluginName } from "../constants";
-import { MigrateError } from "../errors";
-import { EtherscanAPIConfig } from "../types/verifier";
+import { catchError, suppressLogs } from "../utils";
+
+import { Args } from "../types/deployer";
+import { VerifierArgs } from "../types/verifier";
+import { MigrateConfig, VerifyStrategy } from "../types/migrations";
+
+import { Reporter } from "../tools/reporter/Reporter";
+import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 
 export class Verifier {
-  constructor(private _hre: HardhatRuntimeEnvironment) {}
+  private static _etherscanConfig: any;
+  private static _config: MigrateConfig;
+  private static _hre: HardhatRuntimeEnvironment;
 
-  public async verify(address: string, args: any[], contractName: string) {
-    try {
-      await this._hre.run("verify:verify", {
-        address: address,
-        constructorArguments: args,
-        contract: contractName,
-        noCompile: true,
-        // TOOD: If your contract has libraries with undetectable addresses, you may pass the libraries parameter
-        // with a dictionary specifying them:
-        // libraries: {
-        //   SomeLibrary: "0x...",
-        // },
-      });
-    } catch (e: unknown) {
-      throw new MigrateError(`Error verifying contract: ${e}`);
-    }
+  public static init(hre: HardhatRuntimeEnvironment) {
+    this._hre = hre;
+    this._etherscanConfig = (hre.config as any).etherscan;
+    this._config = hre.config.migrate;
   }
 
-  /**
-   * Calls the Etherscan API to link a proxy with its implementation ABI.
-   *
-   * Source: https://github.com/OpenZeppelin/openzeppelin-upgrades
-   *
-   * @param etherscanApi The Etherscan API config
-   * @param proxyAddress The proxy address
-   * @param implAddress The implementation address
-   */
-  private async linkProxyWithImplementationAbi(
-    etherscanApi: EtherscanAPIConfig,
-    proxyAddress: string,
-    implAddress: string,
-  ) {
-    console.info(`Linking proxy ${proxyAddress} with implementation`);
-    const params = {
-      module: "contract",
-      action: "verifyproxycontract",
-      address: proxyAddress,
-      expectedimplementation: implAddress,
-    };
-    let responseBody = await callEtherscanApi(etherscanApi, params);
+  public static async processVerification(verifierArgs: VerifierArgs): Promise<void> {
+    if (!this._config) {
+      return;
+    }
 
-    if (responseBody.status === RESPONSE_OK) {
-      // the initial call was OK, but need to send a status request using the returned guid
-      // to get the actual verification status
-      const guid = responseBody.result;
-      responseBody = await this.checkProxyVerificationStatus(etherscanApi, guid);
-
-      while (responseBody.result === "Pending in queue") {
-        await delay(3000);
-        responseBody = await this.checkProxyVerificationStatus(etherscanApi, guid);
+    switch (this._config.verify) {
+      case VerifyStrategy.AtTheEnd: {
+        VerificationProcessor.saveVerificationFunction(verifierArgs);
+        break;
+      }
+      case VerifyStrategy.Immediately: {
+        await this.verify(verifierArgs);
+        break;
+      }
+      case VerifyStrategy.None: {
+        break;
       }
     }
+  }
 
-    if (responseBody.status === RESPONSE_OK) {
-      console.info("Successfully linked proxy to implementation.");
-    } else {
-      throw new NomicLabsHardhatPluginError(
-        pluginName,
-        `Failed to link proxy ${proxyAddress} with its implementation. Reason: ${responseBody.result}`,
-      );
+  @catchError
+  public static async verify(verifierArgs: VerifierArgs): Promise<void> {
+    const { contractAddress, contractName, constructorArguments } = verifierArgs;
+
+    const instance = await this._getEtherscanInstance(this._hre);
+
+    if (await instance.isVerified(contractAddress)) {
+      Reporter.reportAlreadyVerified(contractAddress, contractName);
+
+      return;
     }
 
-    async function delay(ms: number): Promise<void> {
-      return new Promise((resolve) => setTimeout(resolve, ms));
+    for (let attempts = 0; attempts < this._config.attempts; attempts++) {
+      try {
+        await this._tryVerify(instance, contractAddress, contractName, constructorArguments);
+      } catch (e: any) {
+        this._handleVerificationError(contractAddress, contractName, e);
+      }
     }
   }
 
-  private async checkProxyVerificationStatus(etherscanApi: EtherscanAPIConfig, guid: string) {
-    const checkProxyVerificationParams = {
-      module: "contract",
-      action: "checkproxyverification",
-      apikey: etherscanApi.key,
-      guid: guid,
-    };
-    return callEtherscanApi(etherscanApi, checkProxyVerificationParams);
+  @catchError
+  public static async verifyBatch(verifierButchArgs: VerifierArgs[]) {
+    if (!this._config.verify) {
+      return;
+    }
+
+    Reporter.reportVerificationBatchBegin();
+
+    await Promise.all(
+      verifierButchArgs.map(async (args) => {
+        await this.verify(args);
+      }),
+    );
+  }
+
+  @catchError
+  private static async _tryVerify(
+    instance: Etherscan,
+    contractAddress: string,
+    contractName: string,
+    constructorArguments: Args,
+  ) {
+    await this._tryRunVerificationTask(contractAddress, contractName, constructorArguments);
+
+    const status = await instance.getVerificationStatus(contractAddress);
+
+    if (status.isSuccess()) {
+      Reporter.reportSuccessfulVerification(contractAddress, contractName);
+      return;
+    } else {
+      Reporter.reportVerificationError(contractAddress, contractName, status.message);
+    }
+  }
+
+  @catchError
+  private static _handleVerificationError(contractAddress: string, contractName: string, error: any) {
+    if (error.message.toLowerCase().includes("already verified")) {
+      Reporter.reportAlreadyVerified(contractAddress, contractName);
+      return;
+    } else {
+      Reporter.reportVerificationError(contractAddress, contractName, error.message);
+    }
+  }
+
+  @catchError
+  private static async _getEtherscanInstance(hre: HardhatRuntimeEnvironment): Promise<Etherscan> {
+    const chainConfig = await Etherscan.getCurrentChainConfig(
+      hre.network.name,
+      hre.network.provider,
+      this._etherscanConfig.customChains ?? [],
+    );
+
+    return Etherscan.fromChainConfig(this._etherscanConfig.apiKey, chainConfig);
+  }
+
+  @suppressLogs
+  private static async _tryRunVerificationTask(contractAddress: string, contractName: string, args: Args) {
+    await this._hre.run("verify:verify", {
+      address: contractAddress,
+      constructorArguments: args,
+      contract: contractName,
+    });
   }
 }
