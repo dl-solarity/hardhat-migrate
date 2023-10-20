@@ -1,7 +1,7 @@
 import "hardhat/types/config";
 import "hardhat/types/runtime";
 
-import { Migrator } from "./migrator/migrator";
+import { Migrator } from "./migrator/Migrator";
 
 import { MigrateConfig } from "./types/migrations";
 

@@ -11,7 +11,7 @@ import "./type-extensions";
 import { mergeConfigs, migrateConfigExtender } from "./config";
 import { TASK_MIGRATE } from "./constants";
 
-import { Migrator } from "./migrator/migrator";
+import { Migrator } from "./migrator/Migrator";
 import { Reporter } from "./tools/reporter/Reporter";
 
 import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";

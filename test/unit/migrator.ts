@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { Migrator } from "../../src/migrator/migrator";
+import { Migrator } from "../../src/migrator/Migrator";
 
 function getMigratorInstance(from: number = -1, to: number = -1, only: number = -1, skip: number = -1): any {
   return new Migrator({
