@@ -9,7 +9,7 @@ import { Deployer } from "../../../src/deployer/Deployer";
 
 import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
 
-describe("Truffle Typechain deployer", () => {
+describe("Truffle Typechain -- Deployer", () => {
   describe("deploy()", () => {
     useEnvironment("minimal-typechain-truffle");
 

@@ -8,7 +8,7 @@ import { Deployer } from "../../../src/deployer/Deployer";
 
 import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
 
-describe("deployer", () => {
+describe("Truffle -- deployer", () => {
   describe("deploy()", () => {
     useEnvironment("minimal-truffle");
 
