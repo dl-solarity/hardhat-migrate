@@ -8,6 +8,8 @@ import { Instance } from "../../types/adapter";
 import { MigrateConfig } from "../../types/migrations";
 import { ContractDeployParams } from "../../types/deployer";
 
+import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
+
 @catchError
 export abstract class Adapter {
   protected _config: MigrateConfig;
@@ -21,6 +23,14 @@ export abstract class Adapter {
       abi: this._getInterface(instance),
       bytecode: this._getRawBytecode(instance),
     };
+  }
+
+  protected tryGetContractName(instance: any): string {
+    if (instance.contractName !== undefined) {
+      return instance.contractName;
+    }
+
+    return ArtifactProcessor.tryGetContractName(this._getRawBytecode(instance)).split(":")[1];
   }
 
   public abstract toInstance<A, I>(instance: Instance<A, I>, address: string, signer: any): Promise<I>;
@@ -40,20 +50,5 @@ export abstract class Adapter {
     });
 
     return methods;
-  }
-
-  protected _getMethodString(
-    contractName: string,
-    methodName: string,
-    methodFragment: FunctionFragment,
-    ...args: any[]
-  ): string {
-    let argsString = "";
-
-    for (let i = 0; i < args.length; i++) {
-      argsString += `${methodFragment.inputs[i].name}:${args[i]}${i === args.length - 1 ? "" : ", "}`;
-    }
-
-    return `${contractName}.${methodName}(${argsString})`;
   }
 }
