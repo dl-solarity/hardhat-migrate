@@ -11,14 +11,13 @@ import { MigrateError } from "../../errors";
 
 import { catchError, underline } from "../../utils";
 
-import { TruffleTransactionResponse } from "../../types/deployer";
 import { ChainRecord, predefinedChains } from "../../types/verifier";
 
 @catchError
 export class Reporter {
   private static _hre: HardhatRuntimeEnvironment = {} as HardhatRuntimeEnvironment;
 
-  private static totalCost: bigint = BigInt(0);
+  private static totalCost: bigint = 0n;
   private static totalTransactions: number = 0;
 
   public static init(hre: HardhatRuntimeEnvironment) {
@@ -45,11 +44,17 @@ export class Reporter {
     console.log(output);
   }
 
-  public static async reportTransaction(tx: TransactionResponse | string, instanceName: string) {
-    if (typeof tx === "string") {
-      tx = (await this._hre.ethers.provider.getTransaction(tx))!;
+  public static async reportTransactionByHash(txHash: string, instanceName: string) {
+    const tx = await this._hre.ethers.provider.getTransaction(txHash);
+
+    if (!tx) {
+      throw new MigrateError("Transaction not found.");
     }
 
+    await this.reportTransaction(tx, instanceName);
+  }
+
+  public static async reportTransaction(tx: TransactionResponse, instanceName: string) {
     const timeStart = Date.now();
 
     console.log("\n" + underline(this._parseTransactionTitle(tx, instanceName)));
@@ -82,22 +87,6 @@ export class Reporter {
 
     this.totalCost += receipt.fee;
     this.totalTransactions++;
-  }
-
-  public static async reportTruffleTransaction(tx: TruffleTransactionResponse | string, instanceName: string) {
-    if (typeof tx === "string") {
-      await this.reportTransaction(tx, instanceName);
-
-      return;
-    }
-
-    const transaction = await this._hre.ethers.provider.getTransaction(tx.receipt.transactionHash);
-
-    if (!transaction) {
-      throw new MigrateError("Transaction not found.");
-    }
-
-    await this.reportTransaction(transaction, instanceName);
   }
 
   public static notifyDeploymentInsteadOfRecovery(contractName: string): void {

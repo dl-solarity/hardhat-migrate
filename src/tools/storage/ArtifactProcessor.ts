@@ -6,7 +6,7 @@ import { MigrateError } from "../../errors";
 
 import { bytecodeHash, catchError } from "../../utils";
 
-import { ArtifactExtended, Bytecode, NeededLibrary } from "../../types/deployer";
+import { ArtifactExtended, NeededLibrary } from "../../types/deployer";
 
 @catchError
 export class ArtifactProcessor {
@@ -29,7 +29,7 @@ export class ArtifactProcessor {
     }
   }
 
-  public static tryGetArtifact(contractName: string): ArtifactExtended {
+  public static tryGetArtifactByName(contractName: string): ArtifactExtended {
     const artifact = ArtifactStorage.get(contractName);
 
     if (!artifact) {
@@ -39,7 +39,7 @@ export class ArtifactProcessor {
     return artifact;
   }
 
-  public static tryGetExtendedArtifact(bytecode: string): ArtifactExtended {
+  public static tryGetArtifactByBytecode(bytecode: string): ArtifactExtended {
     const artifact = ArtifactStorage.get(bytecodeHash(bytecode));
 
     if (!artifact) {
@@ -49,12 +49,8 @@ export class ArtifactProcessor {
     return artifact;
   }
 
-  public static tryGetContractName(bytecode: Bytecode): string {
-    const artifact = ArtifactStorage.get(bytecodeHash(bytecode)) as ArtifactExtended;
-
-    if (!artifact) {
-      throw new MigrateError(`Contract name not found`);
-    }
+  public static tryGetContractName(bytecode: string): string {
+    const artifact = this.tryGetArtifactByBytecode(bytecode);
 
     return `${artifact.sourceName}:${artifact.contractName}`;
   }

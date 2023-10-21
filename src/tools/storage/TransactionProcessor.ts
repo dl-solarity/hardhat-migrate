@@ -13,14 +13,13 @@ import {
   isDeployedContractAddress,
 } from "../../utils";
 
-import { TruffleTransactionResponse } from "../../types/deployer";
-import { validateKeyDeploymentFieldsFields, validateKeyTxFieldsFields } from "../../types/type-checks";
+import { validateKeyDeploymentFields, validateKeyTxFields } from "../../types/type-checks";
 
 @catchError
 export class TransactionProcessor {
   private static _deployedContracts: Map<string, boolean> = new Map();
 
-  @validateKeyDeploymentFieldsFields
+  @validateKeyDeploymentFields
   public static saveDeploymentTransaction(args: ContractDeployTransaction, contractName: string, address: string) {
     this._saveContract(args, address);
     this._saveContractByName(contractName, address);
@@ -36,12 +35,13 @@ export class TransactionProcessor {
         from: tx.from!,
         chainId: tx.chainId!,
         to: tx.to,
+        value: tx.value!,
       },
       tx,
     );
   }
 
-  @validateKeyDeploymentFieldsFields
+  @validateKeyDeploymentFields
   public static async tryRestoreContractAddressByKeyFields(
     key: ContractDeployTransaction,
     hre: HardhatRuntimeEnvironment,
@@ -51,6 +51,7 @@ export class TransactionProcessor {
         data: key.data,
         from: key.from!,
         chainId: key.chainId!,
+        value: key.value!,
       }),
     );
 
@@ -62,8 +63,8 @@ export class TransactionProcessor {
   }
 
   public static async tryRestoreContractAddressByName(
-    hre: HardhatRuntimeEnvironment,
     contractName: string,
+    hre: HardhatRuntimeEnvironment,
   ): Promise<string> {
     const contractAddress = this._tryGetDataFromStorage(contractName);
 
@@ -74,7 +75,7 @@ export class TransactionProcessor {
     return contractAddress;
   }
 
-  @validateKeyTxFieldsFields
+  @validateKeyTxFields
   public static tryRestoreSavedTransaction(key: ContractTransaction): ContractTransactionResponse {
     if (this._deployedContracts.has(key.to)) {
       throw new MigrateError(`Contract is deployed in the current migration`);
@@ -86,24 +87,44 @@ export class TransactionProcessor {
         from: key.from!,
         chainId: key.chainId!,
         to: key.to,
+        value: key.value!,
       }),
     );
   }
 
-  @validateKeyTxFieldsFields
-  public static tryRecoverTruffleTransaction(key: ContractTransaction): TruffleTransactionResponse {
-    if (this._deployedContracts.has(key.to)) {
-      throw new MigrateError(`Contract is deployed in the current migration`);
-    }
-
-    return this._tryGetDataFromStorage(
+  @validateKeyTxFields
+  private static _saveTransaction(args: ContractTransaction, transaction: ContractTransaction) {
+    TransactionStorage.set(
       createKeyTxFieldsHash({
-        data: key.data,
-        from: key.from!,
-        chainId: key.chainId!,
-        to: key.to,
+        data: args.data,
+        from: args.from!,
+        chainId: args.chainId!,
+        to: args.to,
+        value: args.value!,
       }),
+      transaction,
+      true,
     );
+  }
+
+  @validateKeyDeploymentFields
+  private static _saveContract(args: ContractDeployTransaction, contractAddress: string) {
+    this._deployedContracts.set(contractAddress, true);
+
+    TransactionStorage.set(
+      createKeyDeploymentFieldsHash({
+        data: args.data,
+        from: args.from!,
+        chainId: args.chainId!,
+        value: args.value!,
+      }),
+      contractAddress,
+      true,
+    );
+  }
+
+  private static _saveContractByName(contractName: string, address: string) {
+    TransactionStorage.set(contractName, address, true);
   }
 
   private static _tryGetDataFromStorage(key: string): any {
@@ -114,38 +135,5 @@ export class TransactionProcessor {
     }
 
     return value;
-  }
-
-  @validateKeyTxFieldsFields
-  private static _saveTransaction(args: ContractTransaction, transaction: ContractTransaction) {
-    TransactionStorage.set(
-      createKeyTxFieldsHash({
-        data: args.data,
-        from: args.from!,
-        chainId: args.chainId!,
-        to: args.to,
-      }),
-      transaction,
-      true,
-    );
-  }
-
-  @validateKeyDeploymentFieldsFields
-  private static _saveContract(args: ContractDeployTransaction, contractAddress: string) {
-    this._deployedContracts.set(contractAddress, true);
-
-    TransactionStorage.set(
-      createKeyDeploymentFieldsHash({
-        data: args.data,
-        from: args.from!,
-        chainId: args.chainId!,
-      }),
-      contractAddress,
-      true,
-    );
-  }
-
-  private static _saveContractByName(contractName: string, address: string) {
-    TransactionStorage.set(contractName, address, true);
   }
 }
