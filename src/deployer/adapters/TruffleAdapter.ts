@@ -1,52 +1,73 @@
-import { ContractTransaction, Interface, Signer } from "ethers";
+import { ContractTransaction, Interface, toBigInt } from "ethers";
+
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
 
 import { Adapter } from "./Adapter";
 
-import { bytecodeToString, catchError, getChainId } from "../../utils";
+import { MinimalContract } from "../MinimalContract";
 
-import { TruffleFactory } from "../../types/adapter";
+import { bytecodeToString, catchError, fillParameters, getMethodString } from "../../utils";
+
 import { KeyTransactionFields } from "../../types/tools";
-import { BaseTruffleMethod, TruffleTransactionResponse } from "../../types/deployer";
+import { EthersFactory, Instance, TruffleFactory } from "../../types/adapter";
+import { BaseTruffleMethod, OverridesAndLibs, TruffleTransactionResponse } from "../../types/deployer";
 
 import { Reporter } from "../../tools/reporter/Reporter";
+import { TruffleReporter } from "../../tools/reporter/adapters/TruffleReporter";
+
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 
 @catchError
 export class TruffleAdapter extends Adapter {
-  public async link(library: TruffleContract, ...instances: TruffleContract): Promise<void> {
-    library = library.contractName ? await library.deployed() : library;
-
-    for (const instance of instances) {
-      instance.link(library);
-    }
+  constructor(_hre: HardhatRuntimeEnvironment) {
+    super(_hre);
   }
 
-  public async toInstance<I>(instance: TruffleFactory<I>, address: string, signer: Signer): Promise<I> {
+  public async fromInstance<A, I>(instance: EthersFactory<A, I>): Promise<MinimalContract> {
+    return new MinimalContract(
+      this._hre,
+      this.getRawBytecode(instance),
+      this.getInterface(instance),
+      this.getContractName(instance),
+    );
+  }
+
+  public async toInstance<I>(instance: TruffleFactory<I>, address: string, parameters: OverridesAndLibs): Promise<I> {
     const contract = this._hre.artifacts.require(instance.contractName!);
 
     const contractInstance = await contract.at(address);
 
-    return this._insertHandlers(instance, contractInstance, await signer.getAddress(), address);
+    return this._insertHandlers(instance, contractInstance, address, parameters);
   }
 
-  protected _getInterface(instance: TruffleContract): Interface {
+  public getInterface(instance: TruffleContract): Interface {
     return Interface.from(instance.abi);
   }
 
-  protected _getRawBytecode(instance: TruffleContract): string {
+  public getRawBytecode(instance: TruffleContract): string {
     return bytecodeToString(instance.bytecode);
   }
 
-  protected _insertHandlers<I>(instance: TruffleFactory<I>, contract: I, from: string, to: string): I {
-    const contractName = ArtifactProcessor.tryGetContractName(this._getRawBytecode(instance)).split(":")[1];
+  public getContractName<A, I>(instance: Instance<A, I>): string {
+    try {
+      return ArtifactProcessor.tryGetContractName(this.getRawBytecode(instance));
+    } catch {
+      return "Unknown Contract";
+    }
+  }
+
+  protected _insertHandlers<I>(instance: TruffleFactory<I>, contract: I, to: string, parameters: OverridesAndLibs): I {
+    const contractInterface = this.getInterface(instance);
+    const contractName = this.getContractName(instance);
 
     for (const methodName of Object.keys((contract as any).contract.methods)) {
       const oldMethod: BaseTruffleMethod = (contract as any)[methodName];
 
-      if (this._getInterface(instance).getFunction(methodName)?.stateMutability === "view") {
+      const functionStateMutability = contractInterface.getFunction(methodName)?.stateMutability;
+      if (functionStateMutability === "view" || functionStateMutability === "pure") {
         continue;
       }
 
@@ -54,7 +75,7 @@ export class TruffleAdapter extends Adapter {
         continue;
       }
 
-      (contract as any)[methodName] = this._wrapOldMethod(contractName, methodName, oldMethod, from, to);
+      (contract as any)[methodName] = this._wrapOldMethod(contractName, methodName, oldMethod, to, parameters);
     }
 
     return contract;
@@ -64,24 +85,23 @@ export class TruffleAdapter extends Adapter {
     contractName: string,
     methodName: string,
     oldMethod: BaseTruffleMethod,
-    from: string,
     to: string,
+    parameters: OverridesAndLibs,
   ): (...args: any[]) => Promise<TruffleTransactionResponse> {
     return async (...args: any[]): Promise<TruffleTransactionResponse> => {
-      const onlyToSaveTx = await this._buildContractDeployTransaction(args, from, to);
+      const onlyToSaveTx = await this._buildContractDeployTransaction(args, to, parameters);
 
-      const methodString = this._getMethodString(contractName, methodName);
+      const methodString = getMethodString(contractName, methodName);
 
-      let txResult: TruffleTransactionResponse;
       if (this._config.continue) {
         return this._recoverTransaction(methodString, onlyToSaveTx, oldMethod, args);
-      } else {
-        txResult = await oldMethod(...args);
-
-        TransactionProcessor.saveTransaction(onlyToSaveTx);
-
-        await Reporter.reportTruffleTransaction(txResult, methodString);
       }
+
+      const txResult = await oldMethod(...args);
+
+      TransactionProcessor.saveTransaction(onlyToSaveTx);
+
+      await TruffleReporter.reportTransaction(txResult, methodString);
 
       return txResult;
     };
@@ -94,7 +114,11 @@ export class TruffleAdapter extends Adapter {
     args: any[],
   ) {
     try {
-      return await this._tryRecoverTransaction(methodString, tx);
+      const txResponse = TransactionProcessor.tryRestoreSavedTransaction(tx);
+
+      Reporter.notifyTransactionRecovery(methodString);
+
+      return txResponse as unknown as TruffleTransactionResponse;
     } catch {
       Reporter.notifyTransactionSendingInsteadOfRecovery(methodString);
 
@@ -112,34 +136,29 @@ export class TruffleAdapter extends Adapter {
 
     TransactionProcessor.saveTransaction(tx);
 
-    await Reporter.reportTruffleTransaction(txResult, methodString);
+    await TruffleReporter.reportTransaction(txResult, methodString);
 
     return txResult;
-  }
-
-  private async _tryRecoverTransaction(methodString: string, tx: ContractTransaction) {
-    const txResponse = TransactionProcessor.tryRecoverTruffleTransaction(tx);
-
-    Reporter.notifyTransactionRecovery(methodString);
-
-    return txResponse;
   }
 
   /**
    * @dev Build a transaction ONLY to save it in the storage.
    */
-  private async _buildContractDeployTransaction(args: any[], from: string, to: string): Promise<ContractTransaction> {
+  private async _buildContractDeployTransaction(
+    args: any[],
+    to: string,
+    parameters: OverridesAndLibs,
+  ): Promise<ContractTransaction> {
+    await fillParameters(this._hre, parameters);
+
     const tx: KeyTransactionFields = {
       to: to,
-      from: from,
+      from: parameters.from! as string,
       data: JSON.stringify(args),
-      chainId: await getChainId(this._hre),
+      chainId: toBigInt(String(parameters.chainId)),
+      value: toBigInt(String(parameters.value)),
     };
 
     return tx as ContractTransaction;
-  }
-
-  private _getMethodString(contractName: string, methodName: string): string {
-    return `${contractName}.${methodName}`;
   }
 }

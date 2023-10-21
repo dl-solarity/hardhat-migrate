@@ -2,8 +2,6 @@ import { Signer } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { DeployerCore } from "./DeployerCore";
-
 import { catchError, getSignerHelper, getChainId } from "../utils";
 
 import { MigrateError } from "../errors";
@@ -18,15 +16,11 @@ import { OverridesAndLibs } from "../types/deployer";
 import { Instance, TypedArgs } from "../types/adapter";
 import { isContractFactory, isEthersFactory, isPureFactory, isTruffleFactory } from "../types/type-checks";
 
-import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 
 @catchError
 export class Deployer {
-  constructor(
-    private _hre: HardhatRuntimeEnvironment,
-    private _core = new DeployerCore(_hre),
-  ) {}
+  constructor(private _hre: HardhatRuntimeEnvironment) {}
 
   public async deploy<T, A = T, I = any>(
     contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never),
@@ -35,31 +29,20 @@ export class Deployer {
   ): Promise<I> {
     const adapter = this._resolveAdapter(this._hre, contract);
 
-    const deploymentParams = await adapter.getContractDeployParams(contract);
+    const minimalContract = await adapter.fromInstance(contract);
 
-    const contractAddress = await this._core.deploy(deploymentParams, args, parameters);
+    const contractAddress = await minimalContract.deploy(args, parameters);
 
-    return adapter.toInstance(contract, contractAddress, await getSignerHelper(this._hre, parameters.from));
+    return adapter.toInstance(contract, contractAddress, parameters);
   }
 
   public async deployed<A, I>(contract: Instance<A, I>): Promise<I> {
     const adapter = this._resolveAdapter(this._hre, contract);
 
-    const contractName = ArtifactProcessor.tryGetContractName(
-      (await adapter.getContractDeployParams(contract)).bytecode,
-    );
+    const contractName = adapter.getContractName(contract);
+    const contractAddress = await TransactionProcessor.tryRestoreContractAddressByName(contractName, this._hre);
 
-    const contractAddress = await TransactionProcessor.tryRestoreContractAddressByName(this._hre, contractName);
-
-    return adapter.toInstance(contract, contractAddress, await getSignerHelper(this._hre));
-  }
-
-  /**
-   * @deprecated
-   * Used for backward compatibility with Truffle migrations.
-   */
-  public async link<A, I>(library: any, instance: Instance<A, I>): Promise<void> {
-    await new TruffleAdapter(this._hre).link(library, instance);
+    return adapter.toInstance(contract, contractAddress, {});
   }
 
   public async getSigner(from?: string): Promise<Signer> {

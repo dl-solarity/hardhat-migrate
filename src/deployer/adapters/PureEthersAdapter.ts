@@ -1,44 +1,57 @@
-import { ContractFactory, Interface, Signer } from "ethers";
+import { BaseContract, ContractFactory, Interface } from "ethers";
+
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { Adapter } from "./Adapter";
-import { EthersAdapter } from "./EthersAdapter";
+import { EthersInjectHelper } from "./EthersInjectHelper";
 
-import { catchError } from "../../utils";
+import { MinimalContract } from "../MinimalContract";
 
-import { defineProperty } from "../../types/adapter";
+import { catchError, getSignerHelper } from "../../utils";
+
+import { OverridesAndLibs } from "../../types/deployer";
+
+import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 
 @catchError
 export class PureEthersAdapter extends Adapter {
-  public async toInstance(instance: ContractFactory, address: string, signer: Signer): Promise<any> {
-    this._makeCompatibleWithEthersAdapter(instance);
-    return (await new EthersAdapter(this._hre).toInstance(instance as any, address, signer)) as unknown as any;
+  private _injectHelper: EthersInjectHelper;
+
+  constructor(protected _hre: HardhatRuntimeEnvironment) {
+    super(_hre);
+    this._injectHelper = new EthersInjectHelper(_hre);
   }
 
-  protected _getInterface(instance: ContractFactory): Interface {
+  public async fromInstance(instance: ContractFactory): Promise<MinimalContract> {
+    return new MinimalContract(
+      this._hre,
+      this.getRawBytecode(instance),
+      this.getInterface(instance),
+      this.getContractName(instance),
+    );
+  }
+
+  public async toInstance<I>(instance: ContractFactory, address: string, parameters: OverridesAndLibs): Promise<I> {
+    const signer = await getSignerHelper(this._hre, parameters.from);
+
+    const contract = new BaseContract(address, this.getInterface(instance), signer);
+
+    return this._injectHelper.insertHandlers(contract, this.getContractName(instance), parameters) as unknown as I;
+  }
+
+  public getInterface(instance: ContractFactory): Interface {
     return instance.interface;
   }
 
-  protected _getRawBytecode(instance: ContractFactory): string {
+  public getRawBytecode(instance: ContractFactory): string {
     return instance.bytecode;
   }
 
-  private _makeCompatibleWithEthersAdapter(instance: ContractFactory): any {
-    defineProperty(instance, "abi", {
-      get: function () {
-        return JSON.parse(instance.interface.formatJson());
-      },
-      enumerable: true,
-      configurable: true,
-    });
-
-    Object.defineProperty(instance, Symbol.iterator, {
-      value: function* () {
-        for (const item of instance.abi) {
-          yield item;
-        }
-      },
-      enumerable: false,
-      configurable: true,
-    });
+  public getContractName(instance: ContractFactory): string {
+    try {
+      return ArtifactProcessor.tryGetContractName(this.getRawBytecode(instance));
+    } catch {
+      return "Unknown Contract";
+    }
   }
 }
