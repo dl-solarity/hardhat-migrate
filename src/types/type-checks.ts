@@ -5,7 +5,7 @@ import { KeyDeploymentFields, KeyTransactionFields } from "./tools";
 
 import { MigrateError } from "../errors";
 
-export function validateKeyDeploymentFieldsFields(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+export function validateKeyDeploymentFields(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
 
   descriptor.value = function (...args: any[]) {
@@ -23,13 +23,17 @@ export function validateKeyDeploymentFieldsFields(target: any, propertyKey: stri
       throw new MigrateError(`KeyDeploymentFields.chainId is not valid`);
     }
 
+    if (key.value === undefined) {
+      throw new MigrateError(`KeyDeploymentFields.value is not valid`);
+    }
+
     return originalMethod.apply(this, args);
   };
 
   return descriptor;
 }
 
-export function validateKeyTxFieldsFields(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+export function validateKeyTxFields(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
 
   descriptor.value = function (...args: any[]) {
@@ -49,6 +53,10 @@ export function validateKeyTxFieldsFields(target: any, propertyKey: string, desc
 
     if (!key.to || key.to === "") {
       throw new MigrateError(`KeyDeploymentFields.to is not valid`);
+    }
+
+    if (key.value === undefined) {
+      throw new MigrateError(`KeyDeploymentFields.value is not valid`);
     }
 
     return originalMethod.apply(this, args);

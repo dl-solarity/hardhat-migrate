@@ -2,6 +2,7 @@ export interface KeyDeploymentFields {
   data: string;
   from: string;
   chainId: bigint;
+  value: bigint;
 }
 
 export interface KeyTransactionFields {
@@ -9,6 +10,7 @@ export interface KeyTransactionFields {
   from: string;
   chainId: bigint;
   to: string;
+  value: bigint;
 }
 
 export enum StorageNamespaces {
