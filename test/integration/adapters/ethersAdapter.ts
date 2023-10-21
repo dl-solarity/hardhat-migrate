@@ -57,13 +57,13 @@ describe("EthersAdapter", () => {
       });
 
       it("should get abi", async () => {
-        const abi = (await pureEhtersAdapter.getContractDeployParams(ContractWithConstructor)).abi;
+        const abi = pureEhtersAdapter.getInterface(ContractWithConstructor);
 
         expect(abi).to.deep.equal(Interface.from(contractWithConstructorABI));
       });
 
       it("should get bytecode", async () => {
-        const bytecode = (await pureEhtersAdapter.getContractDeployParams(ContractWithConstructor)).bytecode;
+        const bytecode = pureEhtersAdapter.getRawBytecode(ContractWithConstructor);
 
         expect(bytecode).to.equal(contractWithConstructorBytecode);
       });
@@ -78,14 +78,13 @@ describe("EthersAdapter", () => {
       });
 
       it("should get abi", async () => {
-        const abi = (await ethersAdapter.getContractDeployParams(ContractWithConstructorArguments__factory)).abi;
+        const abi = ethersAdapter.getInterface(ContractWithConstructorArguments__factory);
 
         expect(abi).to.deep.equal(Interface.from(contractWithConstructorABI));
       });
 
       it("should get bytecode", async () => {
-        const bytecode = (await ethersAdapter.getContractDeployParams(ContractWithConstructorArguments__factory))
-          .bytecode;
+        const bytecode = ethersAdapter.getRawBytecode(ContractWithConstructorArguments__factory);
 
         expect(bytecode).to.equal(contractWithConstructorBytecode);
       });

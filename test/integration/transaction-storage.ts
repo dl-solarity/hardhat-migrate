@@ -42,6 +42,7 @@ describe("TransactionStorage", async () => {
       const tx = await factory.getDeployTransaction("hello", {
         from: await (await deployer.getSigner()).getAddress(),
         chainId: await deployer.getChainId(),
+        value: 0,
       });
 
       assert.equal(
@@ -55,8 +56,8 @@ describe("TransactionStorage", async () => {
 
       assert.equal(
         await TransactionProcessor.tryRestoreContractAddressByName(
-          this.hre,
           "contracts/another-contracts/Contracts.sol:ContractWithConstructorArguments",
+          this.hre,
         ),
         await contract.getAddress(),
       );
@@ -94,6 +95,7 @@ describe("TransactionStorage", async () => {
       const data = await factory.getDeployTransaction("hello", {
         chainId: 1,
         from: await (await deployer.getSigner()).getAddress(),
+        value: 0,
       });
 
       await expect(TransactionProcessor.tryRestoreContractAddressByKeyFields(data, this.hre)).to.be.rejectedWith(
@@ -112,6 +114,7 @@ describe("TransactionStorage", async () => {
       const tx = await factory.getDeployTransaction("hello", {
         from: ZeroAddress,
         chainId: await deployer.getChainId(),
+        value: 0,
       });
 
       await expect(TransactionProcessor.tryRestoreContractAddressByKeyFields(tx, this.hre)).to.be.rejectedWith(
@@ -131,6 +134,7 @@ describe("TransactionStorage", async () => {
         nonce: 0,
         from: await (await deployer.getSigner()).getAddress(),
         chainId: await deployer.getChainId(),
+        value: 0,
       });
 
       assert.equal(
@@ -150,6 +154,7 @@ describe("TransactionStorage", async () => {
       const data = await factory.getDeployTransaction("hello2", {
         from: await (await deployer.getSigner()).getAddress(),
         chainId: await deployer.getChainId(),
+        value: 0,
       });
 
       await expect(TransactionProcessor.tryRestoreContractAddressByKeyFields(data, this.hre)).to.be.rejectedWith(
