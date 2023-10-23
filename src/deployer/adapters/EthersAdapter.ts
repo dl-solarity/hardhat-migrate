@@ -1,4 +1,4 @@
-import { Interface, BaseContract } from "ethers";
+import { BaseContract, Interface } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -16,8 +16,9 @@ import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 
 @catchError
 export class EthersAdapter extends Adapter {
+  private static _processedClasses = new Set<string>();
+
   private _injectHelper: EthersInjectHelper;
-  private static processedClasses = new Set<string>();
 
   constructor(_hre: HardhatRuntimeEnvironment) {
     super(_hre);
@@ -44,8 +45,8 @@ export class EthersAdapter extends Adapter {
 
     const contractName = this.getContractName(instance);
 
-    if (!EthersAdapter.processedClasses.has(contractName)) {
-      EthersAdapter.processedClasses.add(contractName);
+    if (!EthersAdapter._processedClasses.has(contractName)) {
+      EthersAdapter._processedClasses.add(contractName);
 
       this._injectHelper.overrideConnectMethod(instance, contractName);
     }
