@@ -1,6 +1,10 @@
 # Changelog
 
-## Version 2.0.0
+## Version 2.0.0-alpha.2
+
+* Library linking fully relies on the hardhat artifacts.
+
+## Version 2.0.0-alpha.1
 
 This release represents a major update to our plugin. We have completely rebuilt the core logic from scratch, now using ethersV6. 
 Additionally, we have conducted a comprehensive code walkthrough, addressing and resolving bugs, as well as introducing new features.

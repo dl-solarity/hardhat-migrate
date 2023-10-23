@@ -1,59 +1,30 @@
-import { Interface, FunctionFragment } from "ethers";
+import { Interface } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+
+import { MinimalContract } from "../MinimalContract";
 
 import { catchError } from "../../utils";
 
 import { Instance } from "../../types/adapter";
 import { MigrateConfig } from "../../types/migrations";
-import { ContractDeployParams } from "../../types/deployer";
+import { OverridesAndLibs } from "../../types/deployer";
 
 @catchError
 export abstract class Adapter {
   protected _config: MigrateConfig;
 
-  constructor(protected _hre: HardhatRuntimeEnvironment) {
+  protected constructor(protected _hre: HardhatRuntimeEnvironment) {
     this._config = _hre.config.migrate;
   }
 
-  public async getContractDeployParams(instance: any): Promise<ContractDeployParams> {
-    return {
-      abi: this._getInterface(instance),
-      bytecode: this._getRawBytecode(instance),
-    };
-  }
+  public abstract fromInstance<A, I>(instance: Instance<A, I>): Promise<MinimalContract>;
 
-  public abstract toInstance<A, I>(instance: Instance<A, I>, address: string, signer: any): Promise<I>;
+  public abstract toInstance<A, I>(instance: Instance<A, I>, address: string, parameters: OverridesAndLibs): Promise<I>;
 
-  protected abstract _getInterface(instance: any): Interface;
+  public abstract getInterface<A, I>(instance: Instance<A, I>): Interface;
 
-  protected abstract _getRawBytecode(instance: any): string;
+  public abstract getRawBytecode<A, I>(instance: Instance<A, I>): string;
 
-  protected _getContractMethods<A, I>(instance: Instance<A, I>): FunctionFragment[] {
-    const fragments = this._getInterface(instance);
-
-    const methods: FunctionFragment[] = [];
-    fragments.forEachFunction((fragment) => {
-      if (!fragment.constant) {
-        methods.push(fragment);
-      }
-    });
-
-    return methods;
-  }
-
-  protected _getMethodString(
-    contractName: string,
-    methodName: string,
-    methodFragment: FunctionFragment,
-    ...args: any[]
-  ): string {
-    let argsString = "";
-
-    for (let i = 0; i < args.length; i++) {
-      argsString += `${methodFragment.inputs[i].name}:${args[i]}${i === args.length - 1 ? "" : ", "}`;
-    }
-
-    return `${contractName}.${methodName}(${argsString})`;
-  }
+  public abstract getContractName<A, I>(instance: Instance<A, I>): string;
 }

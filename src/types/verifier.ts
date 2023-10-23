@@ -47,7 +47,6 @@ export const predefinedChains: Record<number, ChainRecord> = {
     shortName: "eth",
     chainId: 1337,
     networkId: 1337,
-    slip44: 60,
     ens: {
       registry: "0x0000000000000000000000000000000000000000",
     },

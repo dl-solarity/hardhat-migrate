@@ -10,12 +10,12 @@ import { resolvePathToFile } from "../utils";
 
 import { MigrateError } from "../errors";
 
-import { MigrateConfig } from "../types/migrations";
+import { MigrateConfig, VerifyStrategy } from "../types/migrations";
 
 import { Deployer } from "../deployer/Deployer";
 import { Verifier } from "../verifier/Verifier";
 
-import { Reporter } from "../tools/reporter/Reporter";
+import { Reporter } from "../tools/reporters/Reporter";
 import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 
 export class Migrator {
@@ -53,7 +53,9 @@ export class Migrator {
       }
     }
 
-    await this._verifier.verifyBatch(VerificationProcessor.restoreSavedVerificationFunctions());
+    if (this._config.verify === VerifyStrategy.AtTheEnd) {
+      await this._verifier.verifyBatch(VerificationProcessor.restoreSavedVerificationFunctions());
+    }
 
     await Reporter.summary();
   }

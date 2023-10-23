@@ -2,37 +2,36 @@ import { Interface, isAddress, resolveAddress } from "ethers";
 
 import { Artifact, HardhatRuntimeEnvironment, Libraries } from "hardhat/types";
 
-import { DeployerCore } from "./DeployerCore";
+import { MinimalContract } from "./MinimalContract";
 
 import { MigrateError } from "../errors";
 
-import { bytecodeToString, catchError } from "../utils";
+import { catchError } from "../utils";
 
-import { ArtifactExtended, Bytecode, ContractDeployParams, Link, NeededLibrary } from "../types/deployer";
+import { ArtifactExtended, Link, NeededLibrary } from "../types/deployer";
 
-import { Reporter } from "../tools/reporter/Reporter";
+import { Reporter } from "../tools/reporters/Reporter";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 
 @catchError
 export class Linker {
-  public static validateBytecode(bytecode: Bytecode) {
-    if (bytecodeToString(bytecode).indexOf("__") !== -1) {
-      throw new MigrateError("Bytecode contains unresolved libraries.");
-    }
+  public static isBytecodeNeedsLinking(bytecode: string): boolean {
+    return bytecode.indexOf("__") === -1;
   }
 
-  public static async linkBytecode(
+  public static async tryLinkBytecode(
     hre: HardhatRuntimeEnvironment,
+    contractName: string,
     bytecode: string,
     libraries: Libraries,
   ): Promise<string> {
-    const artifact: ArtifactExtended = ArtifactProcessor.getExtendedArtifact(bytecode);
+    const artifact: ArtifactExtended = this._mustGetContractArtifact(contractName);
     const neededLibraries = artifact.neededLibraries;
 
     let linksToApply: Map<string, Link> = new Map();
     for (const [linkedLibraryName, linkedLibraryAddress] of Object.entries(libraries)) {
-      const neededLibrary = this._matchNeededLibrary(neededLibraries, linkedLibraryName, linksToApply);
+      const neededLibrary = this._mustGetNeededLibrary(neededLibraries, linkedLibraryName, linksToApply);
 
       const neededLibraryFQN = `${neededLibrary.sourceName}:${neededLibrary.libName}`;
 
@@ -57,7 +56,7 @@ export class Linker {
     return this._linkBytecode(bytecode, artifact, [...linksToApply.values()]);
   }
 
-  private static _matchNeededLibrary(
+  private static _mustGetNeededLibrary(
     neededLibraries: NeededLibrary[],
     libraryName: string,
     linksToApply: Map<string, Link>,
@@ -163,20 +162,31 @@ export class Linker {
 
   private static async _getOrDeployLibrary(hre: HardhatRuntimeEnvironment, libraryName: string) {
     try {
-      return TransactionProcessor.tryRestoreContractAddressByName(libraryName);
+      return await TransactionProcessor.tryRestoreContractAddressByName(libraryName, hre);
     } catch {
-      const artifact = ArtifactProcessor.getArtifact(libraryName);
+      const artifact = this._mustGetLibraryArtifact(libraryName);
 
-      const core = new DeployerCore(hre);
-
-      const deployParams: ContractDeployParams = {
-        abi: Interface.from(artifact.abi),
-        bytecode: artifact.bytecode,
-      };
+      const core = new MinimalContract(hre, artifact.bytecode, Interface.from(artifact.abi), libraryName);
 
       Reporter.notifyDeploymentOfMissingLibrary(libraryName);
 
-      return core.deploy(deployParams, [], {});
+      return core.deploy();
+    }
+  }
+
+  private static _mustGetContractArtifact(contractName: string): ArtifactExtended {
+    try {
+      return ArtifactProcessor.tryGetArtifactByName(contractName);
+    } catch {
+      throw new MigrateError(`Contract artifact of ${contractName} not found. Linking cannot be performed.`);
+    }
+  }
+
+  private static _mustGetLibraryArtifact(libraryName: string): ArtifactExtended {
+    try {
+      return ArtifactProcessor.tryGetArtifactByName(libraryName);
+    } catch {
+      throw new MigrateError(`Library artifact of ${libraryName} not found. Linking cannot be performed.`);
     }
   }
 }

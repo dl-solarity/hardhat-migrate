@@ -61,7 +61,7 @@ export interface MigrateConfig {
   /*
    * The flag indicating whether the previous deployment should be continued.
    */
-  continuePreviousDeployment: boolean;
+  continue: boolean;
 }
 
 export enum VerifyStrategy {

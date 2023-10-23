@@ -1,71 +1,95 @@
-import { ContractDeployTransaction, Overrides, Signer, TransactionResponse } from "ethers";
+import { Interface, Overrides, Signer, TransactionResponse } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { Linker } from "./Linker";
 
-import { catchError, getChainId, getSignerHelper } from "../utils";
+import { catchError, fillParameters, getChainId, getSignerHelper } from "../utils";
 
 import { MigrateError } from "../errors";
 
-import {
-  Args,
-  ContractDeployParams,
-  ContractDeployTransactionWithContractName,
-  OverridesAndLibs,
-} from "../types/deployer";
+import { ContractDeployTransactionWithContractName, OverridesAndLibs } from "../types/deployer";
 import { MigrateConfig } from "../types/migrations";
 
 import { Verifier } from "../verifier/Verifier";
 
-import { Reporter } from "../tools/reporter/Reporter";
+import { Reporter } from "../tools/reporters/Reporter";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 
 @catchError
-export class DeployerCore {
-  private _config: MigrateConfig;
+export class MinimalContract {
   private _verifier: Verifier;
+  private _config: MigrateConfig;
 
-  constructor(private _hre: HardhatRuntimeEnvironment) {
+  constructor(
+    private readonly _hre: HardhatRuntimeEnvironment,
+    private _bytecode: string,
+    private readonly _interface: Interface,
+    private readonly _contractName: string = "",
+  ) {
     this._config = _hre.config.migrate;
     this._verifier = new Verifier(_hre);
+
+    if (_contractName === "") {
+      try {
+        this._contractName = ArtifactProcessor.tryGetContractName(_bytecode);
+      } catch {
+        throw new MigrateError("Contract name is not provided and cannot be extracted from bytecode.");
+      }
+    }
   }
 
-  public async deploy(deployParams: ContractDeployParams, args: Args, parameters: OverridesAndLibs): Promise<string> {
-    const contractName = ArtifactProcessor.getContractName(deployParams.bytecode);
+  public async deploy(args: any[] = [], parameters: OverridesAndLibs = {}): Promise<string> {
+    await fillParameters(this._hre, parameters);
 
-    deployParams.bytecode = await Linker.linkBytecode(this._hre, deployParams.bytecode, parameters.libraries || {});
+    await this._tryLinkLibraries(parameters);
 
-    const tx: ContractDeployTransactionWithContractName = {
-      ...(await this._createDeployTransaction(deployParams, args, parameters)),
-      contractName: contractName,
-    };
+    const tx = await this._createDeployTransaction(args, parameters);
 
-    if (this._config.continuePreviousDeployment) {
-      return this._tryRecoverContractAddress(tx, args);
+    if (this._config.continue) {
+      return this._recoverContractAddress(tx, args);
     } else {
       return this._processContractDeploymentTransaction(tx, args);
     }
   }
 
+  private async _tryLinkLibraries(parameters: OverridesAndLibs): Promise<void> {
+    try {
+      if (Linker.isBytecodeNeedsLinking(this._bytecode)) {
+        return;
+      }
+
+      this._bytecode = await Linker.tryLinkBytecode(
+        this._hre,
+        this._contractName,
+        this._bytecode,
+        parameters.libraries || {},
+      );
+    } catch (e: any) {
+      throw new MigrateError(
+        `Unable to link libraries for ${this._contractName}! Try manually deploy the libraries and link them.\n Error: ${e.message}`,
+      );
+    }
+  }
+
   private async _createDeployTransaction(
-    contractParams: ContractDeployParams,
-    args: Args,
+    args: any[],
     txOverrides: Overrides,
-  ): Promise<ContractDeployTransaction> {
-    const factory = new this._hre.ethers.ContractFactory(contractParams.abi, contractParams.bytecode);
+  ): Promise<ContractDeployTransactionWithContractName> {
+    const factory = new this._hre.ethers.ContractFactory(this._interface, this._bytecode);
 
     return {
+      contractName: this._contractName,
       chainId: await getChainId(this._hre),
       from: (await getSignerHelper(this._hre, txOverrides.from)).address,
       ...(await factory.getDeployTransaction(...args, txOverrides)),
     };
   }
 
-  private async _tryRecoverContractAddress(tx: ContractDeployTransactionWithContractName, args: Args): Promise<string> {
+  private async _recoverContractAddress(tx: ContractDeployTransactionWithContractName, args: any[]): Promise<string> {
     try {
-      const contractAddress = TransactionProcessor.tryRestoreContractAddressByKeyFields(tx);
+      const contractAddress = await TransactionProcessor.tryRestoreContractAddressByKeyFields(tx, this._hre);
 
       Reporter.notifyContractRecovery(tx.contractName, contractAddress);
 
@@ -79,7 +103,7 @@ export class DeployerCore {
 
   private async _processContractDeploymentTransaction(
     tx: ContractDeployTransactionWithContractName,
-    args: Args,
+    args: any[],
   ): Promise<string> {
     const signer: Signer = await getSignerHelper(this._hre, tx.from);
 

@@ -1,7 +1,6 @@
-/* eslint-disable no-console */
 import { join } from "path";
 import { realpathSync, existsSync } from "fs";
-import { AddressLike, hexlify, id, toBigInt } from "ethers";
+import { AddressLike, FunctionFragment, hexlify, id, Overrides, toBigInt } from "ethers";
 
 import { isBytes } from "@ethersproject/bytes";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
@@ -10,7 +9,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { MigrateError } from "./errors";
 
-import { KeyTxFields } from "./types/tools";
+import { KeyDeploymentFields, KeyTransactionFields } from "./types/tools";
 import { Bytecode } from "./types/deployer";
 
 export async function getSignerHelper(
@@ -24,6 +23,22 @@ export async function getSignerHelper(
   const address = await hre.ethers.resolveAddress(from, hre.ethers.provider);
 
   return hre.ethers.getSigner(address as string);
+}
+
+export async function fillParameters(hre: HardhatRuntimeEnvironment, parameters: Overrides): Promise<Overrides> {
+  if (parameters.from === undefined) {
+    parameters.from = await (await hre.ethers.provider.getSigner()).getAddress();
+  }
+
+  if (parameters.chainId === undefined) {
+    parameters.chainId = await getChainId(hre);
+  }
+
+  if (parameters.value === undefined) {
+    parameters.value = 0;
+  }
+
+  return parameters;
 }
 
 export function underline(str: string): string {
@@ -58,14 +73,31 @@ export function bytecodeHash(bytecode: any): string {
   return id(bytecodeToString(bytecode));
 }
 
-export function createHash(keyTxFields: KeyTxFields): string {
-  const obj: KeyTxFields = {
+export function createKeyDeploymentFieldsHash(keyTxFields: KeyDeploymentFields): string {
+  const obj: KeyDeploymentFields = {
     data: keyTxFields.data,
     from: keyTxFields.from,
     chainId: keyTxFields.chainId,
+    value: keyTxFields.value,
   };
 
   return id(toJSON(obj));
+}
+
+export function createKeyTxFieldsHash(keyTxFields: KeyTransactionFields): string {
+  const obj: KeyTransactionFields = {
+    data: keyTxFields.data,
+    from: keyTxFields.from,
+    chainId: keyTxFields.chainId,
+    to: keyTxFields.to,
+    value: keyTxFields.value,
+  };
+
+  return id(toJSON(obj));
+}
+
+export async function isDeployedContractAddress(hre: HardhatRuntimeEnvironment, address: string): Promise<boolean> {
+  return (await hre.ethers.provider.getCode(address)) !== "0x";
 }
 
 export function bytecodeToString(bytecode: Bytecode): string {
@@ -85,6 +117,30 @@ export function bytecodeToString(bytecode: Bytecode): string {
   }
 
   return bytecodeHex;
+}
+
+export function getMethodString(
+  contractName: string,
+  methodName: string,
+  methodFragment: FunctionFragment = {} as FunctionFragment,
+  args: any[] = [],
+): string {
+  if (methodFragment.inputs === undefined) {
+    return `${contractName}.${methodName}`;
+  }
+
+  let argsString = "";
+  for (let i = 0; i < args.length; i++) {
+    argsString += `${methodFragment.inputs[i].name}:${args[i]}${i === args.length - 1 ? "" : ", "}`;
+  }
+
+  const methodSting = `${contractName}.${methodName}(${argsString})`;
+
+  if (methodSting.length > 60) {
+    return `${contractName}.${methodName}(${args.length} arguments)`;
+  }
+
+  return `${contractName}.${methodName}(${argsString})`;
 }
 
 export async function waitForBlock(hre: HardhatRuntimeEnvironment, desiredBlock: number) {
@@ -117,6 +173,7 @@ export function catchError(target: any, propertyName?: string, descriptor?: Prop
   }
 }
 
+/* eslint-disable no-console */
 export function suppressLogs(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
 
@@ -134,6 +191,7 @@ export function suppressLogs(target: any, propertyKey: string, descriptor: Prope
 
   return descriptor;
 }
+/* eslint-enable no-console */
 
 function _generateDescriptor(propertyName: string, descriptor: PropertyDescriptor): PropertyDescriptor {
   const method = descriptor.value;

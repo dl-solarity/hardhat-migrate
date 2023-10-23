@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
+import { EtherscanConfig } from "@nomicfoundation/hardhat-verify/types";
 
 import { catchError, suppressLogs } from "../utils";
 
@@ -8,16 +9,16 @@ import { Args } from "../types/deployer";
 import { VerifierArgs } from "../types/verifier";
 import { MigrateConfig, VerifyStrategy } from "../types/migrations";
 
-import { Reporter } from "../tools/reporter/Reporter";
+import { Reporter } from "../tools/reporters/Reporter";
 import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 
 export class Verifier {
-  private _etherscanConfig: any;
-  private _config: MigrateConfig;
+  private readonly _config: MigrateConfig;
+  private readonly _etherscanConfig: EtherscanConfig;
 
   constructor(private _hre: HardhatRuntimeEnvironment) {
-    this._etherscanConfig = (_hre.config as any).etherscan;
     this._config = _hre.config.migrate;
+    this._etherscanConfig = (_hre.config as any).etherscan;
   }
 
   public async processVerification(verifierArgs: VerifierArgs): Promise<void> {

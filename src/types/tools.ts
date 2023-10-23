@@ -1,6 +1,17 @@
-import { ContractDeployTransaction } from "ethers/lib.esm";
+export interface KeyDeploymentFields {
+  data: string;
+  from: string;
+  chainId: bigint;
+  value: bigint;
+}
 
-export type KeyTxFields = Pick<ContractDeployTransaction, "data" | "from" | "chainId"> & { instanceName?: string };
+export interface KeyTransactionFields {
+  data: string;
+  from: string;
+  chainId: bigint;
+  to: string;
+  value: bigint;
+}
 
 export enum StorageNamespaces {
   Storage = "storage",

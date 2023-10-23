@@ -19,7 +19,7 @@ const defaultConfig: MigrateConfig = {
   pathToMigrations: "./deploy",
   skipVerificationErrors: ["already verified"],
   force: false,
-  continuePreviousDeployment: false,
+  continue: false,
 };
 
 export const migrateConfigExtender: ConfigExtender = (resolvedConfig, config) => {

@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-import axios from "axios";
-
 import ora from "ora";
+import axios from "axios";
+import BigNumber from "bignumber.js";
 
 import { Network, TransactionReceipt, TransactionResponse } from "ethers";
 
@@ -11,14 +11,13 @@ import { MigrateError } from "../../errors";
 
 import { catchError, underline } from "../../utils";
 
-import { TruffleTransactionResponse } from "../../types/deployer";
 import { ChainRecord, predefinedChains } from "../../types/verifier";
 
 @catchError
 export class Reporter {
   private static _hre: HardhatRuntimeEnvironment = {} as HardhatRuntimeEnvironment;
 
-  private static totalCost: bigint = BigInt(0);
+  private static totalCost: bigint = 0n;
   private static totalTransactions: number = 0;
 
   public static init(hre: HardhatRuntimeEnvironment) {
@@ -40,16 +39,22 @@ export class Reporter {
   public static async summary() {
     const output =
       `> ${"Total transactions:".padEnd(20)} ${this.totalTransactions}\n` +
-      `> ${"Final cost:".padEnd(20)} ${this.totalCost.toString()} ${await this._getNativeSymbol()}\n`;
+      `> ${"Final cost:".padEnd(20)} ${this.castAmount(this.totalCost, await this._getNativeSymbol())}\n`;
 
     console.log(output);
   }
 
-  public static async reportTransaction(tx: TransactionResponse | string, instanceName: string) {
-    if (typeof tx === "string") {
-      tx = (await this._hre.ethers.provider.getTransaction(tx))!;
+  public static async reportTransactionByHash(txHash: string, instanceName: string) {
+    const tx = await this._hre.ethers.provider.getTransaction(txHash);
+
+    if (!tx) {
+      throw new MigrateError("Transaction not found.");
     }
 
+    await this.reportTransaction(tx, instanceName);
+  }
+
+  public static async reportTransaction(tx: TransactionResponse, instanceName: string) {
     const timeStart = Date.now();
 
     console.log("\n" + underline(this._parseTransactionTitle(tx, instanceName)));
@@ -82,22 +87,6 @@ export class Reporter {
 
     this.totalCost += receipt.fee;
     this.totalTransactions++;
-  }
-
-  public static async reportTruffleTransaction(tx: TruffleTransactionResponse | string, instanceName: string) {
-    if (typeof tx === "string") {
-      await this.reportTransaction(tx, instanceName);
-
-      return;
-    }
-
-    const transaction = await this._hre.ethers.provider.getTransaction(tx.receipt.transactionHash);
-
-    if (!transaction) {
-      throw new MigrateError("Transaction not found.");
-    }
-
-    await this.reportTransaction(transaction, instanceName);
   }
 
   public static notifyDeploymentInsteadOfRecovery(contractName: string): void {
@@ -154,6 +143,10 @@ export class Reporter {
 
   private static _parseTransactionTitle(tx: TransactionResponse, instanceName: string): string {
     if (tx.to === null) {
+      if (instanceName.split(":").length == 1) {
+        return `Deploying ${instanceName}`;
+      }
+
       return `Deploying${instanceName ? " " + instanceName.split(":")[1] : ""}`;
     }
 
@@ -175,21 +168,39 @@ export class Reporter {
       output += `> contractAddress: ${tx.contractAddress}\n`;
     }
 
+    const nativeSymbol = await this._getNativeSymbol();
+
     output += `> blockNumber: ${tx.blockNumber}\n`;
 
     output += `> blockTimestamp: ${(await tx.getBlock()).timestamp}\n`;
 
     output += `> account: ${tx.from}\n`;
 
-    output += `> balance: ${await tx.provider.getBalance(tx.from)} ${await this._getNativeSymbol()}\n`;
+    output += `> balance: ${this.castAmount(await tx.provider.getBalance(tx.from), nativeSymbol)}\n`;
 
-    output += `> gasUsed: ${tx.gasUsed.toString()}\n`;
+    output += `> gasUsed: ${tx.gasUsed}\n`;
 
-    output += `> gasPrice: ${tx.gasPrice.toString()} ${await this._getNativeSymbol()}\n`;
+    output += `> gasPrice: ${this.castAmount(tx.gasPrice, nativeSymbol)}\n`;
 
-    output += `> fee: ${tx.fee.toString()} ${await this._getNativeSymbol()}\n`;
+    output += `> fee: ${this.castAmount(tx.fee, nativeSymbol)}\n`;
 
     console.log(output);
+  }
+
+  public static castAmount(value: bigint, nativeSymbol: string): string {
+    if (value < 10n ** 12n) {
+      return this._toGWei(value) + " GWei";
+    }
+
+    return this._toEther(value) + ` ${nativeSymbol}`;
+  }
+
+  private static _toEther(value: bigint): string {
+    return new BigNumber(value.toString()).div(10 ** 18).toFixed();
+  }
+
+  private static _toGWei(value: bigint): string {
+    return new BigNumber(value.toString()).div(10 ** 9).toFixed();
   }
 
   private static _reportMigrationFiles(files: string[]) {

@@ -55,13 +55,13 @@ describe("TruffleAdapter", () => {
       });
 
       it("should get abi", async () => {
-        const abi = (await adapter.getContractDeployParams(contractWithConstructorArtifact)).abi;
+        const abi = adapter.getInterface(contractWithConstructorArtifact);
 
         expect(abi).to.deep.equal(Interface.from(contractWithConstructorABI));
       });
 
       it("should get bytecode", async () => {
-        const bytecode = (await adapter.getContractDeployParams(contractWithConstructorArtifact)).bytecode;
+        const bytecode = adapter.getRawBytecode(contractWithConstructorArtifact);
 
         expect(bytecode).to.equal(contractWithConstructorBytecode);
       });
@@ -80,13 +80,13 @@ describe("TruffleAdapter", () => {
       });
 
       it("should get abi", async () => {
-        const abi = (await adapter.getContractDeployParams(contractWithConstructorArtifact)).abi;
+        const abi = adapter.getInterface(contractWithConstructorArtifact);
 
         expect(abi).to.deep.equal(Interface.from(contractWithConstructorABI));
       });
 
       it("should get bytecode", async () => {
-        const bytecode = (await adapter.getContractDeployParams(contractWithConstructorArtifact)).bytecode;
+        const bytecode = adapter.getRawBytecode(contractWithConstructorArtifact);
 
         expect(bytecode).to.equal(contractWithConstructorBytecode);
       });

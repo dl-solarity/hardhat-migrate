@@ -1,23 +1,52 @@
-import { Interface, Signer } from "ethers";
+import { BaseContract, Interface } from "ethers";
+
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { Adapter } from "./Adapter";
-import { EthersAdapter } from "./EthersAdapter";
+import { EthersInjectHelper } from "./EthersInjectHelper";
 
-import { bytecodeToString, catchError } from "../../utils";
+import { MinimalContract } from "../MinimalContract";
+
+import { bytecodeToString, catchError, getSignerHelper } from "../../utils";
 
 import { PureFactory } from "../../types/adapter";
+import { OverridesAndLibs } from "../../types/deployer";
 
 @catchError
 export class PureAdapter extends Adapter {
-  public async toInstance(instance: PureFactory, address: string, signer: Signer): Promise<any> {
-    return (await new EthersAdapter(this._hre).toInstance(instance as any, address, signer)) as unknown as any;
+  private _injectHelper: EthersInjectHelper;
+
+  constructor(protected _hre: HardhatRuntimeEnvironment) {
+    super(_hre);
+    this._injectHelper = new EthersInjectHelper(_hre);
   }
 
-  protected _getInterface(instance: PureFactory): Interface {
+  public async fromInstance(instance: PureFactory): Promise<MinimalContract> {
+    return new MinimalContract(
+      this._hre,
+      this.getRawBytecode(instance),
+      this.getInterface(instance),
+      this.getContractName(instance),
+    );
+  }
+
+  public async toInstance<I>(instance: PureFactory, address: string, parameters: OverridesAndLibs): Promise<I> {
+    const signer = await getSignerHelper(this._hre, parameters.from);
+
+    const contract = new BaseContract(address, this.getInterface(instance), signer);
+
+    return this._injectHelper.insertHandlers(contract, this.getContractName(instance), parameters) as unknown as I;
+  }
+
+  public getInterface(instance: PureFactory): Interface {
     return Interface.from(instance.abi);
   }
 
-  protected _getRawBytecode(instance: PureFactory): string {
+  public getRawBytecode(instance: PureFactory): string {
     return bytecodeToString(instance.bytecode);
+  }
+
+  public getContractName(instance: PureFactory): string {
+    return instance.contractName;
   }
 }

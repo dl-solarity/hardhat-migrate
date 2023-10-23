@@ -42,17 +42,22 @@ describe("TransactionStorage", async () => {
       const tx = await factory.getDeployTransaction("hello", {
         from: await (await deployer.getSigner()).getAddress(),
         chainId: await deployer.getChainId(),
+        value: 0,
       });
 
-      assert.equal(TransactionProcessor.tryRestoreContractAddressByKeyFields(tx), await contract.getAddress());
+      assert.equal(
+        await TransactionProcessor.tryRestoreContractAddressByKeyFields(tx, this.hre),
+        await contract.getAddress(),
+      );
     });
 
     it("should save deployment transaction by name", async function () {
       const contract = await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
 
       assert.equal(
-        TransactionProcessor.tryRestoreContractAddressByName(
+        await TransactionProcessor.tryRestoreContractAddressByName(
           "contracts/another-contracts/Contracts.sol:ContractWithConstructorArguments",
+          this.hre,
         ),
         await contract.getAddress(),
       );
@@ -73,7 +78,10 @@ describe("TransactionStorage", async () => {
         chainId: await deployer.getChainId(),
       });
 
-      assert.equal(TransactionProcessor.tryRestoreContractAddressByKeyFields(tx), await contract.getAddress());
+      assert.equal(
+        await TransactionProcessor.tryRestoreContractAddressByKeyFields(tx, this.hre),
+        await contract.getAddress(),
+      );
     });
 
     it("should differ contracts with chainId", async function () {
@@ -87,9 +95,10 @@ describe("TransactionStorage", async () => {
       const data = await factory.getDeployTransaction("hello", {
         chainId: 1,
         from: await (await deployer.getSigner()).getAddress(),
+        value: 0,
       });
 
-      expect(() => TransactionProcessor.tryRestoreContractAddressByKeyFields(data)).to.throw(
+      await expect(TransactionProcessor.tryRestoreContractAddressByKeyFields(data, this.hre)).to.be.rejectedWith(
         "Transaction not found in storage",
       );
     });
@@ -105,9 +114,10 @@ describe("TransactionStorage", async () => {
       const tx = await factory.getDeployTransaction("hello", {
         from: ZeroAddress,
         chainId: await deployer.getChainId(),
+        value: 0,
       });
 
-      expect(() => TransactionProcessor.tryRestoreContractAddressByKeyFields(tx)).to.throw(
+      await expect(TransactionProcessor.tryRestoreContractAddressByKeyFields(tx, this.hre)).to.be.rejectedWith(
         "Transaction not found in storage",
       );
     });
@@ -124,9 +134,13 @@ describe("TransactionStorage", async () => {
         nonce: 0,
         from: await (await deployer.getSigner()).getAddress(),
         chainId: await deployer.getChainId(),
+        value: 0,
       });
 
-      assert.equal(TransactionProcessor.tryRestoreContractAddressByKeyFields(data), await contract.getAddress());
+      assert.equal(
+        await TransactionProcessor.tryRestoreContractAddressByKeyFields(data, this.hre),
+        await contract.getAddress(),
+      );
     });
 
     it("should differ contracts with args", async function () {
@@ -140,9 +154,10 @@ describe("TransactionStorage", async () => {
       const data = await factory.getDeployTransaction("hello2", {
         from: await (await deployer.getSigner()).getAddress(),
         chainId: await deployer.getChainId(),
+        value: 0,
       });
 
-      expect(() => TransactionProcessor.tryRestoreContractAddressByKeyFields(data)).to.throw(
+      await expect(TransactionProcessor.tryRestoreContractAddressByKeyFields(data, this.hre)).to.be.rejectedWith(
         "Transaction not found in storage",
       );
     });
