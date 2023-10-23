@@ -1,5 +1,4 @@
 node_modules
-sample-project/.env
 .DS_Store
 .idea
 .eslintcache
@@ -39,6 +38,7 @@ pids
 
 # TypeScript v1 declaration files
 typings/
+**/.storage.json
 
 # Optional npm cache directory
 .npm

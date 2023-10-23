@@ -36,17 +36,16 @@
     "postpack": "pinst --enable",
     "build": "tsc --build .",
     "test": "mocha --recursive 'test/**/*.ts' --exit",
-    "sol-test": "cd sample-project/ && npx hardhat test && cd ../",
     "lint-fix": "prettier --write \"./**/*.ts\" && eslint \"src/**/*.{js,ts}\" --cache --fix",
     "publish-to-npm": "npm run build && npm run lint-fix && npm publish ./ --access public"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-ethers": "^3.0.4",
-    "@nomicfoundation/hardhat-verify": "^1.1.1",
-    "@nomiclabs/hardhat-truffle5": "^2.0.7",
+    "@nomicfoundation/hardhat-ethers": "3.0.4",
+    "@nomicfoundation/hardhat-verify": "1.1.1",
+    "@nomiclabs/hardhat-truffle5": "2.0.7",
     "axios": "1.5.0",
-    "bignumber.js": "^9.1.2",
-    "ora": "^5.4.1"
+    "bignumber.js": "9.1.2",
+    "ora": "5.4.1"
   },
   "peerDependencies": {
     "hardhat": "^2.14.0",
