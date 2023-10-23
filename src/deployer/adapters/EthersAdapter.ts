@@ -17,6 +17,7 @@ import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 @catchError
 export class EthersAdapter extends Adapter {
   private _injectHelper: EthersInjectHelper;
+  private static processedClasses = new Set<string>();
 
   constructor(_hre: HardhatRuntimeEnvironment) {
     super(_hre);
@@ -41,7 +42,15 @@ export class EthersAdapter extends Adapter {
 
     const contract = new BaseContract(address, this.getInterface(instance), signer);
 
-    return this._injectHelper.insertHandlers(contract, this.getContractName(instance), parameters) as unknown as I;
+    const contractName = this.getContractName(instance);
+
+    if (!EthersAdapter.processedClasses.has(contractName)) {
+      EthersAdapter.processedClasses.add(contractName);
+
+      this._injectHelper.overrideConnectMethod(instance, contractName);
+    }
+
+    return this._injectHelper.insertHandlers(contract, contractName, parameters) as unknown as I;
   }
 
   public getInterface<A, I>(instance: EthersFactory<A, I>): Interface {

@@ -128,19 +128,19 @@ export function getMethodString(
   if (methodFragment.inputs === undefined) {
     return `${contractName}.${methodName}`;
   }
-
-  let argsString = "";
-  for (let i = 0; i < args.length; i++) {
-    argsString += `${methodFragment.inputs[i].name}:${args[i]}${i === args.length - 1 ? "" : ", "}`;
-  }
+  const argsString = args.map((arg, i) => `${methodFragment.inputs[i].name}:${arg}`).join(", ");
 
   const methodSting = `${contractName}.${methodName}(${argsString})`;
 
   if (methodSting.length > 60) {
-    return `${contractName}.${methodName}(${args.length} arguments)`;
+    const shortenMethodString = `${contractName}.${methodName}(${args.length} arguments)`;
+
+    if (shortenMethodString.length > 60) {
+      return `${contractName.split(":").pop()}.${methodName}(${args.length} arguments)`;
+    }
   }
 
-  return `${contractName}.${methodName}(${argsString})`;
+  return methodSting;
 }
 
 export async function waitForBlock(hre: HardhatRuntimeEnvironment, desiredBlock: number) {

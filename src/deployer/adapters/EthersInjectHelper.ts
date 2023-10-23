@@ -1,6 +1,7 @@
 import {
   BaseContract,
   BaseContractMethod,
+  ContractRunner,
   ContractTransaction,
   ContractTransactionResponse,
   defineProperties,
@@ -12,6 +13,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { fillParameters, getMethodString } from "../../utils";
 
+import { EthersFactory } from "../../types/adapter";
 import { MigrateConfig } from "../../types/migrations";
 import { OverridesAndLibs } from "../../types/deployer";
 
@@ -65,6 +67,16 @@ export class EthersInjectHelper {
     return contract;
   }
 
+  public async overrideConnectMethod<A, I>(instance: EthersFactory<A, I>, contractName: string) {
+    const connectMethod = instance.connect;
+
+    instance.connect = (address: string, runner?: ContractRunner): I => {
+      const contract = connectMethod(address, runner) as BaseContract;
+
+      return this.insertHandlers(contract, contractName, {}) as unknown as I;
+    };
+  }
+
   private _getContractFunctionFragments(contractInterface: Interface): FunctionFragment[] {
     const result: FunctionFragment[] = [];
 
@@ -76,8 +88,8 @@ export class EthersInjectHelper {
   }
 
   private _wrapOldMethod(
-    methodName: string,
     contractName: string,
+    methodName: string,
     methodFragments: FunctionFragment,
     oldMethod: BaseContractMethod,
     parameters: OverridesAndLibs,
