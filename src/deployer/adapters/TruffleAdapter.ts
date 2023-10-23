@@ -14,8 +14,8 @@ import { KeyTransactionFields } from "../../types/tools";
 import { EthersFactory, Instance, TruffleFactory } from "../../types/adapter";
 import { BaseTruffleMethod, OverridesAndLibs, TruffleTransactionResponse } from "../../types/deployer";
 
-import { Reporter } from "../../tools/reporter/Reporter";
-import { TruffleReporter } from "../../tools/reporter/adapters/TruffleReporter";
+import { Reporter } from "../../tools/reporters/Reporter";
+import { TruffleReporter } from "../../tools/reporters/TruffleReporter";
 
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";

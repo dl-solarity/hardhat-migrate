@@ -13,7 +13,7 @@ import { MigrateConfig } from "../types/migrations";
 
 import { Verifier } from "../verifier/Verifier";
 
-import { Reporter } from "../tools/reporter/Reporter";
+import { Reporter } from "../tools/reporters/Reporter";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 

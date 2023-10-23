@@ -1,6 +1,6 @@
-import { Reporter } from "../Reporter";
+import { Reporter } from "./Reporter";
 
-import { TruffleTransactionResponse } from "../../../types/deployer";
+import { TruffleTransactionResponse } from "../../types/deployer";
 
 export class TruffleReporter {
   public static async reportTransaction(tx: TruffleTransactionResponse | string, instanceName: string) {

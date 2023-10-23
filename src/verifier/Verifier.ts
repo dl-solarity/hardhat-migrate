@@ -9,7 +9,7 @@ import { Args } from "../types/deployer";
 import { VerifierArgs } from "../types/verifier";
 import { MigrateConfig, VerifyStrategy } from "../types/migrations";
 
-import { Reporter } from "../tools/reporter/Reporter";
+import { Reporter } from "../tools/reporters/Reporter";
 import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 
 export class Verifier {

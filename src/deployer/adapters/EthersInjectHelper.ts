@@ -15,7 +15,7 @@ import { fillParameters, getMethodString } from "../../utils";
 import { MigrateConfig } from "../../types/migrations";
 import { OverridesAndLibs } from "../../types/deployer";
 
-import { Reporter } from "../../tools/reporter/Reporter";
+import { Reporter } from "../../tools/reporters/Reporter";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 
 export class EthersInjectHelper {

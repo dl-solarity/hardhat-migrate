@@ -15,7 +15,7 @@ import { MigrateConfig, VerifyStrategy } from "../types/migrations";
 import { Deployer } from "../deployer/Deployer";
 import { Verifier } from "../verifier/Verifier";
 
-import { Reporter } from "../tools/reporter/Reporter";
+import { Reporter } from "../tools/reporters/Reporter";
 import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 
 export class Migrator {

@@ -196,15 +196,11 @@ export class Reporter {
   }
 
   private static _toEther(value: bigint): string {
-    return BigNumber(value.toString())
-      .div(10 ** 18)
-      .toFixed();
+    return new BigNumber(value.toString()).div(10 ** 18).toFixed();
   }
 
   private static _toGWei(value: bigint): string {
-    return BigNumber(value.toString())
-      .div(10 ** 9)
-      .toFixed();
+    return new BigNumber(value.toString()).div(10 ** 9).toFixed();
   }
 
   private static _reportMigrationFiles(files: string[]) {

@@ -10,7 +10,7 @@ import { catchError } from "../utils";
 
 import { ArtifactExtended, Link, NeededLibrary } from "../types/deployer";
 
-import { Reporter } from "../tools/reporter/Reporter";
+import { Reporter } from "../tools/reporters/Reporter";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 
