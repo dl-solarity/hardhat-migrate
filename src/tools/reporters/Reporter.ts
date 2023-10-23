@@ -15,7 +15,7 @@ import { ChainRecord, predefinedChains } from "../../types/verifier";
 
 @catchError
 export class Reporter {
-  private static _hre: HardhatRuntimeEnvironment = {} as HardhatRuntimeEnvironment;
+  private static _hre: HardhatRuntimeEnvironment;
 
   private static totalCost: bigint = 0n;
   private static totalTransactions: number = 0;

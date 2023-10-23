@@ -27,7 +27,7 @@ export class Deployer {
     args: TypedArgs<A> = [] as TypedArgs<A>,
     parameters: OverridesAndLibs = {},
   ): Promise<I> {
-    const adapter = this._resolveAdapter(this._hre, contract);
+    const adapter = this._resolveAdapter(contract);
 
     const minimalContract = await adapter.fromInstance(contract);
 
@@ -37,7 +37,7 @@ export class Deployer {
   }
 
   public async deployed<A, I>(contract: Instance<A, I>): Promise<I> {
-    const adapter = this._resolveAdapter(this._hre, contract);
+    const adapter = this._resolveAdapter(contract);
 
     const contractName = adapter.getContractName(contract);
     const contractAddress = await TransactionProcessor.tryRestoreContractAddressByName(contractName, this._hre);
@@ -53,21 +53,21 @@ export class Deployer {
     return getChainId(this._hre);
   }
 
-  private _resolveAdapter<A, I>(hre: HardhatRuntimeEnvironment, contract: Instance<A, I>): Adapter {
+  private _resolveAdapter<A, I>(contract: Instance<A, I>): Adapter {
     if (isEthersFactory(contract)) {
-      return new EthersAdapter(hre);
+      return new EthersAdapter(this._hre);
     }
 
     if (isTruffleFactory(contract)) {
-      return new TruffleAdapter(hre);
+      return new TruffleAdapter(this._hre);
     }
 
     if (isPureFactory(contract)) {
-      return new PureAdapter(hre);
+      return new PureAdapter(this._hre);
     }
 
     if (isContractFactory(contract)) {
-      return new PureEthersAdapter(hre);
+      return new PureEthersAdapter(this._hre);
     }
 
     throw new MigrateError("Unknown Contract Factory Type");
