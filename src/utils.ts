@@ -22,7 +22,7 @@ export async function getSignerHelper(
 
   const address = await hre.ethers.resolveAddress(from, hre.ethers.provider);
 
-  return hre.ethers.getSigner(address as string);
+  return hre.ethers.getSigner(address);
 }
 
 export async function fillParameters(hre: HardhatRuntimeEnvironment, parameters: Overrides): Promise<Overrides> {

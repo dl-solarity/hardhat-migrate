@@ -25,6 +25,10 @@ export class TransactionProcessor {
     this._saveContractByName(contractName, address);
   }
 
+  public static saveDeploymentTransactionWithContractName(contractName: string, address: string) {
+    this._saveContractByName(contractName, address);
+  }
+
   /**
    * @param tx - Transaction to save. Acts as a key and value at the same time.
    */

@@ -20,6 +20,7 @@ import { DefaultStorage } from "./tools/storage/MigrateStorage";
 import { MigrateConfig } from "./types/migrations";
 
 export { Deployer } from "./deployer/Deployer";
+export { DefaultStorage } from "./tools/storage/MigrateStorage";
 export { Verifier } from "./verifier/Verifier";
 
 extendConfig(migrateConfigExtender);

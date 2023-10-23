@@ -36,6 +36,14 @@ export class Deployer {
     return adapter.toInstance(contract, contractAddress, parameters);
   }
 
+  public setAsDeployed<A, I>(contract: Instance<A, I>, address: string): void {
+    const adapter = this._resolveAdapter(this._hre, contract);
+
+    const contractName = adapter.getContractName(contract);
+
+    TransactionProcessor.saveDeploymentTransactionWithContractName(contractName, address);
+  }
+
   public async deployed<A, I>(contract: Instance<A, I>): Promise<I> {
     const adapter = this._resolveAdapter(this._hre, contract);
 
