@@ -1,7 +1,7 @@
 import {
   BaseContract,
   BaseContractMethod,
-  ContractRunner,
+  ContractFactory,
   ContractTransaction,
   ContractTransactionResponse,
   defineProperties,
@@ -11,20 +11,53 @@ import {
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { fillParameters, getMethodString } from "../../utils";
+import { Adapter } from "./Adapter";
 
-import { EthersFactory } from "../../types/adapter";
-import { MigrateConfig } from "../../types/migrations";
+import { bytecodeToString, fillParameters, getMethodString, getSignerHelper } from "../../utils";
+
+import { EthersFactory, PureFactory } from "../../types/adapter";
 import { OverridesAndLibs } from "../../types/deployer";
 
 import { Reporter } from "../../tools/reporters/Reporter";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
+import { MinimalContract } from "../MinimalContract";
 
-export class EthersInjectHelper {
-  protected _config: MigrateConfig;
+type Factory<A, I> = EthersFactory<A, I> | PureFactory | ContractFactory;
 
-  constructor(private _hre: HardhatRuntimeEnvironment) {
-    this._config = _hre.config.migrate;
+export abstract class AbstractEthersAdapter extends Adapter {
+  private static _processedClasses = new Set<string>();
+
+  constructor(_hre: HardhatRuntimeEnvironment) {
+    super(_hre);
+  }
+
+  public getRawBytecode<A, I>(instance: Factory<A, I>): string {
+    return bytecodeToString(instance.bytecode);
+  }
+
+  public async fromInstance<A, I>(instance: Factory<A, I>): Promise<MinimalContract> {
+    return new MinimalContract(
+      this._hre,
+      this.getRawBytecode(instance),
+      this.getInterface(instance),
+      this.getContractName(instance),
+    );
+  }
+
+  public async toInstance<A, I>(instance: Factory<A, I>, address: string, parameters: OverridesAndLibs): Promise<I> {
+    const signer = await getSignerHelper(this._hre, parameters.from);
+
+    const contract = new BaseContract(address, this.getInterface(instance), signer);
+
+    const contractName = this.getContractName(instance);
+
+    if (!AbstractEthersAdapter._processedClasses.has(contractName)) {
+      AbstractEthersAdapter._processedClasses.add(contractName);
+
+      this.overrideConnectMethod(instance, contractName);
+    }
+
+    return this.insertHandlers(contract, contractName, parameters) as unknown as I;
   }
 
   public insertHandlers(contract: BaseContract, contractName: string, parameters: OverridesAndLibs): BaseContract {
@@ -67,15 +100,7 @@ export class EthersInjectHelper {
     return contract;
   }
 
-  public async overrideConnectMethod<A, I>(instance: EthersFactory<A, I>, contractName: string) {
-    const connectMethod = instance.connect;
-
-    instance.connect = (address: string, runner?: ContractRunner): I => {
-      const contract = connectMethod(address, runner) as BaseContract;
-
-      return this.insertHandlers(contract, contractName, {}) as unknown as I;
-    };
-  }
+  public abstract overrideConnectMethod<A, I>(instance: Factory<A, I>, contractName: string): Promise<void>;
 
   private _getContractFunctionFragments(contractInterface: Interface): FunctionFragment[] {
     const result: FunctionFragment[] = [];
