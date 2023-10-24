@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-import ora from "ora";
 import axios from "axios";
 import BigNumber from "bignumber.js";
+import ora from "ora";
 
 import { Network, TransactionReceipt, TransactionResponse } from "ethers";
 
@@ -85,6 +85,7 @@ export class Reporter {
 
     await this._printTransaction(receipt);
 
+    // TODO: do wee need add value to totalCost?
     this.totalCost += receipt.fee;
     this.totalTransactions++;
   }
