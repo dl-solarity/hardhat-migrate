@@ -2,7 +2,7 @@ import { Signer } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { catchError, getSignerHelper, getChainId } from "../utils";
+import { catchError, getChainId, getSignerHelper } from "../utils";
 
 import { MigrateError } from "../errors";
 
@@ -44,7 +44,9 @@ export class Deployer {
     TransactionProcessor.saveDeploymentTransactionWithContractName(contractName, address);
   }
 
-  public async deployed<A, I>(contract: Instance<A, I>): Promise<I> {
+  public async deployed<T, A = T, I = any>(
+    contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never),
+  ): Promise<I> {
     const adapter = this._resolveAdapter(this._hre, contract);
 
     const contractName = adapter.getContractName(contract);
