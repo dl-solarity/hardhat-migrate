@@ -1,7 +1,6 @@
 import {
   BaseContract,
   BaseContractMethod,
-  ContractTransaction,
   ContractTransactionResponse,
   defineProperties,
   FunctionFragment,
@@ -14,6 +13,7 @@ import { fillParameters, getMethodString } from "../../utils";
 
 import { MigrateConfig } from "../../types/migrations";
 import { OverridesAndLibs } from "../../types/deployer";
+import { KeyTransactionFields } from "../../types/tools";
 
 import { Reporter } from "../../tools/reporters/Reporter";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
@@ -89,16 +89,16 @@ export class EthersInjectHelper {
       const methodString = getMethodString(contractName, methodName, methodFragments, args);
 
       if (this._config.continue) {
-        return this._recoverTransaction(methodString, tx, oldMethod, args);
+        return this._recoverTransaction(methodString, tx as any, oldMethod, args);
       } else {
-        return this._sendTransaction(methodString, tx, oldMethod, args);
+        return this._sendTransaction(methodString, tx as any, oldMethod, args);
       }
     };
   }
 
   private async _recoverTransaction(
     methodString: string,
-    tx: ContractTransaction,
+    tx: KeyTransactionFields,
     oldMethod: BaseContractMethod,
     args: any[],
   ) {
@@ -117,7 +117,7 @@ export class EthersInjectHelper {
 
   private async _sendTransaction(
     methodString: string,
-    tx: ContractTransaction,
+    tx: KeyTransactionFields,
     oldMethod: BaseContractMethod,
     args: any[],
   ) {

@@ -12,8 +12,8 @@ import { mergeConfigs, migrateConfigExtender } from "./config";
 import { TASK_MIGRATE } from "./constants";
 
 import { Migrator } from "./migrator/Migrator";
-import { Reporter } from "./tools/reporters/Reporter";
 
+import { Reporter } from "./tools/reporters/Reporter";
 import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
 import { DefaultStorage } from "./tools/storage/MigrateStorage";
 
@@ -21,6 +21,7 @@ import { MigrateConfig } from "./types/migrations";
 
 export { Deployer } from "./deployer/Deployer";
 export { Verifier } from "./verifier/Verifier";
+export { DefaultStorage } from "./tools/storage/MigrateStorage";
 
 extendConfig(migrateConfigExtender);
 
