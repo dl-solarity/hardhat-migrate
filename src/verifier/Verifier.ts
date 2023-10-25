@@ -3,7 +3,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
 import { EtherscanConfig } from "@nomicfoundation/hardhat-verify/types";
 
-import { catchError, suppressLogs } from "../utils";
+import { catchError, getChainId, suppressLogs } from "../utils";
 
 import { Args } from "../types/deployer";
 import { MigrateConfig } from "../types/migrations";
@@ -22,7 +22,12 @@ export class Verifier {
 
   @catchError
   public async verify(verifierArgs: VerifierArgs): Promise<void> {
-    const { contractAddress, contractName, constructorArguments } = verifierArgs;
+    const { contractAddress, contractName, constructorArguments, chainId } = verifierArgs;
+
+    if ((await getChainId(this._hre)) !== chainId) {
+      // TODO: Add actions for this case.
+      return;
+    }
 
     const instance = await this._getEtherscanInstance(this._hre);
 

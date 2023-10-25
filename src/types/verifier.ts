@@ -1,6 +1,11 @@
 import { Args } from "./deployer";
 
-export type VerifierArgs = { contractAddress: string; contractName: string; constructorArguments: Args };
+export type VerifierArgs = {
+  contractAddress: string;
+  contractName: string;
+  constructorArguments: Args;
+  chainId: bigint;
+};
 
 export interface ChainRecord {
   name: string;
