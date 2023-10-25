@@ -32,7 +32,7 @@ export class Verifier {
       return;
     }
 
-    for (let attempts = 0; attempts < this._config.attempts; attempts++) {
+    for (let attempts = 0; attempts < this._config.verifyConfig.attempts; attempts++) {
       try {
         await this._tryVerify(instance, contractAddress, contractName, constructorArguments);
         break;
@@ -50,11 +50,16 @@ export class Verifier {
 
     Reporter.reportVerificationBatchBegin();
 
-    await Promise.all(
-      verifierButchArgs.map(async (args) => {
-        await this.verify(args);
-      }),
-    );
+    const parallel = this._config.verifyConfig.parallel;
+
+    for (let i = 0; i < verifierButchArgs.length; i += parallel) {
+      const batch = verifierButchArgs.slice(i, i + parallel);
+      await Promise.all(
+        batch.map((args) => {
+          this.verify(args);
+        }),
+      );
+    }
   }
 
   @catchError

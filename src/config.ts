@@ -14,10 +14,13 @@ const defaultConfig: MigrateConfig = {
   skip: -1,
   wait: 1,
   verify: false,
-  attempts: 0,
   pathToMigrations: "./deploy",
   force: false,
   continue: false,
+  verifyConfig: {
+    parallel: 4,
+    attempts: 3,
+  },
 };
 
 export const migrateConfigExtender: ConfigExtender = (resolvedConfig, config) => {
@@ -32,8 +35,28 @@ export const mergeConfigs = (
     return defaultConfig;
   }
 
+  if ((config as any).parallel) {
+    (config.verifyConfig as any) ??= {};
+    config.verifyConfig!.parallel ??= (config as any).parallel;
+  }
+
+  if ((config as any).attempts) {
+    (config.verifyConfig as any) ??= {};
+    config.verifyConfig!.attempts ??= (config as any).attempts;
+  }
+
   if (config.wait && config.wait < 1) {
     throw new HardhatPluginError(pluginName, "config.migrate.wait must be greater than 0");
+  }
+
+  if (config.verifyConfig) {
+    if (config.verifyConfig.parallel && config.verifyConfig.parallel < 1) {
+      throw new HardhatPluginError(pluginName, "config.migrate.verifyConfig.parallel must be greater than 0");
+    }
+
+    if (config.verifyConfig.attempts && config.verifyConfig.attempts < 1) {
+      throw new HardhatPluginError(pluginName, "config.migrate.verifyConfig.attempts must be greater than 0");
+    }
   }
 
   if (config.pathToMigrations && !isRelativePath(config.pathToMigrations)) {

@@ -10,5 +10,9 @@ module.exports = {
     attempts: 2,
     wait: 2,
     pathToMigrations: "./deploy/",
+    verifyConfig: {
+      parallel: 4,
+      attempts: 5,
+    },
   },
 };

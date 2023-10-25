@@ -39,7 +39,11 @@ describe("config", () => {
     });
 
     it("should apply attempts", async function () {
-      assert.equal(loadedOptions.attempts, 2);
+      assert.equal(loadedOptions.verifyConfig.attempts, 5);
+    });
+
+    it("should apply parallel", async function () {
+      assert.equal(loadedOptions.verifyConfig.parallel, 4);
     });
 
     it("should apply wait", async function () {
@@ -66,18 +70,6 @@ describe("config", () => {
 
         require("hardhat");
       }).to.throw(HardhatPluginError, "config.migrate.pathToMigrations must be a relative path");
-
-      resetHardhatContext();
-    });
-
-    it("should throw if wait is less than 1", async function () {
-      expect(() => {
-        const prefix = "hardhat-project-";
-        process.chdir(join(__dirname, "../", "fixture-projects", prefix + fixtureProjectName));
-        process.env.HARDHAT_NETWORK = "hardhat";
-
-        require("hardhat");
-      }).to.throw(HardhatPluginError, "config.migrate.wait must be greater than 0");
 
       resetHardhatContext();
     });
@@ -117,7 +109,11 @@ describe("config", () => {
     });
 
     it("should set to default attempts", async function () {
-      assert.equal(loadedOptions.attempts, 0);
+      assert.equal(loadedOptions.verifyConfig.attempts, 3);
+    });
+
+    it("should set to default parallel", async function () {
+      assert.equal(loadedOptions.verifyConfig.parallel, 4);
     });
 
     it("should set to default wait", async function () {

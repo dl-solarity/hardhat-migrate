@@ -2,14 +2,14 @@ import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-verify";
 
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
-import { extendConfig, extendEnvironment, task, types } from "hardhat/config";
+import { extendConfig, extendEnvironment, scope, types } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 import { ActionType } from "hardhat/types";
 
 import "./type-extensions";
 
 import { mergeConfigs, migrateConfigExtender } from "./config";
-import { TASK_MIGRATE } from "./constants";
+import { TASK_MIGRATE, TASK_MIGRATE_VERIFY } from "./constants";
 
 import { Migrator } from "./migrator/Migrator";
 import { Reporter } from "./tools/reporters/Reporter";
@@ -17,10 +17,14 @@ import { Reporter } from "./tools/reporters/Reporter";
 import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
 import { DefaultStorage } from "./tools/storage/MigrateStorage";
 
-import { MigrateConfig } from "./types/migrations";
+import { VerificationProcessor } from "./tools/storage/VerificationProcessor";
+import { MigrateConfig, MigrateVerifyConfig } from "./types/migrations";
+import { Verifier } from "./verifier/Verifier";
 
 export { Deployer } from "./deployer/Deployer";
 export { Verifier } from "./verifier/Verifier";
+
+const migrateScope = scope("migrate", "Automatic deployment and verification of smart contracts");
 
 extendConfig(migrateConfigExtender);
 
@@ -38,6 +42,18 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
   Reporter.init(env);
 
   await new Migrator(env).migrate();
+
+  if (env.config.migrate.verify) {
+    await env.run(TASK_MIGRATE_VERIFY);
+  }
+};
+
+const migrateVerify: ActionType<MigrateVerifyConfig> = async (taskArgs, env) => {
+  env.config.migrate = mergeConfigs({ verify: true, verifyConfig: taskArgs }, env.config.migrate);
+
+  Reporter.init(env);
+
+  await new Verifier(env).verifyBatch(VerificationProcessor.restoreSavedVerificationFunctions());
 };
 
 extendEnvironment((hre) => {
@@ -50,7 +66,8 @@ extendEnvironment((hre) => {
 
 // TODO: override the `clean` task
 
-task(TASK_MIGRATE, "Deploy contracts via migration files")
+migrateScope
+  .task(TASK_MIGRATE, "Deploy contracts via migration files")
   .addOptionalParam("from", "The migration number from which the migration will be applied.", undefined, types.int)
   .addOptionalParam("to", "The migration number up to which the migration will be applied.", undefined, types.int)
   .addOptionalParam(
@@ -62,6 +79,7 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
   .addOptionalParam("skip", "The number of migration to skip. Overrides only parameter.", undefined, types.int)
   .addOptionalParam("wait", "The number of blocks to wait for the transaction to be mined.", undefined, types.int)
   .addFlag("verify", "The flag indicating whether the contracts should be verified.")
+  .addOptionalParam("parallel", "The size of the batch for verification.", undefined, types.int)
   .addOptionalParam("attempts", "The number of attempts to verify the contract.", undefined, types.int)
   .addOptionalParam(
     "pathToMigrations",
@@ -72,3 +90,9 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
   .addFlag("force", "The flag indicating whether the compilation is forced.")
   .addFlag("continue", "The flag indicating whether the previous deployment should be continued.")
   .setAction(migrate);
+
+migrateScope
+  .task(TASK_MIGRATE_VERIFY, "Verify contracts via .storage")
+  .addOptionalParam("parallel", "The size of the batch for verification.", undefined, types.int)
+  .addOptionalParam("attempts", "The number of attempts to verify the contract.", undefined, types.int)
+  .setAction(migrateVerify);
