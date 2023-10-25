@@ -35,6 +35,7 @@ export class Verifier {
     for (let attempts = 0; attempts < this._config.attempts; attempts++) {
       try {
         await this._tryVerify(instance, contractAddress, contractName, constructorArguments);
+        break;
       } catch (e: any) {
         this._handleVerificationError(contractAddress, contractName, e);
       }
