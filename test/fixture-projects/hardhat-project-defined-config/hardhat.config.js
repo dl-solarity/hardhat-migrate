@@ -10,6 +10,5 @@ module.exports = {
     attempts: 2,
     wait: 2,
     pathToMigrations: "./deploy/",
-    skipVerificationErrors: ["already verified"],
   },
 };

@@ -50,10 +50,6 @@ describe("config", () => {
       assert.equal(loadedOptions.pathToMigrations, "./deploy/");
     });
 
-    it("should apply skipVerificationErrors", async function () {
-      assert.deepEqual(loadedOptions.skipVerificationErrors, ["already verified"]);
-    });
-
     it("should apply continuePreviousDeployment", async function () {
       assert.isFalse(loadedOptions.continue);
     });
@@ -130,10 +126,6 @@ describe("config", () => {
 
     it("should set to default pathToMigrations", async function () {
       assert.equal(loadedOptions.pathToMigrations, "./deploy");
-    });
-
-    it("should set to default skipVerificationErrors", async function () {
-      assert.deepEqual(loadedOptions.skipVerificationErrors, ["already verified"]);
     });
 
     it("should set to default continuePreviousDeployment", async function () {

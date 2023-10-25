@@ -16,7 +16,6 @@ const defaultConfig: MigrateConfig = {
   verify: false,
   attempts: 0,
   pathToMigrations: "./deploy",
-  skipVerificationErrors: ["already verified"],
   force: false,
   continue: false,
 };

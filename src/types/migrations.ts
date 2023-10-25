@@ -43,12 +43,6 @@ export interface MigrateConfig {
   pathToMigrations: string;
 
   /*
-   * The user can specify custom verification errors that will be omitted
-   * and just be printed to the log instead of stopping the program completely.
-   */
-  skipVerificationErrors: string[];
-
-  /*
    * The flag indicating whether the compilation is forced.
    */
   force: boolean;
