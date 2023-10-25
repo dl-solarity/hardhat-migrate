@@ -60,14 +60,8 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
     types.int,
   )
   .addOptionalParam("skip", "The number of migration to skip. Overrides only parameter.", undefined, types.int)
+  .addOptionalParam("wait", "The number of blocks to wait for the transaction to be mined.", undefined, types.int)
   .addFlag("verify", "The flag indicating whether the contracts should be verified.")
-  .addFlag("force", "The flag indicating whether the compilation is forced.")
-  .addOptionalParam(
-    "confirmations",
-    "The number defining after how many blocks the verification should start.",
-    undefined,
-    types.int,
-  )
   .addOptionalParam("attempts", "The number of attempts to verify the contract.", undefined, types.int)
   .addOptionalParam(
     "pathToMigrations",
@@ -75,5 +69,6 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
     undefined,
     types.string,
   )
+  .addFlag("force", "The flag indicating whether the compilation is forced.")
   .addFlag("continue", "The flag indicating whether the previous deployment should be continued.")
   .setAction(migrate);
