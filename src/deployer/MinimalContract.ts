@@ -130,7 +130,7 @@ export class MinimalContract {
   }
 
   private async _waitForDeployment(tx: TransactionResponse): Promise<string> {
-    const receipt = await tx.wait(this._config.txConfirmations);
+    const receipt = await tx.wait(this._config.wait);
 
     if (receipt) {
       return receipt.contractAddress!;

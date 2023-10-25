@@ -42,12 +42,8 @@ describe("config", () => {
       assert.equal(loadedOptions.attempts, 2);
     });
 
-    it("should apply tx confirmations", async function () {
-      assert.equal(loadedOptions.txConfirmations, 2);
-    });
-
-    it("should apply verify confirmations", async function () {
-      assert.equal(loadedOptions.verifyConfirmations, 5);
+    it("should apply wait", async function () {
+      assert.equal(loadedOptions.wait, 2);
     });
 
     it("should apply pathToMigrations", async function () {
@@ -74,6 +70,18 @@ describe("config", () => {
 
         require("hardhat");
       }).to.throw(HardhatPluginError, "config.migrate.pathToMigrations must be a relative path");
+
+      resetHardhatContext();
+    });
+
+    it("should throw if wait is less than 1", async function () {
+      expect(() => {
+        const prefix = "hardhat-project-";
+        process.chdir(join(__dirname, "../", "fixture-projects", prefix + fixtureProjectName));
+        process.env.HARDHAT_NETWORK = "hardhat";
+
+        require("hardhat");
+      }).to.throw(HardhatPluginError, "config.migrate.wait must be greater than 0");
 
       resetHardhatContext();
     });
@@ -116,12 +124,8 @@ describe("config", () => {
       assert.equal(loadedOptions.attempts, 0);
     });
 
-    it("should set to default tx confirmations", async function () {
-      assert.equal(loadedOptions.txConfirmations, 1);
-    });
-
-    it("should set to default verify confirmations", async function () {
-      assert.equal(loadedOptions.verifyConfirmations, 0);
+    it("should set to default wait", async function () {
+      assert.equal(loadedOptions.wait, 1);
     });
 
     it("should set to default pathToMigrations", async function () {

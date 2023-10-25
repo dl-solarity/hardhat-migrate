@@ -12,8 +12,7 @@ const defaultConfig: MigrateConfig = {
   to: -1,
   only: -1,
   skip: -1,
-  txConfirmations: 1,
-  verifyConfirmations: 0,
+  wait: 1,
   verify: VerifyStrategy.AtTheEnd,
   attempts: 0,
   pathToMigrations: "./deploy",
@@ -32,6 +31,10 @@ export const mergeConfigs = (
 ): MigrateConfig => {
   if (config === undefined) {
     return defaultConfig;
+  }
+
+  if (config.wait && config.wait < 1) {
+    throw new HardhatPluginError(pluginName, "config.migrate.wait must be greater than 0");
   }
 
   if (config.pathToMigrations && !isRelativePath(config.pathToMigrations)) {

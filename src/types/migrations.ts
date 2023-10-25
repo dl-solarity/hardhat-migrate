@@ -25,12 +25,7 @@ export interface MigrateConfig {
   /*
    * The number defining how many confirmations each transaction should have.
    */
-  txConfirmations: number;
-
-  /*
-   * The number defining after how many blocks the verification should start.
-   */
-  verifyConfirmations: number;
+  wait: number;
 
   /*
    * The strategy of the verification.
