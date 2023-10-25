@@ -15,7 +15,7 @@ import { Migrator } from "./migrator/Migrator";
 import { Reporter } from "./tools/reporters/Reporter";
 
 import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
-import { DefaultStorage } from "./tools/storage/MigrateStorage";
+import { DefaultStorage, MigrateStorage } from "./tools/storage/MigrateStorage";
 
 import { VerificationProcessor } from "./tools/storage/VerificationProcessor";
 import { MigrateConfig, MigrateVerifyConfig } from "./types/migrations";
@@ -36,6 +36,10 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
     quiet: true,
     force: env.config.migrate.force,
   });
+
+  if (!env.config.migrate.continue) {
+    MigrateStorage.clearAll();
+  }
 
   await ArtifactProcessor.parseArtifacts(env);
 
