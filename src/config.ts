@@ -5,7 +5,7 @@ import { ConfigExtender } from "hardhat/types";
 
 import { pluginName } from "./constants";
 
-import { MigrateConfig, VerifyStrategy } from "./types/migrations";
+import { MigrateConfig } from "./types/migrations";
 
 const defaultConfig: MigrateConfig = {
   from: -1,
@@ -13,7 +13,7 @@ const defaultConfig: MigrateConfig = {
   only: -1,
   skip: -1,
   wait: 1,
-  verify: VerifyStrategy.AtTheEnd,
+  verify: false,
   attempts: 0,
   pathToMigrations: "./deploy",
   skipVerificationErrors: ["already verified"],

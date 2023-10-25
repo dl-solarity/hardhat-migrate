@@ -60,7 +60,7 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
     types.int,
   )
   .addOptionalParam("skip", "The number of migration to skip. Overrides only parameter.", undefined, types.int)
-  .addOptionalParam("verify", "The enum defining the verification strategy.", undefined, types.string)
+  .addFlag("verify", "The flag indicating whether the contracts should be verified.")
   .addFlag("force", "The flag indicating whether the compilation is forced.")
   .addOptionalParam(
     "confirmations",

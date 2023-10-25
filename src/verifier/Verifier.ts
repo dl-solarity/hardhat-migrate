@@ -6,11 +6,10 @@ import { EtherscanConfig } from "@nomicfoundation/hardhat-verify/types";
 import { catchError, suppressLogs } from "../utils";
 
 import { Args } from "../types/deployer";
+import { MigrateConfig } from "../types/migrations";
 import { VerifierArgs } from "../types/verifier";
-import { MigrateConfig, VerifyStrategy } from "../types/migrations";
 
 import { Reporter } from "../tools/reporters/Reporter";
-import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 
 export class Verifier {
   private readonly _config: MigrateConfig;
@@ -19,26 +18,6 @@ export class Verifier {
   constructor(private _hre: HardhatRuntimeEnvironment) {
     this._config = _hre.config.migrate;
     this._etherscanConfig = (_hre.config as any).etherscan;
-  }
-
-  public async processVerification(verifierArgs: VerifierArgs): Promise<void> {
-    if (!this._config) {
-      return;
-    }
-
-    switch (this._config.verify) {
-      case VerifyStrategy.AtTheEnd: {
-        VerificationProcessor.saveVerificationFunction(verifierArgs);
-        break;
-      }
-      case VerifyStrategy.Immediately: {
-        await this.verify(verifierArgs);
-        break;
-      }
-      case VerifyStrategy.None: {
-        break;
-      }
-    }
   }
 
   @catchError

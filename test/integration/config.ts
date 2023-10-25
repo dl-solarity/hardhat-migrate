@@ -5,7 +5,7 @@ import { assert, expect } from "chai";
 import { HardhatPluginError } from "hardhat/plugins";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 
-import { MigrateConfig, VerifyStrategy } from "../../src/types/migrations";
+import { MigrateConfig } from "../../src/types/migrations";
 import { useEnvironment } from "../helpers";
 
 describe("config", () => {
@@ -117,7 +117,7 @@ describe("config", () => {
     });
 
     it("should set to default verify", async function () {
-      assert.equal(loadedOptions.verify, VerifyStrategy.AtTheEnd);
+      assert.equal(loadedOptions.verify, false);
     });
 
     it("should set to default attempts", async function () {

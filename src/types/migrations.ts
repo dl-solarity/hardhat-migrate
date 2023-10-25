@@ -28,9 +28,9 @@ export interface MigrateConfig {
   wait: number;
 
   /*
-   * The strategy of the verification.
+   * The flag indicating whether the contract should be verified.
    */
-  verify: VerifyStrategy;
+  verify: boolean;
 
   /*
    * The number of attempts to verify the contract.
@@ -57,10 +57,4 @@ export interface MigrateConfig {
    * The flag indicating whether the previous deployment should be continued.
    */
   continue: boolean;
-}
-
-export enum VerifyStrategy {
-  Immediately = "immediately",
-  AtTheEnd = "at-the-end",
-  None = "none",
 }

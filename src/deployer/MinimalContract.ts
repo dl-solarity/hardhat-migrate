@@ -16,6 +16,7 @@ import { Verifier } from "../verifier/Verifier";
 import { Reporter } from "../tools/reporters/Reporter";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
+import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 
 @catchError
 export class MinimalContract {
@@ -120,7 +121,7 @@ export class MinimalContract {
 
     TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);
 
-    await this._verifier.processVerification({
+    VerificationProcessor.saveVerificationFunction({
       contractAddress,
       contractName: tx.contractName,
       constructorArguments: args,
