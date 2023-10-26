@@ -12,13 +12,13 @@ import { PureAdapter } from "./adapters/PureAdapter";
 import { PureEthersAdapter } from "./adapters/PureEthersAdapter";
 import { TruffleAdapter } from "./adapters/TruffleAdapter";
 
-import { Instance, TypedArgs } from "../types/adapter";
 import { OverridesAndLibs } from "../types/deployer";
+import { KeyTransactionFields } from "../types/tools";
+import { Instance, TypedArgs } from "../types/adapter";
 import { isContractFactory, isEthersFactory, isPureFactory, isTruffleFactory } from "../types/type-checks";
 
 import { Reporter } from "../tools/reporters/Reporter";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
-import { KeyTransactionFields } from "../types/tools";
 
 @catchError
 export class Deployer {
@@ -105,14 +105,12 @@ export class Deployer {
   }
 
   private async _buildSendTransaction(to: string, value: bigint): Promise<KeyTransactionFields> {
-    const tx: KeyTransactionFields = {
+    return {
       to,
       value,
       chainId: await getChainId(this._hre),
       data: "0x",
       from: (await getSignerHelper(this._hre)).address,
     };
-
-    return tx;
   }
 }
