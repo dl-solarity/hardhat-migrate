@@ -17,10 +17,14 @@ const defaultConfig: MigrateConfig = {
   pathToMigrations: "./deploy",
   force: false,
   continue: false,
-  verifyConfig: {
-    parallel: 4,
-    attempts: 3,
-  },
+  verifyParallel: 1,
+  verifyAttempts: 3,
+};
+
+const defaultVerifyConfig: MigrateConfig["verifyConfig"] = {
+  inputFile: ".storage.json",
+  parallel: 1,
+  attempts: 3,
 };
 
 export const migrateConfigExtender: ConfigExtender = (resolvedConfig, config) => {

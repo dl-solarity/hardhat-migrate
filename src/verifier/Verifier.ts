@@ -55,7 +55,7 @@ export class Verifier {
 
     Reporter.reportVerificationBatchBegin();
 
-    const parallel = this._config.verifyConfig.parallel;
+    const parallel = this._config.migrateVerify;
 
     for (let i = 0; i < verifierButchArgs.length; i += parallel) {
       const batch = verifierButchArgs.slice(i, i + parallel);

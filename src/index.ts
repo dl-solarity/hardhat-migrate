@@ -83,8 +83,8 @@ migrateScope
   .addOptionalParam("skip", "The number of migration to skip. Overrides only parameter.", undefined, types.int)
   .addOptionalParam("wait", "The number of blocks to wait for the transaction to be mined.", undefined, types.int)
   .addFlag("verify", "The flag indicating whether the contracts should be verified.")
-  .addOptionalParam("parallel", "The size of the batch for verification.", undefined, types.int)
-  .addOptionalParam("attempts", "The number of attempts to verify the contract.", undefined, types.int)
+  .addOptionalParam("verifyParallel", "The size of the batch for verification.", undefined, types.int)
+  .addOptionalParam("verifyAttempts", "The number of attempts to verify the contract.", undefined, types.int)
   .addOptionalParam(
     "pathToMigrations",
     "The path to the folder with the specified migrations.",
@@ -97,6 +97,7 @@ migrateScope
 
 migrateScope
   .task(TASK_MIGRATE_VERIFY, "Verify contracts via .storage")
+  .addOptionalParam("inputJSON", "The path to the .storage file.", undefined, types.string)
   .addOptionalParam("parallel", "The size of the batch for verification.", undefined, types.int)
   .addOptionalParam("attempts", "The number of attempts to verify the contract.", undefined, types.int)
   .setAction(migrateVerify);
