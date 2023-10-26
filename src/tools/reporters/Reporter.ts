@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-import ora from "ora";
 import axios from "axios";
 import BigNumber from "bignumber.js";
+import ora from "ora";
 
 import { Network, TransactionReceipt, TransactionResponse } from "ethers";
 
@@ -68,19 +68,16 @@ export class Reporter {
       1000,
     );
 
-    const wait = tx.wait();
-
-    wait.finally(() => {
+    let receipt: TransactionReceipt;
+    try {
+      // We will wait for both contract deployment and common transactions
+      receipt = (await tx.wait(this._hre.config.migrate.wait))!;
+    } catch (e: any) {
+      throw new MigrateError(`Transaction failed: ${e.message}`);
+    } finally {
       clearInterval(spinnerInterval);
 
       spinner.stop();
-    });
-
-    let receipt;
-    try {
-      receipt = (await wait)!;
-    } catch (e: any) {
-      throw new MigrateError(`Transaction failed: ${e.message}`);
     }
 
     await this._printTransaction(receipt);
