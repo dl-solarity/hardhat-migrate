@@ -29,7 +29,10 @@ export class Migrator {
     private _config: MigrateConfig = _hre.config.migrate,
   ) {
     this._deployer = new Deployer(_hre);
-    this._verifier = new Verifier(_hre);
+    this._verifier = new Verifier(_hre, {
+      parallel: this._config.verifyParallel,
+      attempts: this._config.verifyAttempts,
+    });
 
     this._migrationFiles = this._getMigrationFiles();
   }

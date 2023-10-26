@@ -30,7 +30,10 @@ export class MinimalContract {
     private readonly _contractName: string = "",
   ) {
     this._config = _hre.config.migrate;
-    this._verifier = new Verifier(_hre);
+    this._verifier = new Verifier(_hre, {
+      parallel: this._config.verifyParallel,
+      attempts: this._config.verifyAttempts,
+    });
 
     if (_contractName === "") {
       try {

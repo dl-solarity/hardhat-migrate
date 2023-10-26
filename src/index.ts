@@ -8,7 +8,7 @@ import { ActionType } from "hardhat/types";
 
 import "./type-extensions";
 
-import { mergeConfigs, migrateConfigExtender } from "./config";
+import { extendVerifyConfigs, mergeConfigs, migrateConfigExtender } from "./config";
 import { TASK_MIGRATE, TASK_MIGRATE_VERIFY } from "./constants";
 
 import { Migrator } from "./migrator/Migrator";
@@ -26,9 +26,9 @@ export { Verifier } from "./verifier/Verifier";
 
 const migrateScope = scope("migrate", "Automatic deployment and verification of smart contracts");
 
-extendConfig(migrateConfigExtender);
-
 const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
+  extendConfig(migrateConfigExtender);
+
   env.config.migrate = mergeConfigs(taskArgs, env.config.migrate);
 
   // Make sure that contract artifacts are up-to-date.
@@ -53,11 +53,11 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
 };
 
 const migrateVerify: ActionType<MigrateVerifyConfig> = async (taskArgs, env) => {
-  env.config.migrate = mergeConfigs({ verify: true, verifyConfig: taskArgs }, env.config.migrate);
+  taskArgs = extendVerifyConfigs(taskArgs);
 
   Reporter.init(env);
 
-  await new Verifier(env).verifyBatch(VerificationProcessor.restoreSavedVerificationFunctions());
+  await new Verifier(env, taskArgs).verifyBatch(VerificationProcessor.restoreSavedVerificationFunctions());
 };
 
 extendEnvironment((hre) => {
@@ -97,7 +97,7 @@ migrateScope
 
 migrateScope
   .task(TASK_MIGRATE_VERIFY, "Verify contracts via .storage")
-  .addOptionalParam("inputJSON", "The path to the .storage file.", undefined, types.string)
+  .addOptionalParam("inputJSON", "The path to the .storage file.", undefined, types.inputFile)
   .addOptionalParam("parallel", "The size of the batch for verification.", undefined, types.int)
   .addOptionalParam("attempts", "The number of attempts to verify the contract.", undefined, types.int)
   .setAction(migrateVerify);

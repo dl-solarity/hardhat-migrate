@@ -4,7 +4,7 @@ export type VerifierArgs = {
   contractAddress: string;
   contractName: string;
   constructorArguments: Args;
-  chainId: bigint;
+  chainId?: bigint;
 };
 
 export interface ChainRecord {

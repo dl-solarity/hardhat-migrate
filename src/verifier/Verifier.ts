@@ -6,17 +6,18 @@ import { EtherscanConfig } from "@nomicfoundation/hardhat-verify/types";
 import { catchError, getChainId, suppressLogs } from "../utils";
 
 import { Args } from "../types/deployer";
-import { MigrateConfig } from "../types/migrations";
+import { VerifyConfig } from "../types/migrations";
 import { VerifierArgs } from "../types/verifier";
 
 import { Reporter } from "../tools/reporters/Reporter";
 
 export class Verifier {
-  private readonly _config: MigrateConfig;
   private readonly _etherscanConfig: EtherscanConfig;
 
-  constructor(private _hre: HardhatRuntimeEnvironment) {
-    this._config = _hre.config.migrate;
+  constructor(
+    private _hre: HardhatRuntimeEnvironment,
+    private _config: VerifyConfig,
+  ) {
     this._etherscanConfig = (_hre.config as any).etherscan;
   }
 
@@ -24,7 +25,7 @@ export class Verifier {
   public async verify(verifierArgs: VerifierArgs): Promise<void> {
     const { contractAddress, contractName, constructorArguments, chainId } = verifierArgs;
 
-    if ((await getChainId(this._hre)) !== chainId) {
+    if (chainId && (await getChainId(this._hre)) !== chainId) {
       // TODO: Add actions for this case.
       return;
     }
@@ -37,7 +38,7 @@ export class Verifier {
       return;
     }
 
-    for (let attempts = 0; attempts < this._config.verifyConfig.attempts; attempts++) {
+    for (let attempts = 0; attempts < this._config.attempts; attempts++) {
       try {
         await this._tryVerify(instance, contractAddress, contractName, constructorArguments);
         break;
@@ -49,13 +50,9 @@ export class Verifier {
 
   @catchError
   public async verifyBatch(verifierButchArgs: VerifierArgs[]) {
-    if (!this._config.verify) {
-      return;
-    }
-
     Reporter.reportVerificationBatchBegin();
 
-    const parallel = this._config.migrateVerify;
+    const parallel = this._config.parallel;
 
     for (let i = 0; i < verifierButchArgs.length; i += parallel) {
       const batch = verifierButchArgs.slice(i, i + parallel);

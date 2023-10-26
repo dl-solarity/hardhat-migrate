@@ -33,6 +33,16 @@ export interface MigrateConfig {
   verify: boolean;
 
   /*
+   * The size of the batch for verification.
+   */
+  verifyParallel: number;
+
+  /*
+   * The number of attempts to verify the contract.
+   */
+  verifyAttempts: number;
+
+  /*
    * The path to the folder with the specified migrations.
    */
   pathToMigrations: string;
@@ -46,14 +56,9 @@ export interface MigrateConfig {
    * The flag indicating whether the previous deployment should be continued.
    */
   continue: boolean;
-
-  /*
-   * The parameters for the verification.
-   */
-  verifyConfig: MigrateVerifyConfig;
 }
 
-export interface MigrateVerifyConfig {
+export interface VerifyConfig {
   /*
    * The size of the batch for verification.
    */
@@ -63,4 +68,11 @@ export interface MigrateVerifyConfig {
    * The number of attempts to verify the contract.
    */
   attempts: number;
+}
+
+export interface MigrateVerifyConfig extends VerifyConfig {
+  /*
+   * The path to the file with the verification input.
+   */
+  inputFile: string;
 }

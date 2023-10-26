@@ -39,11 +39,11 @@ describe("config", () => {
     });
 
     it("should apply attempts", async function () {
-      assert.equal(loadedOptions.verifyConfig.attempts, 5);
+      assert.equal(loadedOptions.verifyAttempts, 5);
     });
 
     it("should apply parallel", async function () {
-      assert.equal(loadedOptions.verifyConfig.parallel, 4);
+      assert.equal(loadedOptions.verifyParallel, 4);
     });
 
     it("should apply wait", async function () {
@@ -109,11 +109,11 @@ describe("config", () => {
     });
 
     it("should set to default attempts", async function () {
-      assert.equal(loadedOptions.verifyConfig.attempts, 3);
+      assert.equal(loadedOptions.verifyAttempts, 3);
     });
 
     it("should set to default parallel", async function () {
-      assert.equal(loadedOptions.verifyConfig.parallel, 4);
+      assert.equal(loadedOptions.verifyParallel, 4);
     });
 
     it("should set to default wait", async function () {
