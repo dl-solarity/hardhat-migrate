@@ -2,7 +2,7 @@ import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-verify";
 
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
-import { extendConfig, extendEnvironment, scope, types } from "hardhat/config";
+import { extendConfig, extendEnvironment, task, types } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 import { ActionType } from "hardhat/types";
 
@@ -23,8 +23,6 @@ import { Verifier } from "./verifier/Verifier";
 
 export { Deployer } from "./deployer/Deployer";
 export { Verifier } from "./verifier/Verifier";
-
-const migrateScope = scope("migrate", "Automatic deployment and verification of smart contracts");
 
 const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
   extendConfig(migrateConfigExtender);
@@ -69,9 +67,7 @@ extendEnvironment((hre) => {
 });
 
 // TODO: override the `clean` task
-
-migrateScope
-  .task(TASK_MIGRATE, "Deploy contracts via migration files")
+task(TASK_MIGRATE, "Deploy contracts via migration files")
   .addOptionalParam("from", "The migration number from which the migration will be applied.", undefined, types.int)
   .addOptionalParam("to", "The migration number up to which the migration will be applied.", undefined, types.int)
   .addOptionalParam(
@@ -95,8 +91,7 @@ migrateScope
   .addFlag("continue", "The flag indicating whether the previous deployment should be continued.")
   .setAction(migrate);
 
-migrateScope
-  .task(TASK_MIGRATE_VERIFY, "Verify contracts via .storage")
+task(TASK_MIGRATE_VERIFY, "Verify contracts via .storage")
   .addOptionalParam("inputJSON", "The path to the .storage file.", undefined, types.inputFile)
   .addOptionalParam("parallel", "The size of the batch for verification.", undefined, types.int)
   .addOptionalParam("attempts", "The number of attempts to verify the contract.", undefined, types.int)
