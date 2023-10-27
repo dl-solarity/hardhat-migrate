@@ -1,4 +1,4 @@
-import { Interface, Overrides, Signer, TransactionResponse } from "ethers";
+import { ethers, Interface, Overrides, Signer, TransactionResponse } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -81,9 +81,9 @@ export class MinimalContract {
     args: any[],
     txOverrides: Overrides,
   ): Promise<ContractDeployTransactionWithContractName> {
-    const factory = new this._hre.ethers.ContractFactory(this._interface, this._bytecode);
+    const factory = new ethers.ContractFactory(this._interface, this._bytecode);
 
-    // check opportunity to use the populateTransaction method
+    // TODO: check the opportunity to use the populateTransaction method
     return {
       contractName: this._contractName,
       chainId: await getChainId(this._hre),
