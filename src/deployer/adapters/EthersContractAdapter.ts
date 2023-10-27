@@ -4,17 +4,17 @@ import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
 
 import { catchError, getSignerHelper } from "../../utils";
 
-import { EthersFactory } from "../../types/adapter";
+import { EthersContract } from "../../types/adapter";
 
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 
 @catchError
 export class EthersContractAdapter extends AbstractEthersAdapter {
-  public getInterface<A, I>(instance: EthersFactory<A, I>): Interface {
+  public getInterface<A, I>(instance: EthersContract<A, I>): Interface {
     return Interface.from(instance.abi);
   }
 
-  public getContractName<A, I>(instance: EthersFactory<A, I>): string {
+  public getContractName<A, I>(instance: EthersContract<A, I>): string {
     try {
       return ArtifactProcessor.tryGetContractName(this.getRawBytecode(instance));
     } catch {
@@ -22,7 +22,7 @@ export class EthersContractAdapter extends AbstractEthersAdapter {
     }
   }
 
-  public async overrideConnectMethod<A, I>(instance: EthersFactory<A, I>, contractName: string) {
+  public async overrideConnectMethod<A, I>(instance: EthersContract<A, I>, contractName: string) {
     const connectMethod = instance.connect;
 
     const defaultRunner = await getSignerHelper();

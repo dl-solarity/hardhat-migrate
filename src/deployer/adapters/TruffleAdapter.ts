@@ -11,7 +11,7 @@ import { MinimalContract } from "../MinimalContract";
 import { bytecodeToString, catchError, fillParameters, getMethodString, toJSON } from "../../utils";
 
 import { KeyTransactionFields } from "../../types/tools";
-import { EthersFactory, Instance, TruffleFactory } from "../../types/adapter";
+import { EthersContract, Instance, TruffleFactory } from "../../types/adapter";
 import { BaseTruffleMethod, OverridesAndLibs, TruffleTransactionResponse } from "../../types/deployer";
 
 import { Reporter } from "../../tools/reporters/Reporter";
@@ -25,7 +25,7 @@ export class TruffleAdapter extends Adapter {
     super(_hre.config.migrate);
   }
 
-  public async fromInstance<A, I>(instance: EthersFactory<A, I>): Promise<MinimalContract> {
+  public async fromInstance<A, I>(instance: EthersContract<A, I>): Promise<MinimalContract> {
     return new MinimalContract(
       this._config,
       this.getRawBytecode(instance),

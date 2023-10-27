@@ -17,12 +17,12 @@ import { bytecodeToString, fillParameters, getMethodString, getSignerHelper } fr
 
 import { OverridesAndLibs } from "../../types/deployer";
 import { KeyTransactionFields } from "../../types/tools";
-import { EthersFactory, PureFactory } from "../../types/adapter";
+import { EthersContract, BytecodeFactory } from "../../types/adapter";
 
 import { Reporter } from "../../tools/reporters/Reporter";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 
-type Factory<A, I> = EthersFactory<A, I> | PureFactory | ContractFactory;
+type Factory<A, I> = EthersContract<A, I> | BytecodeFactory | ContractFactory;
 
 export abstract class AbstractEthersAdapter extends Adapter {
   private static _processedClasses = new Set<string>();
