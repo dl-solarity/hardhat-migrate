@@ -10,9 +10,14 @@ import { MinimalContract } from "../MinimalContract";
 
 import { bytecodeToString, catchError, fillParameters, getMethodString, toJSON } from "../../utils";
 
-import { KeyTransactionFields } from "../../types/tools";
 import { EthersContract, Instance, TruffleFactory } from "../../types/adapter";
-import { BaseTruffleMethod, OverridesAndLibs, TruffleTransactionResponse } from "../../types/deployer";
+import {
+  BaseTruffleMethod,
+  OverridesAndLibs,
+  OverridesAndMisc,
+  TruffleTransactionResponse,
+} from "../../types/deployer";
+import { KeyTransactionFields } from "../../types/tools";
 
 import { Reporter } from "../../tools/reporters/Reporter";
 import { TruffleReporter } from "../../tools/reporters/TruffleReporter";
@@ -25,12 +30,15 @@ export class TruffleAdapter extends Adapter {
     super(_hre.config.migrate);
   }
 
-  public async fromInstance<A, I>(instance: EthersContract<A, I>): Promise<MinimalContract> {
+  public async fromInstance<A, I>(
+    instance: EthersContract<A, I>,
+    parameters: OverridesAndMisc,
+  ): Promise<MinimalContract> {
     return new MinimalContract(
       this._config,
       this.getRawBytecode(instance),
       this.getInterface(instance),
-      this.getContractName(instance),
+      this.getContractName(instance, parameters),
     );
   }
 
@@ -49,13 +57,19 @@ export class TruffleAdapter extends Adapter {
     return bytecodeToString(instance.bytecode);
   }
 
-  public getContractName<A, I>(instance: Instance<A, I>): string {
+  public getContractName<A, I>(instance: Instance<A, I>, parameters: OverridesAndMisc): string {
+    if (parameters.misc) {
+      return parameters.misc;
+    }
+
     try {
       return ArtifactProcessor.tryGetContractName(this.getRawBytecode(instance));
     } catch {
-      // It is possible was called abstract contract
-      // TODO: Add Contract Name to Overrides.
-      return (instance as any).contractName || "Unknown Contract";
+      if ((instance as any).contractName) {
+        return (instance as any).contractName;
+      }
+
+      return "Unknown Contract";
     }
   }
 
@@ -71,7 +85,7 @@ export class TruffleAdapter extends Adapter {
 
   protected _insertHandlers<I>(instance: TruffleFactory<I>, contract: I, to: string, parameters: OverridesAndLibs): I {
     const contractInterface = this.getInterface(instance);
-    const contractName = this.getContractName(instance);
+    const contractName = this.getContractName(instance, parameters);
 
     for (const methodName of Object.keys((contract as any).contract.methods)) {
       const oldMethod: BaseTruffleMethod = (contract as any)[methodName];
@@ -83,6 +97,7 @@ export class TruffleAdapter extends Adapter {
         // Ambiguous function description in ABI
         continue;
       }
+
       if (functionStateMutability === "view" || functionStateMutability === "pure") {
         continue;
       }
