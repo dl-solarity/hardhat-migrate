@@ -10,6 +10,7 @@ import { MinimalContract } from "../MinimalContract";
 
 import { bytecodeToString, catchError, fillParameters, getMethodString, toJSON } from "../../utils";
 
+import { EthersFactory, Instance, TruffleFactory } from "../../types/adapter";
 import {
   BaseTruffleMethod,
   OverridesAndLibs,
@@ -17,7 +18,6 @@ import {
   TruffleTransactionResponse,
 } from "../../types/deployer";
 import { KeyTransactionFields } from "../../types/tools";
-import { EthersFactory, Instance, TruffleFactory } from "../../types/adapter";
 
 import { Reporter } from "../../tools/reporters/Reporter";
 import { TruffleReporter } from "../../tools/reporters/TruffleReporter";
@@ -97,6 +97,7 @@ export class TruffleAdapter extends Adapter {
         // Ambiguous function description in ABI
         continue;
       }
+
       if (functionStateMutability === "view" || functionStateMutability === "pure") {
         continue;
       }
