@@ -25,7 +25,7 @@ export class Verifier {
   public async verify(verifierArgs: VerifierArgs): Promise<void> {
     const { contractAddress, contractName, constructorArguments, chainId } = verifierArgs;
 
-    if (chainId && (await getChainId(this._hre)) !== chainId) {
+    if (chainId && Number(await getChainId(this._hre)) != chainId) {
       // TODO: Add actions for this case.
       return;
     }
@@ -56,11 +56,8 @@ export class Verifier {
 
     for (let i = 0; i < verifierButchArgs.length; i += parallel) {
       const batch = verifierButchArgs.slice(i, i + parallel);
-      await Promise.all(
-        batch.map((args) => {
-          this.verify(args);
-        }),
-      );
+
+      await Promise.all(batch.map((args) => this.verify(args)));
     }
   }
 

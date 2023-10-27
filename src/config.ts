@@ -22,7 +22,7 @@ const defaultConfig: MigrateConfig = {
 };
 
 const defaultVerifyConfig: MigrateVerifyConfig = {
-  inputFile: ".storage.json",
+  inputFile: undefined,
   parallel: 1,
   attempts: 3,
 };

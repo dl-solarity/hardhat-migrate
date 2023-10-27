@@ -129,7 +129,7 @@ export class MinimalContract {
       contractAddress,
       contractName: tx.contractName,
       constructorArguments: args,
-      chainId: await getChainId(this._hre),
+      chainId: Number(await getChainId(this._hre)),
     });
 
     return contractAddress;

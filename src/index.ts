@@ -98,7 +98,7 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
   .setAction(migrate);
 
 task(TASK_MIGRATE_VERIFY, "Verify contracts via .storage")
-  .addOptionalParam("inputJSON", "The path to the .storage file.", undefined, types.inputFile)
+  .addOptionalParam("inputFile", "The path to the .storage file.", undefined, types.inputFile)
   .addOptionalParam("parallel", "The size of the batch for verification.", undefined, types.int)
   .addOptionalParam("attempts", "The number of attempts to verify the contract.", undefined, types.int)
   .setAction(migrateVerify);

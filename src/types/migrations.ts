@@ -74,5 +74,5 @@ export interface MigrateVerifyConfig extends VerifyConfig {
   /*
    * The path to the file with the verification input.
    */
-  inputFile: string;
+  inputFile: string | undefined;
 }
