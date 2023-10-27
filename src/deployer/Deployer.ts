@@ -89,7 +89,7 @@ export class Deployer {
     const txResponse = await signer.sendTransaction(tx);
 
     await Promise.all([
-      txResponse.wait(this._hre.config.migrate.txConfirmations),
+      txResponse.wait(this._hre.config.migrate.wait),
       Reporter.reportTransaction(txResponse, methodString),
     ]);
 

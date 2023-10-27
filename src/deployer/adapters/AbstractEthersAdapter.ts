@@ -2,7 +2,6 @@ import {
   BaseContract,
   BaseContractMethod,
   ContractFactory,
-  ContractTransaction,
   ContractTransactionResponse,
   defineProperties,
   FunctionFragment,
@@ -20,6 +19,7 @@ import { OverridesAndLibs } from "../../types/deployer";
 
 import { Reporter } from "../../tools/reporters/Reporter";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
+import { KeyTransactionFields } from "../../types/tools";
 import { MinimalContract } from "../MinimalContract";
 
 type Factory<A, I> = EthersFactory<A, I> | PureFactory | ContractFactory;
@@ -121,7 +121,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
   ): (...args: any[]) => Promise<ContractTransactionResponse> {
     return async (...args: any[]): Promise<ContractTransactionResponse> => {
       await fillParameters(this._hre, parameters);
-      const tx = await oldMethod.populateTransaction(...args, parameters);
+      const tx = (await oldMethod.populateTransaction(...args, parameters)) as KeyTransactionFields;
 
       const methodString = getMethodString(contractName, methodName, methodFragments, args);
 
@@ -135,7 +135,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
 
   private async _recoverTransaction(
     methodString: string,
-    tx: ContractTransaction,
+    tx: KeyTransactionFields,
     oldMethod: BaseContractMethod,
     args: any[],
   ) {
@@ -154,7 +154,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
 
   private async _sendTransaction(
     methodString: string,
-    tx: ContractTransaction,
+    tx: KeyTransactionFields,
     oldMethod: BaseContractMethod,
     args: any[],
   ) {
