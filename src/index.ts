@@ -1,30 +1,31 @@
 import "@nomicfoundation/hardhat-verify";
 
-import { lazyFunction, lazyObject } from "hardhat/plugins";
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
-import { ActionType, HardhatRuntimeEnvironment } from "hardhat/types";
 import { extendConfig, extendEnvironment, task, types } from "hardhat/config";
+import { lazyFunction, lazyObject } from "hardhat/plugins";
+import { ActionType, HardhatRuntimeEnvironment } from "hardhat/types";
 
 import "./type-extensions";
 
-import { TASK_MIGRATE, TASK_MIGRATE_VERIFY } from "./constants";
 import { extendVerifyConfigs, mergeConfigs, migrateConfigExtender } from "./config";
+import { TASK_MIGRATE, TASK_MIGRATE_VERIFY } from "./constants";
 
 import { MigrateConfig, MigrateVerifyConfig } from "./types/migrations";
 
 import { Reporter } from "./tools/reporters/Reporter";
 import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
-import { VerificationProcessor } from "./tools/storage/VerificationProcessor";
 import { DefaultStorage, MigrateStorage } from "./tools/storage/MigrateStorage";
+import { VerificationProcessor } from "./tools/storage/VerificationProcessor";
 
 import { TruffleAdapter } from "./deployer/adapters/TruffleAdapter";
 
-import { Migrator } from "./migrator/Migrator";
-import { Verifier } from "./verifier/Verifier";
-import { Provider } from "./tools/Provider";
 import { Linker } from "./deployer/Linker";
+import { Migrator } from "./migrator/Migrator";
+import { Provider } from "./tools/Provider";
+import { Verifier } from "./verifier/Verifier";
 
 export { Deployer } from "./deployer/Deployer";
+export { DefaultStorage } from "./tools/storage/MigrateStorage";
 
 extendConfig(migrateConfigExtender);
 

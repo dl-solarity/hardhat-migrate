@@ -11,6 +11,8 @@ import {
 import { Adapter } from "./Adapter";
 import { MinimalContract } from "../MinimalContract";
 
+import "../../type-extensions";
+
 import { bytecodeToString, fillParameters, getMethodString, getSignerHelper } from "../../utils";
 
 import { OverridesAndLibs } from "../../types/deployer";
@@ -51,6 +53,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
       await this.overrideConnectMethod(instance, contractName);
     }
 
+    this._insertAddressGetter(contract, address);
     return this.insertHandlers(contract, contractName, parameters) as unknown as I;
   }
 
@@ -95,6 +98,10 @@ export abstract class AbstractEthersAdapter extends Adapter {
   }
 
   public abstract overrideConnectMethod<A, I>(instance: Factory<A, I>, contractName: string): Promise<void>;
+
+  private _insertAddressGetter(contract: BaseContract, contractAddress: string): void {
+    contract.address = contractAddress;
+  }
 
   private _getContractFunctionFragments(contractInterface: Interface): FunctionFragment[] {
     const result: FunctionFragment[] = [];
