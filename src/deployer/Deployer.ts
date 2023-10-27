@@ -36,7 +36,21 @@ export class Deployer {
     return adapter.toInstance(contract, contractAddress, parameters);
   }
 
-  public async deployed<A, I>(contract: Instance<A, I>, contractAddress?: string): Promise<I> {
+  public setAsDeployed<T, A = T, I = any>(
+    contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never),
+    address: string,
+  ): void {
+    const adapter = this._resolveAdapter(contract);
+
+    const contractName = adapter.getContractName(contract);
+
+    TransactionProcessor.saveDeploymentTransactionWithContractName(contractName, address);
+  }
+
+  public async deployed<T, A = T, I = any>(
+    contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never),
+    contractAddress?: string,
+  ): Promise<I> {
     const adapter = this._resolveAdapter(contract);
 
     if (contractAddress) {

@@ -3,8 +3,8 @@ import "@nomicfoundation/hardhat-verify";
 
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { extendConfig, extendEnvironment, task, types } from "hardhat/config";
-import { lazyObject } from "hardhat/plugins";
-import { ActionType } from "hardhat/types";
+import { lazyFunction, lazyObject } from "hardhat/plugins";
+import { ActionType, HardhatRuntimeEnvironment } from "hardhat/types";
 
 import "./type-extensions";
 
@@ -16,12 +16,14 @@ import { Reporter } from "./tools/reporters/Reporter";
 
 import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
 import { DefaultStorage, MigrateStorage } from "./tools/storage/MigrateStorage";
-
 import { VerificationProcessor } from "./tools/storage/VerificationProcessor";
+
+import { TruffleAdapter } from "./deployer/adapters/TruffleAdapter";
 import { MigrateConfig, MigrateVerifyConfig } from "./types/migrations";
 import { Verifier } from "./verifier/Verifier";
 
 export { Deployer } from "./deployer/Deployer";
+export { DefaultStorage } from "./tools/storage/MigrateStorage";
 export { Verifier } from "./verifier/Verifier";
 
 const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
@@ -42,6 +44,8 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
   await ArtifactProcessor.parseArtifacts(env);
 
   Reporter.init(env);
+
+  overrideTruffleRequire(env);
 
   await new Migrator(env).migrate();
 
@@ -96,3 +100,17 @@ task(TASK_MIGRATE_VERIFY, "Verify contracts via .storage")
   .addOptionalParam("parallel", "The size of the batch for verification.", undefined, types.int)
   .addOptionalParam("attempts", "The number of attempts to verify the contract.", undefined, types.int)
   .setAction(migrateVerify);
+
+const overrideTruffleRequire = (env: HardhatRuntimeEnvironment) => {
+  const old = env.artifacts.require;
+
+  env.artifacts.require = lazyFunction(() => {
+    return (contractPath: string): any => {
+      const res = old(contractPath);
+
+      new TruffleAdapter(env).overrideConnectMethod(res);
+
+      return res;
+    };
+  });
+};
