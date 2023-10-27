@@ -65,7 +65,6 @@ export class MinimalContract {
   ): Promise<ContractDeployTransactionWithContractName> {
     const factory = new ethers.ContractFactory(this._interface, this._bytecode);
 
-    // TODO: check the opportunity to use the populateTransaction method
     return {
       contractName: this._contractName,
       chainId: await getChainId(),
@@ -76,17 +75,28 @@ export class MinimalContract {
 
   private async _recoverContractAddress(tx: ContractDeployTransactionWithContractName, args: any[]): Promise<string> {
     try {
-      // TODO: firstly try to recover by contract name. Think about edge cases.
+      const contractAddress = await TransactionProcessor.tryRestoreContractAddressByName(tx.contractName);
+
+      Reporter.notifyContractRecovery(tx.contractName, contractAddress);
+
+      return contractAddress;
+    } catch {
+      /* empty */
+    }
+
+    try {
       const contractAddress = await TransactionProcessor.tryRestoreContractAddressByKeyFields(tx);
 
       Reporter.notifyContractRecovery(tx.contractName, contractAddress);
 
       return contractAddress;
     } catch {
-      Reporter.notifyDeploymentInsteadOfRecovery(tx.contractName);
-
-      return this._processContractDeploymentTransaction(tx, args);
+      /* empty */
     }
+
+    Reporter.notifyDeploymentInsteadOfRecovery(tx.contractName);
+
+    return this._processContractDeploymentTransaction(tx, args);
   }
 
   private async _processContractDeploymentTransaction(

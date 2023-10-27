@@ -31,7 +31,7 @@ export class Deployer {
   ): Promise<I> {
     const adapter = this._resolveAdapter(contract);
 
-    const minimalContract = await adapter.fromInstance(contract);
+    const minimalContract = await adapter.fromInstance(contract, parameters);
 
     const contractAddress = await minimalContract.deploy(args, parameters);
 
@@ -43,7 +43,7 @@ export class Deployer {
     contractAddress?: string,
   ): Promise<I> {
     const adapter = this._resolveAdapter(contract);
-    const contractName = adapter.getContractName(contract);
+    const contractName = adapter.getContractName(contract, {});
 
     if (contractAddress) {
       if (!(await isDeployedContractAddress(contractAddress))) {

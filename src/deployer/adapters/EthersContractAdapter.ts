@@ -5,6 +5,7 @@ import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
 import { catchError, getSignerHelper } from "../../utils";
 
 import { EthersFactory } from "../../types/adapter";
+import { OverridesAndMisc } from "../../types/deployer";
 
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 
@@ -14,10 +15,18 @@ export class EthersContractAdapter extends AbstractEthersAdapter {
     return Interface.from(instance.abi);
   }
 
-  public getContractName<A, I>(instance: EthersFactory<A, I>): string {
+  public getContractName<A, I>(instance: EthersFactory<A, I>, parameters: OverridesAndMisc): string {
+    if (parameters.misc) {
+      return parameters.misc;
+    }
+
     try {
       return ArtifactProcessor.tryGetContractName(this.getRawBytecode(instance));
     } catch {
+      if ((instance as any).contractName) {
+        return (instance as any).contractName;
+      }
+
       return "Unknown Contract";
     }
   }
