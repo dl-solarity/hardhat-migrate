@@ -30,11 +30,12 @@ export { DefaultStorage } from "./tools/storage/MigrateStorage";
 extendConfig(migrateConfigExtender);
 
 const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
-  Linker.setConfig(env.config.migrate);
-  Reporter.init(env.config.migrate);
   await Provider.init(env);
 
   env.config.migrate = mergeConfigs(taskArgs, env.config.migrate);
+
+  Linker.setConfig(env.config.migrate);
+  Reporter.init(env.config.migrate);
 
   // Make sure that contract artifacts are up-to-date.
   await env.run(TASK_COMPILE, {
