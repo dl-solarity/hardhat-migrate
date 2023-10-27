@@ -7,10 +7,10 @@ import { catchError, getChainId, getSignerHelper, isDeployedContractAddress } fr
 import { MigrateError } from "../errors";
 
 import { Adapter } from "./adapters/Adapter";
-import { PureAdapter } from "./adapters/PureAdapter";
-import { EthersAdapter } from "./adapters/EthersAdapter";
+import { BytecodeAdapter } from "./adapters/BytecodeAdapter";
+import { EthersContractAdapter } from "./adapters/EthersContractAdapter";
 import { TruffleAdapter } from "./adapters/TruffleAdapter";
-import { PureEthersAdapter } from "./adapters/PureEthersAdapter";
+import { EthersFactoryAdapter } from "./adapters/EthersFactoryAdapter";
 
 import { OverridesAndLibs } from "../types/deployer";
 import { KeyTransactionFields } from "../types/tools";
@@ -97,7 +97,7 @@ export class Deployer {
 
   private _resolveAdapter<A, I>(contract: Instance<A, I>): Adapter {
     if (isEthersFactory(contract)) {
-      return new EthersAdapter(this._hre.config.migrate);
+      return new EthersContractAdapter(this._hre.config.migrate);
     }
 
     if (isTruffleFactory(contract)) {
@@ -105,11 +105,11 @@ export class Deployer {
     }
 
     if (isPureFactory(contract)) {
-      return new PureAdapter(this._hre.config.migrate);
+      return new BytecodeAdapter(this._hre.config.migrate);
     }
 
     if (isContractFactory(contract)) {
-      return new PureEthersAdapter(this._hre.config.migrate);
+      return new EthersFactoryAdapter(this._hre.config.migrate);
     }
 
     throw new MigrateError("Unknown Contract Factory Type");

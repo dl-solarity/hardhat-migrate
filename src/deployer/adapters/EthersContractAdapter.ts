@@ -9,7 +9,7 @@ import { EthersFactory } from "../../types/adapter";
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 
 @catchError
-export class EthersAdapter extends AbstractEthersAdapter {
+export class EthersContractAdapter extends AbstractEthersAdapter {
   public getInterface<A, I>(instance: EthersFactory<A, I>): Interface {
     return Interface.from(instance.abi);
   }

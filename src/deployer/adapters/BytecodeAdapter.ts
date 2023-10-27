@@ -7,7 +7,7 @@ import { catchError } from "../../utils";
 import { PureFactory } from "../../types/adapter";
 
 @catchError
-export class PureAdapter extends AbstractEthersAdapter {
+export class BytecodeAdapter extends AbstractEthersAdapter {
   public getInterface(instance: PureFactory): Interface {
     return Interface.from(instance.abi);
   }

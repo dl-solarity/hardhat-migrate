@@ -7,7 +7,7 @@ import { catchError } from "../../utils";
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 
 @catchError
-export class PureEthersAdapter extends AbstractEthersAdapter {
+export class EthersFactoryAdapter extends AbstractEthersAdapter {
   public getInterface(instance: ContractFactory): Interface {
     return instance.interface;
   }
