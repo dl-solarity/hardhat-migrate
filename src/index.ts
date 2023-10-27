@@ -3,8 +3,8 @@ import "@nomicfoundation/hardhat-verify";
 
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { extendConfig, extendEnvironment, task, types } from "hardhat/config";
-import { lazyObject } from "hardhat/plugins";
-import { ActionType } from "hardhat/types";
+import { lazyFunction, lazyObject } from "hardhat/plugins";
+import { ActionType, HardhatRuntimeEnvironment } from "hardhat/types";
 
 import "./type-extensions";
 
@@ -17,9 +17,11 @@ import { Reporter } from "./tools/reporters/Reporter";
 import { DefaultStorage } from "./tools/storage/MigrateStorage";
 import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
 
+import { TruffleAdapter } from "./deployer/adapters/TruffleAdapter";
 import { MigrateConfig } from "./types/migrations";
 
 export { Deployer } from "./deployer/Deployer";
+export { DefaultStorage } from "./tools/storage/MigrateStorage";
 export { Verifier } from "./verifier/Verifier";
 
 extendConfig(migrateConfigExtender);
@@ -36,6 +38,8 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
   await ArtifactProcessor.parseArtifacts(env);
 
   Reporter.init(env);
+
+  overrideTruffleRequire(env);
 
   await new Migrator(env).migrate();
 };
@@ -77,3 +81,17 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
   )
   .addFlag("continue", "The flag indicating whether the previous deployment should be continued.")
   .setAction(migrate);
+
+const overrideTruffleRequire = (env: HardhatRuntimeEnvironment) => {
+  const old = env.artifacts.require;
+
+  env.artifacts.require = lazyFunction(() => {
+    return (contractPath: string): any => {
+      const res = old(contractPath);
+
+      new TruffleAdapter(env).overrideConnectMethod(res);
+
+      return res;
+    };
+  });
+};

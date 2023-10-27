@@ -8,7 +8,7 @@ import { Adapter } from "./Adapter";
 
 import { MinimalContract } from "../MinimalContract";
 
-import { bytecodeToString, catchError, fillParameters, getMethodString } from "../../utils";
+import { bytecodeToString, catchError, fillParameters, getMethodString, toJSON } from "../../utils";
 
 import { KeyTransactionFields } from "../../types/tools";
 import { EthersFactory, Instance, TruffleFactory } from "../../types/adapter";
@@ -35,12 +35,11 @@ export class TruffleAdapter extends Adapter {
     );
   }
 
-  public async toInstance<I>(instance: TruffleFactory<I>, address: string, parameters: OverridesAndLibs): Promise<I> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async toInstance<I>(instance: TruffleFactory<I>, address: string, _parameters: OverridesAndLibs): Promise<I> {
     const contract = this._hre.artifacts.require(instance.contractName!);
 
-    const contractInstance = await contract.at(address);
-
-    return this._insertHandlers(instance, contractInstance, address, parameters);
+    return contract.at(address);
   }
 
   public getInterface(instance: TruffleContract): Interface {
@@ -55,8 +54,19 @@ export class TruffleAdapter extends Adapter {
     try {
       return ArtifactProcessor.tryGetContractName(this.getRawBytecode(instance));
     } catch {
-      return "Unknown Contract";
+      // It is possible was called abstract contract
+      return (instance as any).contractName || "Unknown Contract";
     }
+  }
+
+  public async overrideConnectMethod<I>(instance: TruffleFactory<I>) {
+    const atMethod = instance.at;
+
+    instance.at = async (address: string): Promise<I> => {
+      const contract = await atMethod(address);
+
+      return this._insertHandlers(instance, contract, address, {});
+    };
   }
 
   protected _insertHandlers<I>(instance: TruffleFactory<I>, contract: I, to: string, parameters: OverridesAndLibs): I {
@@ -66,7 +76,13 @@ export class TruffleAdapter extends Adapter {
     for (const methodName of Object.keys((contract as any).contract.methods)) {
       const oldMethod: BaseTruffleMethod = (contract as any)[methodName];
 
-      const functionStateMutability = contractInterface.getFunction(methodName)?.stateMutability;
+      let functionStateMutability: string | undefined;
+      try {
+        functionStateMutability = contractInterface.getFunction(methodName)?.stateMutability;
+      } catch {
+        // Ambiguous function description in ABI
+        continue;
+      }
       if (functionStateMutability === "view" || functionStateMutability === "pure") {
         continue;
       }
@@ -154,7 +170,7 @@ export class TruffleAdapter extends Adapter {
     const tx: KeyTransactionFields = {
       to: to,
       from: parameters.from! as string,
-      data: JSON.stringify(args),
+      data: toJSON(args),
       chainId: toBigInt(String(parameters.chainId)),
       value: toBigInt(String(parameters.value)),
     };

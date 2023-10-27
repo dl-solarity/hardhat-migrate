@@ -12,9 +12,9 @@ import { PureAdapter } from "./adapters/PureAdapter";
 import { PureEthersAdapter } from "./adapters/PureEthersAdapter";
 import { TruffleAdapter } from "./adapters/TruffleAdapter";
 
+import { Instance, TypedArgs } from "../types/adapter";
 import { OverridesAndLibs } from "../types/deployer";
 import { KeyTransactionFields } from "../types/tools";
-import { Instance, TypedArgs } from "../types/adapter";
 import { isContractFactory, isEthersFactory, isPureFactory, isTruffleFactory } from "../types/type-checks";
 
 import { Reporter } from "../tools/reporters/Reporter";
@@ -38,7 +38,20 @@ export class Deployer {
     return adapter.toInstance(contract, contractAddress, parameters);
   }
 
-  public async deployed<A, I>(contract: Instance<A, I>): Promise<I> {
+  public setAsDeployed<T, A = T, I = any>(
+    contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never),
+    address: string,
+  ): void {
+    const adapter = this._resolveAdapter(contract);
+
+    const contractName = adapter.getContractName(contract);
+
+    TransactionProcessor.saveDeploymentTransactionWithContractName(contractName, address);
+  }
+
+  public async deployed<T, A = T, I = any>(
+    contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never),
+  ): Promise<I> {
     const adapter = this._resolveAdapter(contract);
 
     const contractName = adapter.getContractName(contract);
