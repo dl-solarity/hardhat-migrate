@@ -55,17 +55,17 @@ export class Reporter {
 
   public static async reportTransaction(tx: TransactionResponse, instanceName: string) {
     const timeStart = Date.now();
+    const blockStart = await this._hre.ethers.provider.getBlockNumber();
 
     console.log("\n" + underline(this._parseTransactionTitle(tx, instanceName)));
 
     console.log(`> explorer: ${await this._getExplorerLink(tx.hash)}`);
 
-    const spinner = ora(await this._formatPendingTime(tx, timeStart)).start();
+    const formatPendingTimeTask = async () => this._formatPendingTime(tx, timeStart, blockStart);
 
-    const spinnerInterval = setInterval(
-      async () => (spinner.text = await this._formatPendingTime(tx as TransactionResponse, timeStart)),
-      1000,
-    );
+    const spinner = ora(await formatPendingTimeTask()).start();
+
+    const spinnerInterval = setInterval(async () => (spinner.text = await formatPendingTimeTask()), 1000);
 
     let receipt: TransactionReceipt;
     try {
@@ -150,8 +150,14 @@ export class Reporter {
     return `Transaction: ${instanceName}`;
   }
 
-  private static async _formatPendingTime(tx: TransactionResponse, startTime: number): Promise<string> {
-    return `Blocks: ${await tx.confirmations()} Seconds: ${((Date.now() - startTime) / 1000).toFixed(0)}`;
+  private static async _formatPendingTime(
+    tx: TransactionResponse,
+    startTime: number,
+    blockStart: number,
+  ): Promise<string> {
+    return `Confirmations: ${await tx.confirmations()} Blocks: ${
+      (await this._hre.ethers.provider.getBlockNumber()) - blockStart
+    } Seconds: ${((Date.now() - startTime) / 1000).toFixed(0)}`;
   }
 
   private static async _getExplorerLink(txHash: string): Promise<string> {
