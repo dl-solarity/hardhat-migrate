@@ -4,12 +4,8 @@ import { TruffleTransactionResponse } from "../../types/deployer";
 
 export class TruffleReporter {
   public static async reportTransaction(tx: TruffleTransactionResponse | string, instanceName: string) {
-    if (typeof tx === "string") {
-      await Reporter.reportTransactionByHash(tx, instanceName);
+    const hash = typeof tx === "string" ? tx : tx.receipt.transactionHash;
 
-      return;
-    }
-
-    await Reporter.reportTransactionByHash(tx.receipt.transactionHash, instanceName);
+    await Reporter.reportTransactionByHash(hash, instanceName);
   }
 }

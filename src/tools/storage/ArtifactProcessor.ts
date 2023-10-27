@@ -20,7 +20,7 @@ export class ArtifactProcessor {
 
       const contract: ArtifactExtended = { ...artifact, neededLibraries: this._parseLibrariesOfArtifact(artifact) };
 
-      if (contract.bytecode === "0x") {
+      if (this._isNotDeployableArtifact(artifact)) {
         continue;
       }
 
@@ -72,5 +72,9 @@ export class ArtifactProcessor {
     }
 
     return neededLibraries;
+  }
+
+  private static _isNotDeployableArtifact(artifact: Artifact): boolean {
+    return artifact.deployedBytecode === "0x";
   }
 }
