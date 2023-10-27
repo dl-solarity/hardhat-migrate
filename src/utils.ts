@@ -1,37 +1,33 @@
 import { join } from "path";
 import { realpathSync, existsSync } from "fs";
-import { AddressLike, FunctionFragment, hexlify, id, Overrides, toBigInt } from "ethers";
+import { AddressLike, ethers, FunctionFragment, hexlify, id, Overrides, toBigInt } from "ethers";
 
 import { isBytes } from "@ethersproject/bytes";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-
-import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { MigrateError } from "./errors";
 
 import { KeyDeploymentFields, KeyTransactionFields } from "./types/tools";
 import { Bytecode } from "./types/deployer";
+import { Provider } from "./tools/Provider";
 
-export async function getSignerHelper(
-  hre: HardhatRuntimeEnvironment,
-  from?: null | AddressLike,
-): Promise<HardhatEthersSigner> {
+export async function getSignerHelper(from?: null | AddressLike): Promise<HardhatEthersSigner> {
   if (!from) {
-    return hre.ethers.provider.getSigner();
+    return Provider.provider.getSigner();
   }
 
-  const address = await hre.ethers.resolveAddress(from, hre.ethers.provider);
+  const address = await ethers.resolveAddress(from, Provider.provider);
 
-  return hre.ethers.getSigner(address);
+  return Provider.provider.getSigner(address);
 }
 
-export async function fillParameters(hre: HardhatRuntimeEnvironment, parameters: Overrides): Promise<Overrides> {
+export async function fillParameters(parameters: Overrides): Promise<Overrides> {
   if (parameters.from === undefined) {
-    parameters.from = await (await hre.ethers.provider.getSigner()).getAddress();
+    parameters.from = await (await Provider.provider.getSigner()).getAddress();
   }
 
   if (parameters.chainId === undefined) {
-    parameters.chainId = await getChainId(hre);
+    parameters.chainId = await getChainId();
   }
 
   if (parameters.value === undefined) {
@@ -53,8 +49,8 @@ export function resolvePathToFile(path: string, file: string = ""): string {
   return join(realpathSync(path), file);
 }
 
-export async function getChainId(hre: HardhatRuntimeEnvironment): Promise<bigint> {
-  return toBigInt(await hre.ethers.provider.send("eth_chainId"));
+export async function getChainId(): Promise<bigint> {
+  return toBigInt(await Provider.provider.send("eth_chainId"));
 }
 
 export function toJSON(data: any): string {
@@ -96,8 +92,8 @@ export function createKeyTxFieldsHash(keyTxFields: KeyTransactionFields): string
   return id(toJSON(obj));
 }
 
-export async function isDeployedContractAddress(hre: HardhatRuntimeEnvironment, address: string): Promise<boolean> {
-  return (await hre.ethers.provider.getCode(address)) !== "0x";
+export async function isDeployedContractAddress(address: string): Promise<boolean> {
+  return (await Provider.provider.getCode(address)) !== "0x";
 }
 
 export function bytecodeToString(bytecode: Bytecode): string {
@@ -143,9 +139,9 @@ export function getMethodString(
   return methodSting;
 }
 
-export async function waitForBlock(hre: HardhatRuntimeEnvironment, desiredBlock: number) {
+export async function waitForBlock(desiredBlock: number) {
   return new Promise<void>((resolve) => {
-    hre.ethers.provider.on("block", (blockNumber) => {
+    Provider.provider.on("block", (blockNumber) => {
       if (blockNumber == desiredBlock) {
         resolve();
       }

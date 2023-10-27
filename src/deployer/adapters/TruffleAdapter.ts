@@ -16,19 +16,18 @@ import { BaseTruffleMethod, OverridesAndLibs, TruffleTransactionResponse } from 
 
 import { Reporter } from "../../tools/reporters/Reporter";
 import { TruffleReporter } from "../../tools/reporters/TruffleReporter";
-
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 
 @catchError
 export class TruffleAdapter extends Adapter {
-  constructor(_hre: HardhatRuntimeEnvironment) {
-    super(_hre);
+  constructor(private _hre: HardhatRuntimeEnvironment) {
+    super(_hre.config.migrate);
   }
 
   public async fromInstance<A, I>(instance: EthersFactory<A, I>): Promise<MinimalContract> {
     return new MinimalContract(
-      this._hre,
+      this._config,
       this.getRawBytecode(instance),
       this.getInterface(instance),
       this.getContractName(instance),
@@ -165,16 +164,14 @@ export class TruffleAdapter extends Adapter {
     to: string,
     parameters: OverridesAndLibs,
   ): Promise<KeyTransactionFields> {
-    await fillParameters(this._hre, parameters);
+    await fillParameters(parameters);
 
-    const tx: KeyTransactionFields = {
+    return {
       to: to,
       from: parameters.from! as string,
       data: toJSON(args),
       chainId: toBigInt(String(parameters.chainId)),
       value: toBigInt(String(parameters.value)),
     };
-
-    return tx;
   }
 }

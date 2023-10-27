@@ -7,6 +7,8 @@ import { useEnvironment } from "../../helpers";
 
 import { TruffleAdapter } from "../../../src/deployer/adapters/TruffleAdapter";
 import { ArtifactProcessor } from "../../../src/tools/storage/ArtifactProcessor";
+import { Provider } from "../../../src/tools/Provider";
+import { Reporter } from "../../../src/tools/reporters/Reporter";
 
 describe("TruffleAdapter", () => {
   describe("getContractDeployParams()", () => {
@@ -42,8 +44,13 @@ describe("TruffleAdapter", () => {
 
     let adapter: TruffleAdapter;
 
-    context("with pure truffle", () => {
+    describe("with pure truffle", () => {
       useEnvironment("minimal-truffle");
+
+      beforeEach(async function () {
+        await Provider.init(this.hre);
+        Reporter.init(this.hre.config.migrate);
+      });
 
       let contractWithConstructorArtifact: TruffleContract;
 
@@ -67,8 +74,13 @@ describe("TruffleAdapter", () => {
       });
     });
 
-    context("with typechain", () => {
+    describe("with typechain", () => {
       useEnvironment("minimal-typechain-truffle");
+
+      beforeEach(async function () {
+        await Provider.init(this.hre);
+        Reporter.init(this.hre.config.migrate);
+      });
 
       let contractWithConstructorArtifact: TruffleContract;
 

@@ -7,14 +7,14 @@ import { catchError, getChainId, getSignerHelper, isDeployedContractAddress } fr
 import { MigrateError } from "../errors";
 
 import { Adapter } from "./adapters/Adapter";
-import { EthersAdapter } from "./adapters/EthersAdapter";
 import { PureAdapter } from "./adapters/PureAdapter";
-import { PureEthersAdapter } from "./adapters/PureEthersAdapter";
+import { EthersAdapter } from "./adapters/EthersAdapter";
 import { TruffleAdapter } from "./adapters/TruffleAdapter";
+import { PureEthersAdapter } from "./adapters/PureEthersAdapter";
 
-import { Instance, TypedArgs } from "../types/adapter";
 import { OverridesAndLibs } from "../types/deployer";
 import { KeyTransactionFields } from "../types/tools";
+import { Instance, TypedArgs } from "../types/adapter";
 import { isContractFactory, isEthersFactory, isPureFactory, isTruffleFactory } from "../types/type-checks";
 
 import { Reporter } from "../tools/reporters/Reporter";
@@ -56,19 +56,19 @@ export class Deployer {
     const adapter = this._resolveAdapter(contract);
 
     if (contractAddress) {
-      if (!(await isDeployedContractAddress(this._hre, contractAddress))) {
+      if (!(await isDeployedContractAddress(contractAddress))) {
         throw new MigrateError(`Contract with address '${contractAddress}' is not deployed`);
       }
     } else {
       const contractName = adapter.getContractName(contract);
-      contractAddress = await TransactionProcessor.tryRestoreContractAddressByName(contractName, this._hre);
+      contractAddress = await TransactionProcessor.tryRestoreContractAddressByName(contractName);
     }
 
     return adapter.toInstance(contract, contractAddress, {});
   }
 
   public async sendNative(to: string, value: bigint): Promise<void> {
-    const signer = await getSignerHelper(this._hre);
+    const signer = await getSignerHelper();
 
     const tx = await this._buildSendTransaction(to, value);
 
@@ -97,16 +97,16 @@ export class Deployer {
   }
 
   public async getSigner(from?: string): Promise<Signer> {
-    return getSignerHelper(this._hre, from);
+    return getSignerHelper(from);
   }
 
   public async getChainId(): Promise<bigint> {
-    return getChainId(this._hre);
+    return getChainId();
   }
 
   private _resolveAdapter<A, I>(contract: Instance<A, I>): Adapter {
     if (isEthersFactory(contract)) {
-      return new EthersAdapter(this._hre);
+      return new EthersAdapter(this._hre.config.migrate);
     }
 
     if (isTruffleFactory(contract)) {
@@ -114,11 +114,11 @@ export class Deployer {
     }
 
     if (isPureFactory(contract)) {
-      return new PureAdapter(this._hre);
+      return new PureAdapter(this._hre.config.migrate);
     }
 
     if (isContractFactory(contract)) {
-      return new PureEthersAdapter(this._hre);
+      return new PureEthersAdapter(this._hre.config.migrate);
     }
 
     throw new MigrateError("Unknown Contract Factory Type");
@@ -128,9 +128,9 @@ export class Deployer {
     return {
       to,
       value,
-      chainId: await getChainId(this._hre),
+      chainId: await getChainId(),
       data: "0x",
-      from: (await getSignerHelper(this._hre)).address,
+      from: (await getSignerHelper()).address,
     };
   }
 }

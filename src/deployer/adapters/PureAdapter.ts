@@ -1,9 +1,10 @@
 import { Interface } from "ethers";
 
+import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
+
 import { catchError } from "../../utils";
 
 import { PureFactory } from "../../types/adapter";
-import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
 
 @catchError
 export class PureAdapter extends AbstractEthersAdapter {

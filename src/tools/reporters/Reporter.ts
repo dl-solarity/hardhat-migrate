@@ -1,26 +1,27 @@
 /* eslint-disable no-console */
-import axios from "axios";
 import ora from "ora";
+import axios from "axios";
 
 import { Network, TransactionReceipt, TransactionResponse, formatEther, formatUnits } from "ethers";
 
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { Provider } from "../Provider";
 
 import { MigrateError } from "../../errors";
 
 import { catchError, underline } from "../../utils";
 
+import { MigrateConfig } from "../../types/migrations";
 import { ChainRecord, predefinedChains } from "../../types/verifier";
 
 @catchError
 export class Reporter {
-  private static _hre: HardhatRuntimeEnvironment;
+  private static _config: MigrateConfig;
 
   private static totalCost: bigint = 0n;
   private static totalTransactions: number = 0;
 
-  public static init(hre: HardhatRuntimeEnvironment) {
-    this._hre = hre;
+  public static init(config: MigrateConfig) {
+    this._config = config;
   }
 
   public static async reportMigrationBegin(files: string[]) {
@@ -44,7 +45,7 @@ export class Reporter {
   }
 
   public static async reportTransactionByHash(txHash: string, instanceName: string) {
-    const tx = await this._hre.ethers.provider.getTransaction(txHash);
+    const tx = await Provider.provider.getTransaction(txHash);
 
     if (!tx) {
       throw new MigrateError("Transaction not found.");
@@ -55,7 +56,7 @@ export class Reporter {
 
   public static async reportTransaction(tx: TransactionResponse, instanceName: string) {
     const timeStart = Date.now();
-    const blockStart = await this._hre.ethers.provider.getBlockNumber();
+    const blockStart = await Provider.provider.getBlockNumber();
 
     console.log("\n" + underline(this._parseTransactionTitle(tx, instanceName)));
 
@@ -70,7 +71,7 @@ export class Reporter {
     let receipt: TransactionReceipt;
     try {
       // We will wait for both contract deployment and common transactions
-      receipt = (await tx.wait(this._hre.config.migrate.wait))!;
+      receipt = (await tx.wait(this._config.wait))!;
     } catch (e: any) {
       throw new MigrateError(`Transaction failed: ${e.message}`);
     } finally {
@@ -81,8 +82,7 @@ export class Reporter {
 
     await this._printTransaction(receipt);
 
-    // TODO: do wee need add value to totalCost?
-    this.totalCost += receipt.fee;
+    this.totalCost += receipt.fee + tx.value ?? 0n;
     this.totalTransactions++;
   }
 
@@ -156,7 +156,7 @@ export class Reporter {
     blockStart: number,
   ): Promise<string> {
     return `Confirmations: ${await tx.confirmations()} Blocks: ${
-      (await this._hre.ethers.provider.getBlockNumber()) - blockStart
+      (await Provider.provider.getBlockNumber()) - blockStart
     } Seconds: ${((Date.now() - startTime) / 1000).toFixed(0)}`;
   }
 
@@ -222,7 +222,7 @@ export class Reporter {
 
   private static async _getNetwork(): Promise<Network> {
     try {
-      return this._hre.ethers.provider.getNetwork();
+      return Provider.provider.getNetwork();
     } catch {
       return new Network("Local Ethereum", 1337);
     }

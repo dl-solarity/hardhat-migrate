@@ -25,7 +25,7 @@ export class Verifier {
   public async verify(verifierArgs: VerifierArgs): Promise<void> {
     const { contractAddress, contractName, constructorArguments, chainId } = verifierArgs;
 
-    if (chainId && Number(await getChainId(this._hre)) != chainId) {
+    if (chainId && Number(await getChainId()) != chainId) {
       // TODO: Add actions for this case.
       return;
     }

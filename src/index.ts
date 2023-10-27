@@ -21,12 +21,18 @@ import { TruffleAdapter } from "./deployer/adapters/TruffleAdapter";
 
 import { Migrator } from "./migrator/Migrator";
 import { Verifier } from "./verifier/Verifier";
+import { Provider } from "./tools/Provider";
+import { Linker } from "./deployer/Linker";
 
 export { Deployer } from "./deployer/Deployer";
 
 extendConfig(migrateConfigExtender);
 
 const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
+  Linker.setConfig(env.config.migrate);
+  Reporter.init(env.config.migrate);
+  await Provider.init(env);
+
   env.config.migrate = mergeConfigs(taskArgs, env.config.migrate);
 
   // Make sure that contract artifacts are up-to-date.
@@ -41,8 +47,6 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
 
   await ArtifactProcessor.parseArtifacts(env);
 
-  Reporter.init(env);
-
   overrideTruffleRequire(env);
 
   await new Migrator(env).migrate();
@@ -55,7 +59,7 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
 const migrateVerify: ActionType<MigrateVerifyConfig> = async (taskArgs, env) => {
   const config = extendVerifyConfigs(taskArgs);
 
-  Reporter.init(env);
+  Reporter.init(env.config.migrate);
 
   await new Verifier(env, config).verifyBatch(
     VerificationProcessor.restoreSavedVerificationFunctions(config.inputFile),
