@@ -12,10 +12,10 @@ import { mergeConfigs, migrateConfigExtender } from "./config";
 import { TASK_MIGRATE } from "./constants";
 
 import { Migrator } from "./migrator/Migrator";
-import { Reporter } from "./tools/reporters/Reporter";
 
-import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
+import { Reporter } from "./tools/reporters/Reporter";
 import { DefaultStorage } from "./tools/storage/MigrateStorage";
+import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
 
 import { TruffleAdapter } from "./deployer/adapters/TruffleAdapter";
 import { MigrateConfig } from "./types/migrations";

@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
-import ora from "ora";
 import axios from "axios";
+import ora from "ora";
 
 import { Network, TransactionReceipt, TransactionResponse, formatEther, formatUnits } from "ethers";
 
@@ -84,6 +84,7 @@ export class Reporter {
 
     await this._printTransaction(receipt);
 
+    // TODO: do wee need add value to totalCost?
     this.totalCost += receipt.fee;
     this.totalTransactions++;
   }
@@ -175,6 +176,8 @@ export class Reporter {
 
     output += `> account: ${tx.from}\n`;
 
+    output += `> value: ${this.castAmount((await tx.getTransaction()).value, nativeSymbol)}\n`;
+
     output += `> balance: ${this.castAmount(await tx.provider.getBalance(tx.from), nativeSymbol)}\n`;
 
     output += `> gasUsed: ${tx.gasUsed}\n`;
@@ -187,7 +190,7 @@ export class Reporter {
   }
 
   public static castAmount(value: bigint, nativeSymbol: string): string {
-    if (value < 10n ** 12n) {
+    if (value > 0n && value < 10n ** 12n) {
       return this._toGWei(value) + " GWei";
     }
 

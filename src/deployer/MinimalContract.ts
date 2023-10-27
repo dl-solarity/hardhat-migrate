@@ -79,6 +79,7 @@ export class MinimalContract {
   ): Promise<ContractDeployTransactionWithContractName> {
     const factory = new this._hre.ethers.ContractFactory(this._interface, this._bytecode);
 
+    // check opportunity to use the populateTransaction method
     return {
       contractName: this._contractName,
       chainId: await getChainId(this._hre),

@@ -1,4 +1,4 @@
-import { ContractDeployTransaction, ContractTransaction, ContractTransactionResponse, isAddress } from "ethers";
+import { ContractDeployTransaction, ContractTransactionResponse, isAddress } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -13,6 +13,7 @@ import {
   isDeployedContractAddress,
 } from "../../utils";
 
+import { KeyTransactionFields } from "../../types/tools";
 import { validateKeyDeploymentFields, validateKeyTxFields } from "../../types/type-checks";
 
 @catchError
@@ -32,14 +33,14 @@ export class TransactionProcessor {
   /**
    * @param tx - Transaction to save. Acts as a key and value at the same time.
    */
-  public static saveTransaction(tx: ContractTransaction) {
+  public static saveTransaction(tx: KeyTransactionFields) {
     this._saveTransaction(
       {
         data: tx.data,
-        from: tx.from!,
-        chainId: tx.chainId!,
+        from: tx.from,
+        chainId: tx.chainId,
         to: tx.to,
-        value: tx.value!,
+        value: tx.value,
       },
       tx,
     );
@@ -80,7 +81,7 @@ export class TransactionProcessor {
   }
 
   @validateKeyTxFields
-  public static tryRestoreSavedTransaction(key: ContractTransaction): ContractTransactionResponse {
+  public static tryRestoreSavedTransaction(key: KeyTransactionFields): ContractTransactionResponse {
     if (this._deployedContracts.has(key.to)) {
       throw new MigrateError(`Contract is deployed in the current migration`);
     }
@@ -88,23 +89,23 @@ export class TransactionProcessor {
     return this._tryGetDataFromStorage(
       createKeyTxFieldsHash({
         data: key.data,
-        from: key.from!,
-        chainId: key.chainId!,
+        from: key.from,
+        chainId: key.chainId,
         to: key.to,
-        value: key.value!,
+        value: key.value,
       }),
     );
   }
 
   @validateKeyTxFields
-  private static _saveTransaction(args: ContractTransaction, transaction: ContractTransaction) {
+  private static _saveTransaction(args: KeyTransactionFields, transaction: KeyTransactionFields) {
     TransactionStorage.set(
       createKeyTxFieldsHash({
         data: args.data,
-        from: args.from!,
-        chainId: args.chainId!,
+        from: args.from,
+        chainId: args.chainId,
         to: args.to,
-        value: args.value!,
+        value: args.value,
       }),
       transaction,
       true,
