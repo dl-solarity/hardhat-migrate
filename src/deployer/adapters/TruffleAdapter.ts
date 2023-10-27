@@ -1,4 +1,4 @@
-import { ContractTransaction, Interface, toBigInt } from "ethers";
+import { Interface, toBigInt } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -125,7 +125,7 @@ export class TruffleAdapter extends Adapter {
 
   protected async _recoverTransaction(
     methodString: string,
-    tx: ContractTransaction,
+    tx: KeyTransactionFields,
     oldMethod: BaseTruffleMethod,
     args: any[],
   ) {
@@ -144,7 +144,7 @@ export class TruffleAdapter extends Adapter {
 
   protected async _sendTransaction(
     methodString: string,
-    tx: ContractTransaction,
+    tx: KeyTransactionFields,
     oldMethod: BaseTruffleMethod,
     args: any[],
   ) {
@@ -164,7 +164,7 @@ export class TruffleAdapter extends Adapter {
     args: any[],
     to: string,
     parameters: OverridesAndLibs,
-  ): Promise<ContractTransaction> {
+  ): Promise<KeyTransactionFields> {
     await fillParameters(this._hre, parameters);
 
     const tx: KeyTransactionFields = {
@@ -175,6 +175,6 @@ export class TruffleAdapter extends Adapter {
       value: toBigInt(String(parameters.value)),
     };
 
-    return tx as ContractTransaction;
+    return tx;
   }
 }

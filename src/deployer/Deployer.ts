@@ -14,8 +14,10 @@ import { TruffleAdapter } from "./adapters/TruffleAdapter";
 
 import { Instance, TypedArgs } from "../types/adapter";
 import { OverridesAndLibs } from "../types/deployer";
+import { KeyTransactionFields } from "../types/tools";
 import { isContractFactory, isEthersFactory, isPureFactory, isTruffleFactory } from "../types/type-checks";
 
+import { Reporter } from "../tools/reporters/Reporter";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 
 @catchError
@@ -65,6 +67,35 @@ export class Deployer {
     return adapter.toInstance(contract, contractAddress, {});
   }
 
+  public async sendNative(to: string, value: bigint): Promise<void> {
+    const signer = await getSignerHelper(this._hre);
+
+    const tx = await this._buildSendTransaction(to, value);
+
+    const methodString = "sendNative";
+
+    if (this._hre.config.migrate.continue) {
+      try {
+        TransactionProcessor.tryRestoreSavedTransaction(tx);
+
+        Reporter.notifyTransactionRecovery(methodString);
+
+        return;
+      } catch {
+        Reporter.notifyTransactionSendingInsteadOfRecovery(methodString);
+      }
+    }
+
+    const txResponse = await signer.sendTransaction(tx);
+
+    await Promise.all([
+      txResponse.wait(this._hre.config.migrate.txConfirmations),
+      Reporter.reportTransaction(txResponse, methodString),
+    ]);
+
+    TransactionProcessor.saveTransaction(tx);
+  }
+
   public async getSigner(from?: string): Promise<Signer> {
     return getSignerHelper(this._hre, from);
   }
@@ -91,5 +122,15 @@ export class Deployer {
     }
 
     throw new MigrateError("Unknown Contract Factory Type");
+  }
+
+  private async _buildSendTransaction(to: string, value: bigint): Promise<KeyTransactionFields> {
+    return {
+      to,
+      value,
+      chainId: await getChainId(this._hre),
+      data: "0x",
+      from: (await getSignerHelper(this._hre)).address,
+    };
   }
 }
