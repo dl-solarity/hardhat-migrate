@@ -1,30 +1,28 @@
-import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-verify";
 
-import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
-import { extendConfig, extendEnvironment, task, types } from "hardhat/config";
 import { lazyFunction, lazyObject } from "hardhat/plugins";
+import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { ActionType, HardhatRuntimeEnvironment } from "hardhat/types";
+import { extendConfig, extendEnvironment, task, types } from "hardhat/config";
 
 import "./type-extensions";
 
-import { extendVerifyConfigs, mergeConfigs, migrateConfigExtender } from "./config";
 import { TASK_MIGRATE, TASK_MIGRATE_VERIFY } from "./constants";
+import { extendVerifyConfigs, mergeConfigs, migrateConfigExtender } from "./config";
 
-import { Migrator } from "./migrator/Migrator";
+import { MigrateConfig, MigrateVerifyConfig } from "./types/migrations";
 
 import { Reporter } from "./tools/reporters/Reporter";
 import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
-import { DefaultStorage, MigrateStorage } from "./tools/storage/MigrateStorage";
 import { VerificationProcessor } from "./tools/storage/VerificationProcessor";
+import { DefaultStorage, MigrateStorage } from "./tools/storage/MigrateStorage";
 
 import { TruffleAdapter } from "./deployer/adapters/TruffleAdapter";
-import { MigrateConfig, MigrateVerifyConfig } from "./types/migrations";
+
+import { Migrator } from "./migrator/Migrator";
 import { Verifier } from "./verifier/Verifier";
 
 export { Deployer } from "./deployer/Deployer";
-export { DefaultStorage } from "./tools/storage/MigrateStorage";
-export { Verifier } from "./verifier/Verifier";
 
 extendConfig(migrateConfigExtender);
 
