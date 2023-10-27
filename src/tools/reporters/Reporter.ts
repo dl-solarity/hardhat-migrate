@@ -155,9 +155,9 @@ export class Reporter {
     startTime: number,
     blockStart: number,
   ): Promise<string> {
-    return `Confirmations: ${await tx.confirmations()} Blocks: ${
+    return `Confirmations: ${await tx.confirmations()}; Blocks: ${
       (await Provider.provider.getBlockNumber()) - blockStart
-    } Seconds: ${((Date.now() - startTime) / 1000).toFixed(0)}`;
+    }; Seconds: ${((Date.now() - startTime) / 1000).toFixed(0)}`;
   }
 
   private static async _getExplorerLink(txHash: string): Promise<string> {
