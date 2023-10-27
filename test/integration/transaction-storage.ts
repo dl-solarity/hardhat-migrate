@@ -12,6 +12,7 @@ import {
   ContractWithConstructorArguments__factory,
   ContractWithPayableConstructor__factory,
 } from "../fixture-projects/hardhat-project-repeats-typechain-ethers/typechain-types";
+import { Reporter } from "../../src/tools/reporters/Reporter";
 
 describe("TransactionStorage", async () => {
   useEnvironment("repeats-typechain-ethers");
@@ -21,6 +22,7 @@ describe("TransactionStorage", async () => {
   });
 
   afterEach(async function () {
+    Reporter.init(this.hre);
     TransactionStorage.clear();
   });
 

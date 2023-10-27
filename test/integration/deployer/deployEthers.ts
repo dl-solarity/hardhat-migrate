@@ -5,6 +5,7 @@ import { useEnvironment } from "../../helpers";
 
 import { Deployer } from "../../../src/deployer/Deployer";
 import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
+import { Reporter } from "../../../src/tools/reporters/Reporter";
 
 describe("deployer", () => {
   describe("deploy()", () => {
@@ -17,6 +18,7 @@ describe("deployer", () => {
     beforeEach("setup", async function () {
       deployer = new Deployer(this.hre);
 
+      Reporter.init(this.hre);
       TransactionStorage.clear();
 
       ContractWithConstructor = await this.hre.ethers.getContractFactory("ContractWithConstructorArguments");

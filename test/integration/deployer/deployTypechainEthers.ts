@@ -14,6 +14,7 @@ import {
   Library1__factory,
   Library2__factory,
 } from "../../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
+import { Reporter } from "../../../src/tools/reporters/Reporter";
 
 describe("Ehters Typechain -- Deployer", () => {
   describe("deploy()", () => {
@@ -26,6 +27,7 @@ describe("Ehters Typechain -- Deployer", () => {
 
       await ArtifactProcessor.parseArtifacts(this.hre);
 
+      Reporter.init(this.hre);
       TransactionStorage.clear();
     });
 

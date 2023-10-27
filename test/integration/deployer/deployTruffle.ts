@@ -7,6 +7,7 @@ import { useEnvironment } from "../../helpers";
 import { Deployer } from "../../../src/deployer/Deployer";
 
 import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
+import { Reporter } from "../../../src/tools/reporters/Reporter";
 
 describe("Truffle -- deployer", () => {
   describe("deploy()", () => {
@@ -18,6 +19,7 @@ describe("Truffle -- deployer", () => {
     beforeEach("setup", async function () {
       deployer = new Deployer(this.hre);
 
+      Reporter.init(this.hre);
       TransactionStorage.clear();
 
       contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
