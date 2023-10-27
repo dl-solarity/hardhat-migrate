@@ -65,7 +65,7 @@ export function validateKeyTxFields(target: any, propertyKey: string, descriptor
   return descriptor;
 }
 
-export function isEthersFactory<A, I>(instance: any): instance is EthersContract<A, I> {
+export function isEthersContract<A, I>(instance: any): instance is EthersContract<A, I> {
   return instance.createInterface !== undefined;
 }
 
@@ -73,7 +73,7 @@ export function isTruffleFactory<I>(instance: any): instance is TruffleFactory<I
   return instance instanceof Function && instance.prototype.constructor !== undefined;
 }
 
-export function isPureFactory(instance: any): instance is BytecodeFactory {
+export function isBytecodeFactory(instance: any): instance is BytecodeFactory {
   return instance.contractName !== undefined;
 }
 

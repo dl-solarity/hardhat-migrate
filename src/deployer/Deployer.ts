@@ -15,7 +15,7 @@ import { EthersFactoryAdapter } from "./adapters/EthersFactoryAdapter";
 import { OverridesAndLibs } from "../types/deployer";
 import { KeyTransactionFields } from "../types/tools";
 import { Instance, TypedArgs } from "../types/adapter";
-import { isContractFactory, isEthersFactory, isPureFactory, isTruffleFactory } from "../types/type-checks";
+import { isContractFactory, isEthersContract, isBytecodeFactory, isTruffleFactory } from "../types/type-checks";
 
 import { Reporter } from "../tools/reporters/Reporter";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
@@ -96,7 +96,7 @@ export class Deployer {
   }
 
   private _resolveAdapter<A, I>(contract: Instance<A, I>): Adapter {
-    if (isEthersFactory(contract)) {
+    if (isEthersContract(contract)) {
       return new EthersContractAdapter(this._hre.config.migrate);
     }
 
@@ -104,7 +104,7 @@ export class Deployer {
       return new TruffleAdapter(this._hre);
     }
 
-    if (isPureFactory(contract)) {
+    if (isBytecodeFactory(contract)) {
       return new BytecodeAdapter(this._hre.config.migrate);
     }
 
