@@ -166,6 +166,8 @@ export class Linker {
     } catch {
       const artifact = this._mustGetLibraryArtifact(libraryName);
 
+      // https://github.com/ethers-io/ethers.js/issues/2431
+      // https://github.com/ethers-io/ethers.js/issues/1126
       const core = new MinimalContract(hre, artifact.bytecode, Interface.from(artifact.abi), libraryName);
 
       Reporter.notifyDeploymentOfMissingLibrary(libraryName);

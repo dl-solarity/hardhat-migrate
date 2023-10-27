@@ -2,18 +2,18 @@ import { Signer } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { catchError, getSignerHelper, getChainId } from "../utils";
+import { catchError, getChainId, getSignerHelper } from "../utils";
 
 import { MigrateError } from "../errors";
 
 import { Adapter } from "./adapters/Adapter";
-import { PureAdapter } from "./adapters/PureAdapter";
 import { EthersAdapter } from "./adapters/EthersAdapter";
-import { TruffleAdapter } from "./adapters/TruffleAdapter";
+import { PureAdapter } from "./adapters/PureAdapter";
 import { PureEthersAdapter } from "./adapters/PureEthersAdapter";
+import { TruffleAdapter } from "./adapters/TruffleAdapter";
 
-import { OverridesAndLibs } from "../types/deployer";
 import { Instance, TypedArgs } from "../types/adapter";
+import { OverridesAndLibs } from "../types/deployer";
 import { isContractFactory, isEthersFactory, isPureFactory, isTruffleFactory } from "../types/type-checks";
 
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
@@ -36,7 +36,20 @@ export class Deployer {
     return adapter.toInstance(contract, contractAddress, parameters);
   }
 
-  public async deployed<A, I>(contract: Instance<A, I>): Promise<I> {
+  public setAsDeployed<T, A = T, I = any>(
+    contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never),
+    address: string,
+  ): void {
+    const adapter = this._resolveAdapter(contract);
+
+    const contractName = adapter.getContractName(contract);
+
+    TransactionProcessor.saveDeploymentTransactionWithContractName(contractName, address);
+  }
+
+  public async deployed<T, A = T, I = any>(
+    contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never),
+  ): Promise<I> {
     const adapter = this._resolveAdapter(contract);
 
     const contractName = adapter.getContractName(contract);

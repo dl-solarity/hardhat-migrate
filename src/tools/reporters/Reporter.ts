@@ -1,9 +1,8 @@
 /* eslint-disable no-console */
 import ora from "ora";
 import axios from "axios";
-import BigNumber from "bignumber.js";
 
-import { Network, TransactionReceipt, TransactionResponse } from "ethers";
+import { Network, TransactionReceipt, TransactionResponse, formatEther, formatUnits } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -192,15 +191,11 @@ export class Reporter {
       return this._toGWei(value) + " GWei";
     }
 
-    return this._toEther(value) + ` ${nativeSymbol}`;
-  }
-
-  private static _toEther(value: bigint): string {
-    return new BigNumber(value.toString()).div(10 ** 18).toFixed();
+    return formatEther(value) + ` ${nativeSymbol}`;
   }
 
   private static _toGWei(value: bigint): string {
-    return new BigNumber(value.toString()).div(10 ** 9).toFixed();
+    return formatUnits(value, "gwei");
   }
 
   private static _reportMigrationFiles(files: string[]) {

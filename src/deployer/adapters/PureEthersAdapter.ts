@@ -1,50 +1,14 @@
-import { BaseContract, ContractFactory, Interface } from "ethers";
+import { Addressable, ContractFactory, Interface } from "ethers";
 
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-
-import { Adapter } from "./Adapter";
-import { EthersInjectHelper } from "./EthersInjectHelper";
-
-import { MinimalContract } from "../MinimalContract";
-
-import { catchError, getSignerHelper } from "../../utils";
-
-import { OverridesAndLibs } from "../../types/deployer";
+import { catchError } from "../../utils";
 
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
+import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
 
 @catchError
-export class PureEthersAdapter extends Adapter {
-  private _injectHelper: EthersInjectHelper;
-
-  constructor(protected _hre: HardhatRuntimeEnvironment) {
-    super(_hre);
-    this._injectHelper = new EthersInjectHelper(_hre);
-  }
-
-  public async fromInstance(instance: ContractFactory): Promise<MinimalContract> {
-    return new MinimalContract(
-      this._hre,
-      this.getRawBytecode(instance),
-      this.getInterface(instance),
-      this.getContractName(instance),
-    );
-  }
-
-  public async toInstance<I>(instance: ContractFactory, address: string, parameters: OverridesAndLibs): Promise<I> {
-    const signer = await getSignerHelper(this._hre, parameters.from);
-
-    const contract = new BaseContract(address, this.getInterface(instance), signer);
-
-    return this._injectHelper.insertHandlers(contract, this.getContractName(instance), parameters) as unknown as I;
-  }
-
+export class PureEthersAdapter extends AbstractEthersAdapter {
   public getInterface(instance: ContractFactory): Interface {
     return instance.interface;
-  }
-
-  public getRawBytecode(instance: ContractFactory): string {
-    return instance.bytecode;
   }
 
   public getContractName(instance: ContractFactory): string {
@@ -53,5 +17,15 @@ export class PureEthersAdapter extends Adapter {
     } catch {
       return "Unknown Contract";
     }
+  }
+
+  public async overrideConnectMethod(instance: ContractFactory, contractName: string) {
+    const attachMethod = instance.attach;
+
+    instance.attach = (target: string | Addressable): any => {
+      const contract = attachMethod(target);
+
+      return this.insertHandlers(contract, contractName, {});
+    };
   }
 }
