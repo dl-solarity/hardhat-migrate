@@ -1,7 +1,5 @@
 import { ContractDeployTransaction, ContractTransactionResponse, isAddress } from "ethers";
 
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-
 import { TransactionStorage } from "./MigrateStorage";
 
 import { MigrateError } from "../../errors";
@@ -47,10 +45,7 @@ export class TransactionProcessor {
   }
 
   @validateKeyDeploymentFields
-  public static async tryRestoreContractAddressByKeyFields(
-    key: ContractDeployTransaction,
-    hre: HardhatRuntimeEnvironment,
-  ): Promise<string> {
+  public static async tryRestoreContractAddressByKeyFields(key: ContractDeployTransaction): Promise<string> {
     const contractAddress = this._tryGetDataFromStorage(
       createKeyDeploymentFieldsHash({
         data: key.data,
@@ -60,20 +55,17 @@ export class TransactionProcessor {
       }),
     );
 
-    if (!isAddress(contractAddress) || !(await isDeployedContractAddress(hre, contractAddress))) {
+    if (!isAddress(contractAddress) || !(await isDeployedContractAddress(contractAddress))) {
       throw new MigrateError(`Contract address is not valid`);
     }
 
     return contractAddress;
   }
 
-  public static async tryRestoreContractAddressByName(
-    contractName: string,
-    hre: HardhatRuntimeEnvironment,
-  ): Promise<string> {
+  public static async tryRestoreContractAddressByName(contractName: string): Promise<string> {
     const contractAddress = this._tryGetDataFromStorage(contractName);
 
-    if (!isAddress(contractAddress) || !(await isDeployedContractAddress(hre, contractAddress))) {
+    if (!isAddress(contractAddress) || !(await isDeployedContractAddress(contractAddress))) {
       throw new MigrateError(`Contract address is not valid`);
     }
 

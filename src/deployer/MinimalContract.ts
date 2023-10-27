@@ -1,6 +1,4 @@
-import { Interface, Overrides, Signer, TransactionResponse } from "ethers";
-
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { ethers, Interface, Overrides, Signer, TransactionResponse } from "ethers";
 
 import { Linker } from "./Linker";
 
@@ -8,29 +6,22 @@ import { catchError, fillParameters, getChainId, getSignerHelper } from "../util
 
 import { MigrateError } from "../errors";
 
-import { ContractDeployTransactionWithContractName, OverridesAndLibs } from "../types/deployer";
 import { MigrateConfig } from "../types/migrations";
-
-import { Verifier } from "../verifier/Verifier";
+import { ContractDeployTransactionWithContractName, OverridesAndLibs } from "../types/deployer";
 
 import { Reporter } from "../tools/reporters/Reporter";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
+import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 
 @catchError
 export class MinimalContract {
-  private _verifier: Verifier;
-  private _config: MigrateConfig;
-
   constructor(
-    private readonly _hre: HardhatRuntimeEnvironment,
+    private readonly _config: MigrateConfig,
     private _bytecode: string,
     private readonly _interface: Interface,
     private readonly _contractName: string = "",
   ) {
-    this._config = _hre.config.migrate;
-    this._verifier = new Verifier(_hre);
-
     if (_contractName === "") {
       try {
         this._contractName = ArtifactProcessor.tryGetContractName(_bytecode);
@@ -41,7 +32,7 @@ export class MinimalContract {
   }
 
   public async deploy(args: any[] = [], parameters: OverridesAndLibs = {}): Promise<string> {
-    await fillParameters(this._hre, parameters);
+    await fillParameters(parameters);
 
     await this._tryLinkLibraries(parameters);
 
@@ -60,12 +51,7 @@ export class MinimalContract {
         return;
       }
 
-      this._bytecode = await Linker.tryLinkBytecode(
-        this._hre,
-        this._contractName,
-        this._bytecode,
-        parameters.libraries || {},
-      );
+      this._bytecode = await Linker.tryLinkBytecode(this._contractName, this._bytecode, parameters.libraries || {});
     } catch (e: any) {
       throw new MigrateError(
         `Unable to link libraries for ${this._contractName}! Try manually deploy the libraries and link them.\n Error: ${e.message}`,
@@ -77,20 +63,20 @@ export class MinimalContract {
     args: any[],
     txOverrides: Overrides,
   ): Promise<ContractDeployTransactionWithContractName> {
-    const factory = new this._hre.ethers.ContractFactory(this._interface, this._bytecode);
+    const factory = new ethers.ContractFactory(this._interface, this._bytecode);
 
-    // check opportunity to use the populateTransaction method
+    // TODO: check the opportunity to use the populateTransaction method
     return {
       contractName: this._contractName,
-      chainId: await getChainId(this._hre),
-      from: (await getSignerHelper(this._hre, txOverrides.from)).address,
+      chainId: await getChainId(),
+      from: (await getSignerHelper(txOverrides.from)).address,
       ...(await factory.getDeployTransaction(...args, txOverrides)),
     };
   }
 
   private async _recoverContractAddress(tx: ContractDeployTransactionWithContractName, args: any[]): Promise<string> {
     try {
-      const contractAddress = await TransactionProcessor.tryRestoreContractAddressByKeyFields(tx, this._hre);
+      const contractAddress = await TransactionProcessor.tryRestoreContractAddressByKeyFields(tx);
 
       Reporter.notifyContractRecovery(tx.contractName, contractAddress);
 
@@ -106,7 +92,7 @@ export class MinimalContract {
     tx: ContractDeployTransactionWithContractName,
     args: any[],
   ): Promise<string> {
-    const signer: Signer = await getSignerHelper(this._hre, tx.from);
+    const signer: Signer = await getSignerHelper(tx.from);
 
     const txResponse = await signer.sendTransaction(tx);
 
@@ -121,17 +107,18 @@ export class MinimalContract {
 
     TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);
 
-    await this._verifier.processVerification({
+    VerificationProcessor.saveVerificationFunction({
       contractAddress,
       contractName: tx.contractName,
       constructorArguments: args,
+      chainId: Number(await getChainId()),
     });
 
     return contractAddress;
   }
 
   private async _waitForDeployment(tx: TransactionResponse): Promise<string> {
-    const receipt = await tx.wait(this._config.txConfirmations);
+    const receipt = await tx.wait(this._config.wait);
 
     if (receipt) {
       return receipt.contractAddress!;

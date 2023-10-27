@@ -1,4 +1,3 @@
-import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-verify";
 
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
@@ -8,25 +7,33 @@ import { ActionType, HardhatRuntimeEnvironment } from "hardhat/types";
 
 import "./type-extensions";
 
-import { mergeConfigs, migrateConfigExtender } from "./config";
-import { TASK_MIGRATE } from "./constants";
+import { extendVerifyConfigs, mergeConfigs, migrateConfigExtender } from "./config";
+import { TASK_MIGRATE, TASK_MIGRATE_VERIFY } from "./constants";
 
-import { Migrator } from "./migrator/Migrator";
+import { MigrateConfig, MigrateVerifyConfig } from "./types/migrations";
 
 import { Reporter } from "./tools/reporters/Reporter";
-import { DefaultStorage } from "./tools/storage/MigrateStorage";
 import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
+import { DefaultStorage, MigrateStorage } from "./tools/storage/MigrateStorage";
+import { VerificationProcessor } from "./tools/storage/VerificationProcessor";
 
 import { TruffleAdapter } from "./deployer/adapters/TruffleAdapter";
-import { MigrateConfig } from "./types/migrations";
+
+import { Linker } from "./deployer/Linker";
+import { Migrator } from "./migrator/Migrator";
+import { Provider } from "./tools/Provider";
+import { Verifier } from "./verifier/Verifier";
 
 export { Deployer } from "./deployer/Deployer";
 export { DefaultStorage } from "./tools/storage/MigrateStorage";
-export { Verifier } from "./verifier/Verifier";
 
 extendConfig(migrateConfigExtender);
 
 const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
+  Linker.setConfig(env.config.migrate);
+  Reporter.init(env.config.migrate);
+  await Provider.init(env);
+
   env.config.migrate = mergeConfigs(taskArgs, env.config.migrate);
 
   // Make sure that contract artifacts are up-to-date.
@@ -35,13 +42,29 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
     force: env.config.migrate.force,
   });
 
-  await ArtifactProcessor.parseArtifacts(env);
+  if (!env.config.migrate.continue) {
+    MigrateStorage.clearAll();
+  }
 
-  Reporter.init(env);
+  await ArtifactProcessor.parseArtifacts(env);
 
   overrideTruffleRequire(env);
 
   await new Migrator(env).migrate();
+
+  if (env.config.migrate.verify) {
+    await env.run(TASK_MIGRATE_VERIFY);
+  }
+};
+
+const migrateVerify: ActionType<MigrateVerifyConfig> = async (taskArgs, env) => {
+  const config = extendVerifyConfigs(taskArgs);
+
+  Reporter.init(env.config.migrate);
+
+  await new Verifier(env, config).verifyBatch(
+    VerificationProcessor.restoreSavedVerificationFunctions(config.inputFile),
+  );
 };
 
 extendEnvironment((hre) => {
@@ -53,7 +76,6 @@ extendEnvironment((hre) => {
 });
 
 // TODO: override the `clean` task
-
 task(TASK_MIGRATE, "Deploy contracts via migration files")
   .addOptionalParam("from", "The migration number from which the migration will be applied.", undefined, types.int)
   .addOptionalParam("to", "The migration number up to which the migration will be applied.", undefined, types.int)
@@ -64,23 +86,25 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
     types.int,
   )
   .addOptionalParam("skip", "The number of migration to skip. Overrides only parameter.", undefined, types.int)
-  .addOptionalParam("verify", "The enum defining the verification strategy.", undefined, types.string)
-  .addFlag("force", "The flag indicating whether the compilation is forced.")
-  .addOptionalParam(
-    "confirmations",
-    "The number defining after how many blocks the verification should start.",
-    undefined,
-    types.int,
-  )
-  .addOptionalParam("attempts", "The number of attempts to verify the contract.", undefined, types.int)
+  .addOptionalParam("wait", "The number of blocks to wait for the transaction to be mined.", undefined, types.int)
+  .addFlag("verify", "The flag indicating whether the contracts should be verified.")
+  .addOptionalParam("verifyParallel", "The size of the batch for verification.", undefined, types.int)
+  .addOptionalParam("verifyAttempts", "The number of attempts to verify the contract.", undefined, types.int)
   .addOptionalParam(
     "pathToMigrations",
     "The path to the folder with the specified migrations.",
     undefined,
     types.string,
   )
+  .addFlag("force", "The flag indicating whether the compilation is forced.")
   .addFlag("continue", "The flag indicating whether the previous deployment should be continued.")
   .setAction(migrate);
+
+task(TASK_MIGRATE_VERIFY, "Verify contracts via .storage")
+  .addOptionalParam("inputFile", "The path to the .storage file.", undefined, types.inputFile)
+  .addOptionalParam("parallel", "The size of the batch for verification.", undefined, types.int)
+  .addOptionalParam("attempts", "The number of attempts to verify the contract.", undefined, types.int)
+  .setAction(migrateVerify);
 
 const overrideTruffleRequire = (env: HardhatRuntimeEnvironment) => {
   const old = env.artifacts.require;

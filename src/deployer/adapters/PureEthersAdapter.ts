@@ -1,9 +1,10 @@
 import { Addressable, ContractFactory, Interface } from "ethers";
 
+import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
+
 import { catchError } from "../../utils";
 
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
-import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
 
 @catchError
 export class PureEthersAdapter extends AbstractEthersAdapter {

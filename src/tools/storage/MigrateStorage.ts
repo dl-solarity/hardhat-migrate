@@ -20,6 +20,12 @@ export class MigrateStorage {
     }
   }
 
+  public static clearAll(): void {
+    MigrateStorage._state = {};
+
+    MigrateStorage._saveStateToFile();
+  }
+
   public get(key: string): any {
     return MigrateStorage._state[this._namespace][key];
   }

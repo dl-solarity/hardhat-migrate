@@ -7,11 +7,20 @@ import { useEnvironment } from "../../helpers";
 
 import { Deployer } from "../../../src/deployer/Deployer";
 
+import { Reporter } from "../../../src/tools/reporters/Reporter";
 import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
+import { Provider } from "../../../src/tools/Provider";
+import { Linker } from "../../../src/deployer/Linker";
 
 describe("Truffle Typechain -- Deployer", () => {
   describe("deploy()", () => {
     useEnvironment("minimal-typechain-truffle");
+
+    beforeEach(async function () {
+      await Provider.init(this.hre);
+      Reporter.init(this.hre.config.migrate);
+      Linker.setConfig(this.hre.config.migrate);
+    });
 
     let contractWithConstructorArtifact: TruffleContract;
     let ContractWithExternalLibraryArtifact: TruffleContract;

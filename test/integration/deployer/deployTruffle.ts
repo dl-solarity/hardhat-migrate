@@ -7,10 +7,17 @@ import { useEnvironment } from "../../helpers";
 import { Deployer } from "../../../src/deployer/Deployer";
 
 import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
+import { Reporter } from "../../../src/tools/reporters/Reporter";
+import { Provider } from "../../../src/tools/Provider";
 
 describe("Truffle -- deployer", () => {
   describe("deploy()", () => {
     useEnvironment("minimal-truffle");
+
+    beforeEach(async function () {
+      await Provider.init(this.hre);
+      Reporter.init(this.hre.config.migrate);
+    });
 
     let contractWithConstructorArtifact: TruffleContract;
     let deployer: Deployer;

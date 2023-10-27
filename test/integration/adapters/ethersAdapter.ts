@@ -8,6 +8,8 @@ import { ArtifactProcessor } from "../../../src/tools/storage/ArtifactProcessor"
 import { PureEthersAdapter } from "../../../src/deployer/adapters/PureEthersAdapter";
 
 import { ContractWithConstructorArguments__factory } from "../../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
+import { Provider } from "../../../src/tools/Provider";
+import { Reporter } from "../../../src/tools/reporters/Reporter";
 
 describe("EthersAdapter", () => {
   describe("getContractDeployParams()", () => {
@@ -47,13 +49,18 @@ describe("EthersAdapter", () => {
     describe("pure ethers", () => {
       useEnvironment("minimal-ethers");
 
+      beforeEach(async function () {
+        await Provider.init(this.hre);
+        Reporter.init(this.hre.config.migrate);
+      });
+
       let ContractWithConstructor: ContractFactory;
 
       beforeEach("setup", async function () {
         pureEhtersAdapter = new PureEthersAdapter(this.hre);
         await ArtifactProcessor.parseArtifacts(this.hre);
 
-        ContractWithConstructor = await this.hre.ethers.getContractFactory("ContractWithConstructorArguments");
+        ContractWithConstructor = <ContractFactory>(<unknown>new ContractWithConstructorArguments__factory());
       });
 
       it("should get abi", async () => {
@@ -71,6 +78,11 @@ describe("EthersAdapter", () => {
 
     describe("with typechain", () => {
       useEnvironment("minimal-typechain-ethers");
+
+      beforeEach(async function () {
+        await Provider.init(this.hre);
+        Reporter.init(this.hre.config.migrate);
+      });
 
       beforeEach("setup", async function () {
         ethersAdapter = new EthersAdapter(this.hre);

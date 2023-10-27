@@ -1,3 +1,4 @@
+import "ethers";
 import "hardhat/types/config";
 import "hardhat/types/runtime";
 
@@ -21,5 +22,11 @@ declare module "hardhat/types/runtime" {
   export interface HardhatRuntimeEnvironment {
     migrator: Migrator;
     storage: MigrateStorage;
+  }
+}
+
+declare module "ethers" {
+  interface BaseContract {
+    address: string;
   }
 }

@@ -5,10 +5,21 @@ import { useEnvironment } from "../../helpers";
 
 import { Deployer } from "../../../src/deployer/Deployer";
 import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
+import { Reporter } from "../../../src/tools/reporters/Reporter";
+import { Provider } from "../../../src/tools/Provider";
+import {
+  ContractWithConstructorArguments__factory,
+  ContractWithPayableConstructor__factory,
+} from "../../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
 
 describe("deployer", () => {
   describe("deploy()", () => {
     useEnvironment("minimal-ethers");
+
+    beforeEach(async function () {
+      await Provider.init(this.hre);
+      Reporter.init(this.hre.config.migrate);
+    });
 
     let deployer: Deployer;
     let ContractWithConstructor: ContractFactory<any[], Contract>;
@@ -19,8 +30,12 @@ describe("deployer", () => {
 
       TransactionStorage.clear();
 
-      ContractWithConstructor = await this.hre.ethers.getContractFactory("ContractWithConstructorArguments");
-      ContractWithPayableConstructor = await this.hre.ethers.getContractFactory("ContractWithPayableConstructor");
+      ContractWithConstructor = <ContractFactory<any[], Contract>>(
+        (<unknown>new ContractWithConstructorArguments__factory())
+      );
+      ContractWithPayableConstructor = <ContractFactory<any[], Contract>>(
+        (<unknown>new ContractWithPayableConstructor__factory())
+      );
     });
 
     it("should deploy contract with constructor arguments", async function () {
@@ -36,7 +51,7 @@ describe("deployer", () => {
 
       const contract = await deployer.deploy(ContractWithPayableConstructor, [], { value: value });
 
-      expect(await this.hre.ethers.provider.getBalance(contract.getAddress())).to.equal(value);
+      expect(await Provider.provider.getBalance(contract.getAddress())).to.equal(value);
     });
 
     it("should revert if artifact is not a contract", async function () {
