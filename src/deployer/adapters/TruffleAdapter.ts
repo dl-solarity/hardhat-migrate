@@ -54,6 +54,7 @@ export class TruffleAdapter extends Adapter {
       return ArtifactProcessor.tryGetContractName(this.getRawBytecode(instance));
     } catch {
       // It is possible was called abstract contract
+      // TODO: Add Contract Name to Overrides.
       return (instance as any).contractName || "Unknown Contract";
     }
   }

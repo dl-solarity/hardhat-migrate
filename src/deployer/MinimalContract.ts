@@ -76,6 +76,7 @@ export class MinimalContract {
 
   private async _recoverContractAddress(tx: ContractDeployTransactionWithContractName, args: any[]): Promise<string> {
     try {
+      // TODO: firstly try to recover by contract name. Think about edge cases.
       const contractAddress = await TransactionProcessor.tryRestoreContractAddressByKeyFields(tx);
 
       Reporter.notifyContractRecovery(tx.contractName, contractAddress);
