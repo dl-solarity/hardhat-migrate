@@ -16,7 +16,6 @@ import { Deployer } from "../deployer/Deployer";
 import { Verifier } from "../verifier/Verifier";
 
 import { Reporter } from "../tools/reporters/Reporter";
-import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 
 export class Migrator {
   private readonly _deployer: Deployer;
@@ -54,10 +53,6 @@ export class Migrator {
 
         throw e;
       }
-    }
-
-    if (this._config.verify) {
-      await this._verifier.verifyBatch(VerificationProcessor.restoreSavedVerificationFunctions());
     }
 
     await Reporter.summary();
