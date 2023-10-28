@@ -1,4 +1,4 @@
-import { Signer } from "ethers";
+import { isAddress, Signer } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -40,20 +40,30 @@ export class Deployer {
 
   public async deployed<T, A = T, I = any>(
     contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never),
-    contractAddress?: string,
+    contractIdentifier?: string,
   ): Promise<I> {
     const adapter = this._resolveAdapter(contract);
-    const contractName = adapter.getContractName(contract, {});
+    const defaultContractName = adapter.getContractName(contract, {});
 
-    if (contractAddress) {
-      if (!(await isDeployedContractAddress(contractAddress))) {
-        throw new MigrateError(`Contract with address '${contractAddress}' is not deployed`);
+    let contractAddress;
+
+    if (contractIdentifier === undefined) {
+      contractAddress = await TransactionProcessor.tryRestoreContractAddressByName(defaultContractName);
+
+      return adapter.toInstance(contract, contractAddress, {});
+    }
+
+    if (isAddress(contractIdentifier)) {
+      if (!(await isDeployedContractAddress(contractIdentifier))) {
+        throw new MigrateError(`Contract with address '${contractIdentifier}' is not deployed`);
       }
 
-      TransactionProcessor.saveDeploymentTransactionWithContractName(contractName, contractAddress);
-    } else {
-      contractAddress = await TransactionProcessor.tryRestoreContractAddressByName(contractName);
+      TransactionProcessor.saveDeploymentTransactionWithContractName(defaultContractName, contractIdentifier);
+
+      return adapter.toInstance(contract, contractIdentifier, {});
     }
+
+    contractAddress = await TransactionProcessor.tryRestoreContractAddressByName(contractIdentifier);
 
     return adapter.toInstance(contract, contractAddress, {});
   }
