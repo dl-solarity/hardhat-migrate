@@ -117,12 +117,16 @@ export class MinimalContract {
 
     TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);
 
-    VerificationProcessor.saveVerificationFunction({
-      contractAddress,
-      contractName: tx.contractName,
-      constructorArguments: args,
-      chainId: Number(await getChainId()),
-    });
+    try {
+      VerificationProcessor.saveVerificationFunction({
+        contractAddress,
+        contractName: ArtifactProcessor.tryGetContractName(this._bytecode),
+        constructorArguments: args,
+        chainId: Number(await getChainId()),
+      });
+    } catch {
+      Reporter.reportVerificationFailedToSave(tx.contractName);
+    }
 
     return contractAddress;
   }

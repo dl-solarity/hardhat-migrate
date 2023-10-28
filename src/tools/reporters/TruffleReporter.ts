@@ -11,6 +11,6 @@ export class TruffleReporter {
   }
 
   public static notifyTransactionSending(methodString: string) {
-    console.log(`> ${methodString} is sending...`);
+    console.log(`> ${methodString} is being sent...`);
   }
 }

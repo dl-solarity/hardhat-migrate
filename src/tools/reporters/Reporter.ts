@@ -147,6 +147,12 @@ export class Reporter {
     console.log(output);
   }
 
+  public static reportVerificationFailedToSave(contractName: string) {
+    const output = `\nFailed to save verification arguments for contract: ${contractName}\n`;
+
+    console.log(output);
+  }
+
   public static reportContracts(...contracts: [string, string][]): void {
     const table: { Contract: string; Address: string }[] = contracts.map(([contract, address]) => ({
       Contract: contract,
