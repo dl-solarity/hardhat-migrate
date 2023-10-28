@@ -42,9 +42,10 @@ export class TruffleAdapter extends Adapter {
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async toInstance<I>(instance: TruffleFactory<I>, address: string, _parameters: OverridesAndLibs): Promise<I> {
+  public async toInstance<I>(instance: TruffleFactory<I>, address: string): Promise<I> {
     const contract = this._hre.artifacts.require(instance.contractName!);
+
+    await this._overrideConnectMethod(instance);
 
     return contract.at(address);
   }
@@ -73,7 +74,7 @@ export class TruffleAdapter extends Adapter {
     }
   }
 
-  public async overrideConnectMethod<I>(instance: TruffleFactory<I>) {
+  protected async _overrideConnectMethod<I>(instance: TruffleFactory<I>) {
     const atMethod = instance.at;
 
     instance.at = async (address: string): Promise<I> => {

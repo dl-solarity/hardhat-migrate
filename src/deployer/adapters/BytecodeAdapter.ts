@@ -17,7 +17,7 @@ export class BytecodeAdapter extends AbstractEthersAdapter {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async overrideConnectMethod(_instance: BytecodeFactory, _contractName: string) {
+  protected async _overrideConnectMethod(_instance: BytecodeFactory, _contractName: string) {
     return;
   }
 }

@@ -20,13 +20,13 @@ export class EthersFactoryAdapter extends AbstractEthersAdapter {
     }
   }
 
-  public async overrideConnectMethod(instance: ContractFactory, contractName: string) {
+  protected async _overrideConnectMethod(instance: ContractFactory, contractName: string) {
     const attachMethod = instance.attach;
 
     instance.attach = (target: string | Addressable): any => {
       const contract = attachMethod(target);
 
-      return this.insertHandlers(contract, contractName, {});
+      return this._insertHandlers(contract, contractName, {});
     };
   }
 }
