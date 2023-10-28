@@ -45,6 +45,8 @@ export class Verifier {
       } catch (e: any) {
         this._handleVerificationError(contractAddress, contractName, e);
       }
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   }
 
