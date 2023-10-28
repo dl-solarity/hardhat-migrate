@@ -1,4 +1,4 @@
-import { ethers, Interface, Overrides, Signer, TransactionResponse } from "ethers";
+import { ethers, Interface, Overrides, Signer } from "ethers";
 
 import { Linker } from "./Linker";
 
@@ -107,10 +107,9 @@ export class MinimalContract {
 
     const txResponse = await signer.sendTransaction(tx);
 
-    const [contractAddress] = await Promise.all([
-      this._waitForDeployment(txResponse),
-      Reporter.reportTransaction(txResponse, tx.contractName),
-    ]);
+    await Reporter.reportTransaction(txResponse, tx.contractName);
+
+    const contractAddress = (await txResponse.wait(0))!.contractAddress;
 
     if (typeof contractAddress !== "string") {
       throw new MigrateError("Contract deployment failed. Invalid contract address conversion.");
@@ -118,23 +117,17 @@ export class MinimalContract {
 
     TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);
 
-    VerificationProcessor.saveVerificationFunction({
-      contractAddress,
-      contractName: tx.contractName,
-      constructorArguments: args,
-      chainId: Number(await getChainId()),
-    });
-
-    return contractAddress;
-  }
-
-  private async _waitForDeployment(tx: TransactionResponse): Promise<string> {
-    const receipt = await tx.wait(this._config.wait);
-
-    if (receipt) {
-      return receipt.contractAddress!;
+    try {
+      VerificationProcessor.saveVerificationFunction({
+        contractAddress,
+        contractName: ArtifactProcessor.tryGetContractName(this._bytecode),
+        constructorArguments: args,
+        chainId: Number(await getChainId()),
+      });
+    } catch {
+      Reporter.reportVerificationFailedToSave(tx.contractName);
     }
 
-    throw new MigrateError("Contract deployment failed.");
+    return contractAddress;
   }
 }

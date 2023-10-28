@@ -32,19 +32,21 @@ export class Verifier {
 
     const instance = await this._getEtherscanInstance(this._hre);
 
-    if (await instance.isVerified(contractAddress)) {
-      Reporter.reportAlreadyVerified(contractAddress, contractName);
-
-      return;
-    }
-
     for (let attempts = 0; attempts < this._config.attempts; attempts++) {
+      if (await instance.isVerified(contractAddress)) {
+        Reporter.reportAlreadyVerified(contractAddress, contractName);
+
+        break;
+      }
+
       try {
         await this._tryVerify(instance, contractAddress, contractName, constructorArguments);
         break;
       } catch (e: any) {
         this._handleVerificationError(contractAddress, contractName, e);
       }
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   }
 

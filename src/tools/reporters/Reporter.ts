@@ -16,18 +16,26 @@ import { ChainRecord, predefinedChains } from "../../types/verifier";
 @catchError
 export class Reporter {
   private static _config: MigrateConfig;
+  private static _network: Network;
+  private static _nativeSymbol: string;
+  private static _explorerUrl: string;
 
   private static totalCost: bigint = 0n;
   private static totalTransactions: number = 0;
 
-  public static init(config: MigrateConfig) {
+  public static async init(config: MigrateConfig) {
     this._config = config;
+
+    this._network = await this._getNetwork();
+
+    this._nativeSymbol = await this._getNativeSymbol();
+    this._explorerUrl = (await this._getExplorerUrl()) + "/tx/";
   }
 
-  public static async reportMigrationBegin(files: string[]) {
+  public static reportMigrationBegin(files: string[]) {
     this._reportMigrationFiles(files);
 
-    await this._reportChainInfo();
+    this._reportChainInfo();
 
     console.log("\nStarting migration...\n");
   }
@@ -36,12 +44,12 @@ export class Reporter {
     console.log(`\n${underline(`Running ${file}...`)}`);
   }
 
-  public static async summary() {
+  public static summary() {
     const output =
       `> ${"Total transactions:".padEnd(20)} ${this.totalTransactions}\n` +
-      `> ${"Final cost:".padEnd(20)} ${this.castAmount(this.totalCost, await this._getNativeSymbol())}\n`;
+      `> ${"Final cost:".padEnd(20)} ${this.castAmount(this.totalCost, this._nativeSymbol)}\n`;
 
-    console.log(output);
+    console.log(`\n${output}`);
   }
 
   public static async reportTransactionByHash(txHash: string, instanceName: string) {
@@ -66,6 +74,7 @@ export class Reporter {
 
     const spinner = ora(await formatPendingTimeTask()).start();
 
+    // TODO: make 1000 configurable
     const spinnerInterval = setInterval(async () => (spinner.text = await formatPendingTimeTask()), 1000);
 
     let receipt: TransactionReceipt;
@@ -138,6 +147,21 @@ export class Reporter {
     console.log(output);
   }
 
+  public static reportVerificationFailedToSave(contractName: string) {
+    const output = `\nFailed to save verification arguments for contract: ${contractName}\n`;
+
+    console.log(output);
+  }
+
+  public static reportContracts(...contracts: [string, string][]): void {
+    const table: { Contract: string; Address: string }[] = contracts.map(([contract, address]) => ({
+      Contract: contract,
+      Address: address,
+    }));
+    console.table(table);
+    console.log();
+  }
+
   private static _parseTransactionTitle(tx: TransactionResponse, instanceName: string): string {
     if (tx.to === null) {
       if (instanceName.split(":").length == 1) {
@@ -160,8 +184,8 @@ export class Reporter {
     }; Seconds: ${((Date.now() - startTime) / 1000).toFixed(0)}`;
   }
 
-  private static async _getExplorerLink(txHash: string): Promise<string> {
-    return (await this._getExplorerUrl()) + "/tx/" + txHash;
+  private static _getExplorerLink(txHash: string): string {
+    return this._explorerUrl + txHash;
   }
 
   private static async _printTransaction(tx: TransactionReceipt) {
@@ -171,7 +195,7 @@ export class Reporter {
       output += `> contractAddress: ${tx.contractAddress}\n`;
     }
 
-    const nativeSymbol = await this._getNativeSymbol();
+    const nativeSymbol = this._nativeSymbol;
 
     output += `> blockNumber: ${tx.blockNumber}\n`;
 
@@ -214,10 +238,10 @@ export class Reporter {
     console.log("");
   }
 
-  private static async _reportChainInfo() {
-    console.log(`> ${"Network:".padEnd(20)} ${(await this._getNetwork()).name}`);
+  private static _reportChainInfo() {
+    console.log(`> ${"Network:".padEnd(20)} ${this._network.name}`);
 
-    console.log(`> ${"Network id:".padEnd(20)} ${await this._getChainId()}`);
+    console.log(`> ${"Network id:".padEnd(20)} ${this._network.chainId}`);
   }
 
   private static async _getNetwork(): Promise<Network> {
@@ -228,16 +252,8 @@ export class Reporter {
     }
   }
 
-  private static async _getChainId(): Promise<number> {
-    try {
-      return Number((await this._getNetwork()).chainId);
-    } catch {
-      return 1337;
-    }
-  }
-
   private static async _getExplorerUrl(): Promise<string> {
-    const chainId = await this._getChainId();
+    const chainId = Number(this._network.chainId);
 
     if (predefinedChains[chainId]) {
       const explorers = predefinedChains[chainId].explorers;
@@ -251,7 +267,7 @@ export class Reporter {
   }
 
   private static async _getNativeSymbol(): Promise<string> {
-    const chainId = await this._getChainId();
+    const chainId = Number(this._network.chainId);
 
     if (predefinedChains[chainId]) {
       return predefinedChains[chainId].nativeCurrency.symbol;

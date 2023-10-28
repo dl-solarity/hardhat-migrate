@@ -18,6 +18,7 @@ import { validateKeyDeploymentFields, validateKeyTxFields } from "../../types/ty
 export class TransactionProcessor {
   private static _deployedContracts: Map<string, boolean> = new Map();
 
+  @catchError
   @validateKeyDeploymentFields
   public static saveDeploymentTransaction(args: ContractDeployTransaction, contractName: string, address: string) {
     this._saveContract(args, address);
@@ -44,6 +45,7 @@ export class TransactionProcessor {
     );
   }
 
+  @catchError
   @validateKeyDeploymentFields
   public static async tryRestoreContractAddressByKeyFields(key: ContractDeployTransaction): Promise<string> {
     const contractAddress = this._tryGetDataFromStorage(
@@ -62,6 +64,7 @@ export class TransactionProcessor {
     return contractAddress;
   }
 
+  @catchError
   public static async tryRestoreContractAddressByName(contractName: string): Promise<string> {
     const contractAddress = this._tryGetDataFromStorage(contractName);
 
@@ -72,6 +75,7 @@ export class TransactionProcessor {
     return contractAddress;
   }
 
+  @catchError
   @validateKeyTxFields
   public static tryRestoreSavedTransaction(key: KeyTransactionFields): ContractTransactionResponse {
     if (this._deployedContracts.has(key.to)) {
@@ -89,6 +93,7 @@ export class TransactionProcessor {
     );
   }
 
+  @catchError
   @validateKeyTxFields
   private static _saveTransaction(args: KeyTransactionFields, transaction: KeyTransactionFields) {
     TransactionStorage.set(
@@ -104,6 +109,7 @@ export class TransactionProcessor {
     );
   }
 
+  @catchError
   @validateKeyDeploymentFields
   private static _saveContract(args: ContractDeployTransaction, contractAddress: string) {
     this._deployedContracts.set(contractAddress, true);
@@ -128,7 +134,7 @@ export class TransactionProcessor {
     const value = TransactionStorage.get(key);
 
     if (!value) {
-      throw new MigrateError(`Transaction not found in storage`);
+      throw new MigrateError(`Requested data not found in storage`);
     }
 
     return value;

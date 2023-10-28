@@ -97,7 +97,7 @@ describe("TransactionStorage", async () => {
       });
 
       await expect(TransactionProcessor.tryRestoreContractAddressByKeyFields(data)).to.be.rejectedWith(
-        "Transaction not found in storage",
+        "tryRestoreContractAddressByKeyFields(): Requested data not found in storage",
       );
     });
 
@@ -116,7 +116,7 @@ describe("TransactionStorage", async () => {
       });
 
       await expect(TransactionProcessor.tryRestoreContractAddressByKeyFields(tx)).to.be.rejectedWith(
-        "Transaction not found in storage",
+        "tryRestoreContractAddressByKeyFields(): Requested data not found in storage",
       );
     });
 
@@ -153,7 +153,7 @@ describe("TransactionStorage", async () => {
       });
 
       await expect(TransactionProcessor.tryRestoreContractAddressByKeyFields(data)).to.be.rejectedWith(
-        "Transaction not found in storage",
+        "tryRestoreContractAddressByKeyFields(): Requested data not found in storage",
       );
     });
   });
