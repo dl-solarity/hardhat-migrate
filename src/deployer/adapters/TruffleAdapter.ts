@@ -37,7 +37,7 @@ export class TruffleAdapter extends Adapter {
     return new MinimalContract(
       this._config,
       this.getRawBytecode(instance),
-      this.getInterface(instance),
+      this.getRawAbi(instance),
       this.getContractName(instance, parameters),
     );
   }
@@ -53,6 +53,10 @@ export class TruffleAdapter extends Adapter {
 
   public getInterface(instance: TruffleContract): Interface {
     return Interface.from(instance.abi);
+  }
+
+  public getRawAbi(instance: TruffleContract): string {
+    return instance.abi;
   }
 
   public getRawBytecode(instance: TruffleContract): string {

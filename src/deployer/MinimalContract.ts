@@ -1,8 +1,8 @@
-import { ethers, Interface, Overrides, Signer } from "ethers";
+import { ethers, InterfaceAbi, Overrides, Signer } from "ethers";
 
 import { Linker } from "./Linker";
 
-import { catchError, fillParameters, getChainId, getSignerHelper } from "../utils";
+import { catchError, fillParameters, getChainId, getInterfaceOnlyWithConstructor, getSignerHelper } from "../utils";
 
 import { MigrateError } from "../errors";
 
@@ -16,12 +16,16 @@ import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 
 @catchError
 export class MinimalContract {
+  private readonly _interface;
+
   constructor(
     private readonly _config: MigrateConfig,
     private _bytecode: string,
-    private readonly _interface: Interface,
+    private readonly _abi: InterfaceAbi,
     private readonly _contractName: string = "",
   ) {
+    this._interface = getInterfaceOnlyWithConstructor(this._abi);
+
     if (_contractName === "") {
       try {
         this._contractName = ArtifactProcessor.tryGetContractName(_bytecode);

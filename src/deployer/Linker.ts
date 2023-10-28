@@ -1,4 +1,4 @@
-import { Interface, isAddress, resolveAddress } from "ethers";
+import { isAddress, resolveAddress } from "ethers";
 
 import { Artifact, Libraries } from "hardhat/types";
 
@@ -168,7 +168,7 @@ export class Linker {
 
       // https://github.com/ethers-io/ethers.js/issues/2431
       // https://github.com/ethers-io/ethers.js/issues/1126
-      const core = new MinimalContract(this._config, artifact.bytecode, Interface.from(artifact.abi), libraryName);
+      const core = new MinimalContract(this._config, artifact.bytecode, artifact.abi, libraryName);
 
       Reporter.notifyDeploymentOfMissingLibrary(libraryName);
 

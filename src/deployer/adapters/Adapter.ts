@@ -18,6 +18,8 @@ export abstract class Adapter {
 
   public abstract getInterface<A, I>(instance: Instance<A, I>): Interface;
 
+  public abstract getRawAbi<A, I>(instance: Instance<A, I>): string;
+
   public abstract getRawBytecode<A, I>(instance: Instance<A, I>): string;
 
   public abstract getContractName<A, I>(instance: Instance<A, I>, parameters: OverridesAndMisc): string;

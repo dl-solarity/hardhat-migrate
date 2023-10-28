@@ -1,6 +1,19 @@
 import { join } from "path";
 import { realpathSync, existsSync } from "fs";
-import { AddressLike, ethers, FunctionFragment, hexlify, id, Overrides, toBigInt } from "ethers";
+import {
+  id,
+  hexlify,
+  toBigInt,
+  ethers,
+  Overrides,
+  Interface,
+  Fragment,
+  AddressLike,
+  InterfaceAbi,
+  JsonFragment,
+  FunctionFragment,
+  ConstructorFragment,
+} from "ethers";
 
 import { isBytes } from "@ethersproject/bytes";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
@@ -167,6 +180,23 @@ export function catchError(target: any, propertyName?: string, descriptor?: Prop
       );
     }
   }
+}
+
+export function getInterfaceOnlyWithConstructor(fragments: InterfaceAbi): Interface {
+  let abi: ReadonlyArray<Fragment | JsonFragment | string>;
+  if (typeof fragments === "string") {
+    abi = JSON.parse(fragments);
+  } else {
+    abi = fragments;
+  }
+
+  for (const a of abi) {
+    if ((a as any).type === "constructor") {
+      return Interface.from([a]);
+    }
+  }
+
+  return new Interface([ConstructorFragment.from("constructor()")]);
 }
 
 /* eslint-disable no-console */
