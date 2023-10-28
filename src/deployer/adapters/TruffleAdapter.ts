@@ -42,7 +42,8 @@ export class TruffleAdapter extends Adapter {
     );
   }
 
-  public async toInstance<I>(instance: TruffleFactory<I>, address: string): Promise<I> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async toInstance<I>(instance: TruffleFactory<I>, address: string, _: OverridesAndMisc): Promise<I> {
     const contract = this._hre.artifacts.require(instance.contractName!);
 
     await this._overrideConnectMethod(instance);
