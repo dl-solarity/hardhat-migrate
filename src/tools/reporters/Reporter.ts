@@ -49,7 +49,7 @@ export class Reporter {
       `> ${"Total transactions:".padEnd(20)} ${this.totalTransactions}\n` +
       `> ${"Final cost:".padEnd(20)} ${this.castAmount(this.totalCost, this._nativeSymbol)}\n`;
 
-    console.log(output);
+    console.log(`\n${output}`);
   }
 
   public static async reportTransactionByHash(txHash: string, instanceName: string) {
