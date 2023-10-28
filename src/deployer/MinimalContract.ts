@@ -1,4 +1,4 @@
-import { ethers, Interface, Overrides, Signer, TransactionResponse } from "ethers";
+import { ethers, Interface, Overrides, Signer } from "ethers";
 
 import { Linker } from "./Linker";
 
@@ -107,10 +107,9 @@ export class MinimalContract {
 
     const txResponse = await signer.sendTransaction(tx);
 
-    const [contractAddress] = await Promise.all([
-      this._waitForDeployment(txResponse),
-      Reporter.reportTransaction(txResponse, tx.contractName),
-    ]);
+    await Reporter.reportTransaction(txResponse, tx.contractName);
+
+    const contractAddress = (await txResponse.wait(0))!.contractAddress;
 
     if (typeof contractAddress !== "string") {
       throw new MigrateError("Contract deployment failed. Invalid contract address conversion.");
@@ -126,15 +125,5 @@ export class MinimalContract {
     });
 
     return contractAddress;
-  }
-
-  private async _waitForDeployment(tx: TransactionResponse): Promise<string> {
-    const receipt = await tx.wait(this._config.wait);
-
-    if (receipt) {
-      return receipt.contractAddress!;
-    }
-
-    throw new MigrateError("Contract deployment failed.");
   }
 }
