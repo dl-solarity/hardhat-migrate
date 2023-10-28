@@ -3,47 +3,32 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
 import { EtherscanConfig } from "@nomicfoundation/hardhat-verify/types";
 
-import { catchError, suppressLogs } from "../utils";
+import { catchError, getChainId, suppressLogs } from "../utils";
 
 import { Args } from "../types/deployer";
+import { VerifyConfig } from "../types/migrations";
 import { VerifierArgs } from "../types/verifier";
-import { MigrateConfig, VerifyStrategy } from "../types/migrations";
 
 import { Reporter } from "../tools/reporters/Reporter";
-import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 
 export class Verifier {
-  private readonly _config: MigrateConfig;
   private readonly _etherscanConfig: EtherscanConfig;
 
-  constructor(private _hre: HardhatRuntimeEnvironment) {
-    this._config = _hre.config.migrate;
+  constructor(
+    private _hre: HardhatRuntimeEnvironment,
+    private _config: VerifyConfig,
+  ) {
     this._etherscanConfig = (_hre.config as any).etherscan;
-  }
-
-  public async processVerification(verifierArgs: VerifierArgs): Promise<void> {
-    if (!this._config) {
-      return;
-    }
-
-    switch (this._config.verify) {
-      case VerifyStrategy.AtTheEnd: {
-        VerificationProcessor.saveVerificationFunction(verifierArgs);
-        break;
-      }
-      case VerifyStrategy.Immediately: {
-        await this.verify(verifierArgs);
-        break;
-      }
-      case VerifyStrategy.None: {
-        break;
-      }
-    }
   }
 
   @catchError
   public async verify(verifierArgs: VerifierArgs): Promise<void> {
-    const { contractAddress, contractName, constructorArguments } = verifierArgs;
+    const { contractAddress, contractName, constructorArguments, chainId } = verifierArgs;
+
+    if (chainId && Number(await getChainId()) != chainId) {
+      // TODO: Add actions for this case.
+      return;
+    }
 
     const instance = await this._getEtherscanInstance(this._hre);
 
@@ -56,6 +41,7 @@ export class Verifier {
     for (let attempts = 0; attempts < this._config.attempts; attempts++) {
       try {
         await this._tryVerify(instance, contractAddress, contractName, constructorArguments);
+        break;
       } catch (e: any) {
         this._handleVerificationError(contractAddress, contractName, e);
       }
@@ -64,17 +50,15 @@ export class Verifier {
 
   @catchError
   public async verifyBatch(verifierButchArgs: VerifierArgs[]) {
-    if (!this._config.verify) {
-      return;
-    }
-
     Reporter.reportVerificationBatchBegin();
 
-    await Promise.all(
-      verifierButchArgs.map(async (args) => {
-        await this.verify(args);
-      }),
-    );
+    const parallel = this._config.parallel;
+
+    for (let i = 0; i < verifierButchArgs.length; i += parallel) {
+      const batch = verifierButchArgs.slice(i, i + parallel);
+
+      await Promise.all(batch.map((args) => this.verify(args)));
+    }
   }
 
   @catchError

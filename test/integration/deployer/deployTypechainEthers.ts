@@ -14,10 +14,19 @@ import {
   Library1__factory,
   Library2__factory,
 } from "../../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
+import { Reporter } from "../../../src/tools/reporters/Reporter";
+import { Provider } from "../../../src/tools/Provider";
+import { Linker } from "../../../src/deployer/Linker";
 
 describe("Ehters Typechain -- Deployer", () => {
   describe("deploy()", () => {
     useEnvironment("minimal-typechain-ethers");
+
+    beforeEach(async function () {
+      await Provider.init(this.hre);
+      Reporter.init(this.hre.config.migrate);
+      Linker.setConfig(this.hre.config.migrate);
+    });
 
     let deployer: Deployer;
 

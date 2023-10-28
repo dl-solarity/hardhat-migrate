@@ -78,14 +78,12 @@ module.exports = {
     to: -1,
     only: -1,
     skip: -1,
-    txConfirmations: 1,
-    verifyConfirmations: 0,
-    verify: "at-the-end",
+    wait: 1,
+    verify: false,
     attempts: 0,
     pathToMigrations: "./deploy",
-    skipVerificationErrors: ["already verified"],
     force: false,
-    continuePreviousDeployment: false,
+    continue: false,
   },
 };
 ```
@@ -96,19 +94,12 @@ module.exports = {
 - `to` : The migration number up to which the migration will be applied.
 - `only` : The number of the migration that will be applied. **Overrides from and to parameters.**
 - `skip`: The number of migration to skip. **Overrides only parameter.**
-- `txConfirmations` : The number of confirmations to wait for after the transaction is mined.
-- `verifyConfirmations` : The number of confirmations to wait for before sending a request to etherscan.
-- `verify` : The strategy of verification. The user can choose between `immediately`, `at-the-end` and `none`.
-  - `immediately`: the verification will start immediately after the contract is deployed. However, the execution will wait `verifyConfirmations` number of blocks before sending a request to etherscan.
-  - `at-the-end`: the verification will start after all migrations are applied.
-  - `none`: the verification will not be performed.
+- `wait` : The number of confirmations to wait for after the transaction is mined.
+- `verify` : The flag indicating whether the contracts should be verified.
 - `attempts`: The number of attempts to verify the contract.
 - `pathToMigrations` : The path to the folder with the specified migrations.
-- `skipVerificationErrors` : The user can specify custom verification errors that will be omitted and just be printed
-  to the log instead of stopping the program completely.
-  By default, if this parameter is not specified, the `already verified` error is omitted.
 - `force` : The flag indicating whether the contracts compilation is forced.
-- `continuePreviousDeployment` : The flag indicating whether the deployment should restore the state from the previous deployment.
+- `continue` : The flag indicating whether the deployment should restore the state from the previous deployment.
 
 ### Deploying
 
@@ -117,7 +108,7 @@ You can set your own migrations and deploy the contracts to the network you want
 #### With only parameter
 
 ```console
-npx hardhat migrate --network goerli --verify immediately --only 2
+npx hardhat migrate --network goerli --verify --only 2
 ```
 
 In this case, only the migration that begins with digit 2 will be applied. The plugin will also try to automatically verify the deployed contracts.

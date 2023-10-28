@@ -1,28 +1,60 @@
 import {
   BaseContract,
   BaseContractMethod,
-  ContractTransaction,
+  ContractFactory,
   ContractTransactionResponse,
   defineProperties,
   FunctionFragment,
   Interface,
 } from "ethers";
 
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { Adapter } from "./Adapter";
+import { MinimalContract } from "../MinimalContract";
 
-import { fillParameters, getMethodString } from "../../utils";
+import "../../type-extensions";
 
-import { MigrateConfig } from "../../types/migrations";
-import { OverridesAndLibs } from "../../types/deployer";
+import { bytecodeToString, fillParameters, getMethodString, getSignerHelper } from "../../utils";
+
+import { OverridesAndLibs, OverridesAndMisc } from "../../types/deployer";
+import { KeyTransactionFields } from "../../types/tools";
+import { EthersContract, BytecodeFactory } from "../../types/adapter";
 
 import { Reporter } from "../../tools/reporters/Reporter";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 
-export class EthersInjectHelper {
-  protected _config: MigrateConfig;
+type Factory<A, I> = EthersContract<A, I> | BytecodeFactory | ContractFactory;
 
-  constructor(private _hre: HardhatRuntimeEnvironment) {
-    this._config = _hre.config.migrate;
+export abstract class AbstractEthersAdapter extends Adapter {
+  private static _processedClasses = new Set<string>();
+
+  public getRawBytecode<A, I>(instance: Factory<A, I>): string {
+    return bytecodeToString(instance.bytecode);
+  }
+
+  public async fromInstance<A, I>(instance: Factory<A, I>, parameters: OverridesAndMisc): Promise<MinimalContract> {
+    return new MinimalContract(
+      this._config,
+      this.getRawBytecode(instance),
+      this.getInterface(instance),
+      this.getContractName(instance, parameters),
+    );
+  }
+
+  public async toInstance<A, I>(instance: Factory<A, I>, address: string, parameters: OverridesAndLibs): Promise<I> {
+    const signer = await getSignerHelper(parameters.from);
+
+    const contract = new BaseContract(address, this.getInterface(instance), signer);
+
+    const contractName = this.getContractName(instance, parameters);
+
+    if (!AbstractEthersAdapter._processedClasses.has(contractName)) {
+      AbstractEthersAdapter._processedClasses.add(contractName);
+
+      await this.overrideConnectMethod(instance, contractName);
+    }
+
+    this._insertAddressGetter(contract, address);
+    return this.insertHandlers(contract, contractName, parameters) as unknown as I;
   }
 
   public insertHandlers(contract: BaseContract, contractName: string, parameters: OverridesAndLibs): BaseContract {
@@ -65,6 +97,12 @@ export class EthersInjectHelper {
     return contract;
   }
 
+  public abstract overrideConnectMethod<A, I>(instance: Factory<A, I>, contractName: string): Promise<void>;
+
+  private _insertAddressGetter(contract: BaseContract, contractAddress: string): void {
+    contract.address = contractAddress;
+  }
+
   private _getContractFunctionFragments(contractInterface: Interface): FunctionFragment[] {
     const result: FunctionFragment[] = [];
 
@@ -76,15 +114,15 @@ export class EthersInjectHelper {
   }
 
   private _wrapOldMethod(
-    methodName: string,
     contractName: string,
+    methodName: string,
     methodFragments: FunctionFragment,
     oldMethod: BaseContractMethod,
     parameters: OverridesAndLibs,
   ): (...args: any[]) => Promise<ContractTransactionResponse> {
     return async (...args: any[]): Promise<ContractTransactionResponse> => {
-      await fillParameters(this._hre, parameters);
-      const tx = await oldMethod.populateTransaction(...args, parameters);
+      await fillParameters(parameters);
+      const tx = (await oldMethod.populateTransaction(...args, parameters)) as KeyTransactionFields;
 
       const methodString = getMethodString(contractName, methodName, methodFragments, args);
 
@@ -98,7 +136,7 @@ export class EthersInjectHelper {
 
   private async _recoverTransaction(
     methodString: string,
-    tx: ContractTransaction,
+    tx: KeyTransactionFields,
     oldMethod: BaseContractMethod,
     args: any[],
   ) {
@@ -117,7 +155,7 @@ export class EthersInjectHelper {
 
   private async _sendTransaction(
     methodString: string,
-    tx: ContractTransaction,
+    tx: KeyTransactionFields,
     oldMethod: BaseContractMethod,
     args: any[],
   ) {

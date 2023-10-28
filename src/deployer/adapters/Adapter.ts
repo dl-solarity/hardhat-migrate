@@ -1,24 +1,18 @@
 import { Interface } from "ethers";
 
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-
 import { MinimalContract } from "../MinimalContract";
 
 import { catchError } from "../../utils";
 
 import { Instance } from "../../types/adapter";
 import { MigrateConfig } from "../../types/migrations";
-import { OverridesAndLibs } from "../../types/deployer";
+import { OverridesAndLibs, OverridesAndMisc } from "../../types/deployer";
 
 @catchError
 export abstract class Adapter {
-  protected _config: MigrateConfig;
+  public constructor(protected _config: MigrateConfig) {}
 
-  protected constructor(protected _hre: HardhatRuntimeEnvironment) {
-    this._config = _hre.config.migrate;
-  }
-
-  public abstract fromInstance<A, I>(instance: Instance<A, I>): Promise<MinimalContract>;
+  public abstract fromInstance<A, I>(instance: Instance<A, I>, parameters: OverridesAndMisc): Promise<MinimalContract>;
 
   public abstract toInstance<A, I>(instance: Instance<A, I>, address: string, parameters: OverridesAndLibs): Promise<I>;
 
@@ -26,5 +20,5 @@ export abstract class Adapter {
 
   public abstract getRawBytecode<A, I>(instance: Instance<A, I>): string;
 
-  public abstract getContractName<A, I>(instance: Instance<A, I>): string;
+  public abstract getContractName<A, I>(instance: Instance<A, I>, parameters: OverridesAndMisc): string;
 }

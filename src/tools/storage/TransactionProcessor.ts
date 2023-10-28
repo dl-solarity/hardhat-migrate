@@ -1,6 +1,4 @@
-import { ContractDeployTransaction, ContractTransaction, ContractTransactionResponse, isAddress } from "ethers";
-
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { ContractDeployTransaction, ContractTransactionResponse, isAddress } from "ethers";
 
 import { TransactionStorage } from "./MigrateStorage";
 
@@ -13,6 +11,7 @@ import {
   isDeployedContractAddress,
 } from "../../utils";
 
+import { KeyTransactionFields } from "../../types/tools";
 import { validateKeyDeploymentFields, validateKeyTxFields } from "../../types/type-checks";
 
 @catchError
@@ -25,27 +24,28 @@ export class TransactionProcessor {
     this._saveContractByName(contractName, address);
   }
 
+  public static saveDeploymentTransactionWithContractName(contractName: string, address: string) {
+    this._saveContractByName(contractName, address);
+  }
+
   /**
    * @param tx - Transaction to save. Acts as a key and value at the same time.
    */
-  public static saveTransaction(tx: ContractTransaction) {
+  public static saveTransaction(tx: KeyTransactionFields) {
     this._saveTransaction(
       {
         data: tx.data,
-        from: tx.from!,
-        chainId: tx.chainId!,
+        from: tx.from,
+        chainId: tx.chainId,
         to: tx.to,
-        value: tx.value!,
+        value: tx.value,
       },
       tx,
     );
   }
 
   @validateKeyDeploymentFields
-  public static async tryRestoreContractAddressByKeyFields(
-    key: ContractDeployTransaction,
-    hre: HardhatRuntimeEnvironment,
-  ): Promise<string> {
+  public static async tryRestoreContractAddressByKeyFields(key: ContractDeployTransaction): Promise<string> {
     const contractAddress = this._tryGetDataFromStorage(
       createKeyDeploymentFieldsHash({
         data: key.data,
@@ -55,20 +55,17 @@ export class TransactionProcessor {
       }),
     );
 
-    if (!isAddress(contractAddress) || !(await isDeployedContractAddress(hre, contractAddress))) {
+    if (!isAddress(contractAddress) || !(await isDeployedContractAddress(contractAddress))) {
       throw new MigrateError(`Contract address is not valid`);
     }
 
     return contractAddress;
   }
 
-  public static async tryRestoreContractAddressByName(
-    contractName: string,
-    hre: HardhatRuntimeEnvironment,
-  ): Promise<string> {
+  public static async tryRestoreContractAddressByName(contractName: string): Promise<string> {
     const contractAddress = this._tryGetDataFromStorage(contractName);
 
-    if (!isAddress(contractAddress) || !(await isDeployedContractAddress(hre, contractAddress))) {
+    if (!isAddress(contractAddress) || !(await isDeployedContractAddress(contractAddress))) {
       throw new MigrateError(`Contract address is not valid`);
     }
 
@@ -76,7 +73,7 @@ export class TransactionProcessor {
   }
 
   @validateKeyTxFields
-  public static tryRestoreSavedTransaction(key: ContractTransaction): ContractTransactionResponse {
+  public static tryRestoreSavedTransaction(key: KeyTransactionFields): ContractTransactionResponse {
     if (this._deployedContracts.has(key.to)) {
       throw new MigrateError(`Contract is deployed in the current migration`);
     }
@@ -84,23 +81,23 @@ export class TransactionProcessor {
     return this._tryGetDataFromStorage(
       createKeyTxFieldsHash({
         data: key.data,
-        from: key.from!,
-        chainId: key.chainId!,
+        from: key.from,
+        chainId: key.chainId,
         to: key.to,
-        value: key.value!,
+        value: key.value,
       }),
     );
   }
 
   @validateKeyTxFields
-  private static _saveTransaction(args: ContractTransaction, transaction: ContractTransaction) {
+  private static _saveTransaction(args: KeyTransactionFields, transaction: KeyTransactionFields) {
     TransactionStorage.set(
       createKeyTxFieldsHash({
         data: args.data,
-        from: args.from!,
-        chainId: args.chainId!,
+        from: args.from,
+        chainId: args.chainId,
         to: args.to,
-        value: args.value!,
+        value: args.value,
       }),
       transaction,
       true,

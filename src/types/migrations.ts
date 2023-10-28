@@ -25,33 +25,27 @@ export interface MigrateConfig {
   /*
    * The number defining how many confirmations each transaction should have.
    */
-  txConfirmations: number;
+  wait: number;
 
   /*
-   * The number defining after how many blocks the verification should start.
+   * The flag indicating whether the contract should be verified.
    */
-  verifyConfirmations: number;
+  verify: boolean;
 
   /*
-   * The strategy of the verification.
+   * The size of the batch for verification.
    */
-  verify: VerifyStrategy;
+  verifyParallel: number;
 
   /*
    * The number of attempts to verify the contract.
    */
-  attempts: number;
+  verifyAttempts: number;
 
   /*
    * The path to the folder with the specified migrations.
    */
   pathToMigrations: string;
-
-  /*
-   * The user can specify custom verification errors that will be omitted
-   * and just be printed to the log instead of stopping the program completely.
-   */
-  skipVerificationErrors: string[];
 
   /*
    * The flag indicating whether the compilation is forced.
@@ -64,8 +58,21 @@ export interface MigrateConfig {
   continue: boolean;
 }
 
-export enum VerifyStrategy {
-  Immediately = "immediately",
-  AtTheEnd = "at-the-end",
-  None = "none",
+export interface VerifyConfig {
+  /*
+   * The size of the batch for verification.
+   */
+  parallel: number;
+
+  /*
+   * The number of attempts to verify the contract.
+   */
+  attempts: number;
+}
+
+export interface MigrateVerifyConfig extends VerifyConfig {
+  /*
+   * The path to the file with the verification input.
+   */
+  inputFile: string | undefined;
 }

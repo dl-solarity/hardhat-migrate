@@ -1,5 +1,5 @@
-import { basename } from "path";
 import { readdirSync, statSync } from "fs";
+import { basename } from "path";
 
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -10,13 +10,12 @@ import { resolvePathToFile } from "../utils";
 
 import { MigrateError } from "../errors";
 
-import { MigrateConfig, VerifyStrategy } from "../types/migrations";
+import { MigrateConfig } from "../types/migrations";
 
 import { Deployer } from "../deployer/Deployer";
 import { Verifier } from "../verifier/Verifier";
 
 import { Reporter } from "../tools/reporters/Reporter";
-import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 
 export class Migrator {
   private readonly _deployer: Deployer;
@@ -29,7 +28,10 @@ export class Migrator {
     private _config: MigrateConfig = _hre.config.migrate,
   ) {
     this._deployer = new Deployer(_hre);
-    this._verifier = new Verifier(_hre);
+    this._verifier = new Verifier(_hre, {
+      parallel: this._config.verifyParallel,
+      attempts: this._config.verifyAttempts,
+    });
 
     this._migrationFiles = this._getMigrationFiles();
   }
@@ -51,10 +53,6 @@ export class Migrator {
 
         throw e;
       }
-    }
-
-    if (this._config.verify === VerifyStrategy.AtTheEnd) {
-      await this._verifier.verifyBatch(VerificationProcessor.restoreSavedVerificationFunctions());
     }
 
     await Reporter.summary();

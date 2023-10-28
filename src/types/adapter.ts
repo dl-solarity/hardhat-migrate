@@ -2,7 +2,7 @@ import { ContractFactory, InterfaceAbi } from "ethers";
 
 import { Bytecode } from "./deployer";
 
-export interface EthersFactory<A, I> {
+export interface EthersContract<A, I> {
   new (...args: any): A;
 
   abi: any;
@@ -24,7 +24,7 @@ export interface TruffleFactory<I> extends Truffle.Contract<I> {
   contractName: string;
 }
 
-export interface PureFactory {
+export interface BytecodeFactory {
   abi: InterfaceAbi;
   bytecode: Bytecode;
   contractName: string;
@@ -48,4 +48,4 @@ export type TypedArgs<A> = A extends { deploy(...args: any): any }
   ? TruffleParameters<A["new"]>
   : any;
 
-export type Instance<A, I> = TruffleFactory<I> | EthersFactory<A, I> | PureFactory | ContractFactory;
+export type Instance<A, I> = TruffleFactory<I> | EthersContract<A, I> | BytecodeFactory | ContractFactory;
