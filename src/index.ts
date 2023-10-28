@@ -23,6 +23,7 @@ import { Provider } from "./tools/Provider";
 import { Verifier } from "./verifier/Verifier";
 
 export { Deployer } from "./deployer/Deployer";
+export { Reporter } from "./tools/reporters/Reporter";
 export { DefaultStorage } from "./tools/storage/MigrateStorage";
 
 extendConfig(migrateConfigExtender);
@@ -33,7 +34,7 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
   env.config.migrate = mergeConfigs(taskArgs, env.config.migrate);
 
   Linker.setConfig(env.config.migrate);
-  Reporter.init(env.config.migrate);
+  await Reporter.init(env.config.migrate);
 
   // Make sure that contract artifacts are up-to-date.
   await env.run(TASK_COMPILE, {
@@ -57,7 +58,7 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
 const migrateVerify: ActionType<MigrateVerifyConfig> = async (taskArgs, env) => {
   const config = extendVerifyConfigs(taskArgs);
 
-  Reporter.init(env.config.migrate);
+  await Reporter.init(env.config.migrate);
 
   await new Verifier(env, config).verifyBatch(
     VerificationProcessor.restoreSavedVerificationFunctions(config.inputFile),
