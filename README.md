@@ -48,7 +48,7 @@ It is also **mandatory** to specify the naming convention for migrations such as
 ## Tasks
 
 - `migrate` task, which allows you to deploy and automatically verify contracts.
-<!-- - `migrate:verify` task, which helps you verify already deployed contracts. -->
+- `migrate:verify` task, which helps you verify already deployed contracts.
 
 > :warning: **Hardhat Config**: Make sure they are follow the docs from `@nomicfoundation/hardhat-verify`.
 
@@ -80,7 +80,8 @@ module.exports = {
     skip: -1,
     wait: 1,
     verify: false,
-    attempts: 0,
+    verifyParallel: 1,
+    verifyAttempts: 3,
     pathToMigrations: "./deploy",
     force: false,
     continue: false,
@@ -96,7 +97,8 @@ module.exports = {
 - `skip`: The number of migration to skip. **Overrides only parameter.**
 - `wait` : The number of confirmations to wait for after the transaction is mined.
 - `verify` : The flag indicating whether the contracts should be verified.
-- `attempts`: The number of attempts to verify the contract.
+- `verifyParallel` : The size of the batch for verification.
+- `verifyAttempts` : The number of attempts to verify the contract.
 - `pathToMigrations` : The path to the folder with the specified migrations.
 - `force` : The flag indicating whether the contracts compilation is forced.
 - `continue` : The flag indicating whether the deployment should restore the state from the previous deployment.
