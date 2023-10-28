@@ -31,7 +31,7 @@ export class EthersContractAdapter extends AbstractEthersAdapter {
     }
   }
 
-  public async overrideConnectMethod<A, I>(instance: EthersContract<A, I>, contractName: string) {
+  protected async _overrideConnectMethod<A, I>(instance: EthersContract<A, I>, contractName: string) {
     const connectMethod = instance.connect;
 
     const defaultRunner = await getSignerHelper();
@@ -39,7 +39,7 @@ export class EthersContractAdapter extends AbstractEthersAdapter {
     instance.connect = (address: string, runner?: ContractRunner): I => {
       const contract = connectMethod(address, runner ?? defaultRunner) as BaseContract;
 
-      return this.insertHandlers(contract, contractName, {}) as unknown as I;
+      return this._insertHandlers(contract, contractName, {}) as unknown as I;
     };
   }
 }

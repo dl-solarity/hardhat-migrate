@@ -50,14 +50,14 @@ export abstract class AbstractEthersAdapter extends Adapter {
     if (!AbstractEthersAdapter._processedClasses.has(contractName)) {
       AbstractEthersAdapter._processedClasses.add(contractName);
 
-      await this.overrideConnectMethod(instance, contractName);
+      await this._overrideConnectMethod(instance, contractName);
     }
 
     this._insertAddressGetter(contract, address);
-    return this.insertHandlers(contract, contractName, parameters) as unknown as I;
+    return this._insertHandlers(contract, contractName, parameters) as unknown as I;
   }
 
-  public insertHandlers(contract: BaseContract, contractName: string, parameters: OverridesAndLibs): BaseContract {
+  protected _insertHandlers(contract: BaseContract, contractName: string, parameters: OverridesAndLibs): BaseContract {
     const methodSet = new Set<string>();
 
     for (const methodFragments of this._getContractFunctionFragments(contract.interface)) {
@@ -97,7 +97,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
     return contract;
   }
 
-  public abstract overrideConnectMethod<A, I>(instance: Factory<A, I>, contractName: string): Promise<void>;
+  protected abstract _overrideConnectMethod<A, I>(instance: Factory<A, I>, contractName: string): Promise<void>;
 
   private _insertAddressGetter(contract: BaseContract, contractAddress: string): void {
     contract.address = contractAddress;
