@@ -126,6 +126,8 @@ export class TruffleAdapter extends Adapter {
 
       const methodString = getMethodString(contractName, methodName);
 
+      TruffleReporter.notifyTransactionSending(methodString);
+
       if (this._config.continue) {
         return this._recoverTransaction(methodString, onlyToSaveTx, oldMethod, args);
       }
