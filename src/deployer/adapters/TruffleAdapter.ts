@@ -46,7 +46,7 @@ export class TruffleAdapter extends Adapter {
   public async toInstance<I>(instance: TruffleFactory<I>, address: string, _: OverridesAndMisc): Promise<I> {
     const contract = this._hre.artifacts.require(instance.contractName!);
 
-    await this._overrideConnectMethod(instance);
+    await this._overrideConnectMethod(contract);
 
     return contract.at(address);
   }
