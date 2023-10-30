@@ -67,7 +67,7 @@ export async function getChainId(): Promise<bigint> {
 }
 
 export function toJSON(data: any): string {
-  return JSON.stringify(data, JSONConvertor, 2);
+  return JSON.stringify(data, JSONConvertor, 0);
 }
 
 export function JSONConvertor(_key: any, value: any) {
