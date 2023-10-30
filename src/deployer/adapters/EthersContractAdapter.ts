@@ -20,8 +20,8 @@ export class EthersContractAdapter extends AbstractEthersAdapter {
   }
 
   public getContractName<A, I>(instance: EthersContract<A, I>, parameters: OverridesAndMisc): string {
-    if (parameters.misc) {
-      return parameters.misc;
+    if (parameters.name) {
+      return parameters.name;
     }
 
     try {

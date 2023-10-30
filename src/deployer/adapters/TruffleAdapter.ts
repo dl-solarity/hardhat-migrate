@@ -64,8 +64,8 @@ export class TruffleAdapter extends Adapter {
   }
 
   public getContractName<A, I>(instance: Instance<A, I>, parameters: OverridesAndMisc): string {
-    if (parameters.misc) {
-      return parameters.misc;
+    if (parameters.name) {
+      return parameters.name;
     }
 
     try {
