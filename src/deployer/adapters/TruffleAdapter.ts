@@ -14,7 +14,7 @@ import { EthersContract, Instance, TruffleFactory } from "../../types/adapter";
 import {
   BaseTruffleMethod,
   OverridesAndLibs,
-  OverridesAndMisc,
+  OverridesAndName,
   TruffleTransactionResponse,
 } from "../../types/deployer";
 import { KeyTransactionFields } from "../../types/tools";
@@ -32,7 +32,7 @@ export class TruffleAdapter extends Adapter {
 
   public async fromInstance<A, I>(
     instance: EthersContract<A, I>,
-    parameters: OverridesAndMisc,
+    parameters: OverridesAndName,
   ): Promise<MinimalContract> {
     return new MinimalContract(
       this._config,
@@ -43,12 +43,15 @@ export class TruffleAdapter extends Adapter {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async toInstance<I>(instance: TruffleFactory<I>, address: string, _: OverridesAndMisc): Promise<I> {
+  public async toInstance<I>(instance: TruffleFactory<I>, address: string, _: OverridesAndName): Promise<I> {
     const contract = this._hre.artifacts.require(instance.contractName!);
 
     await this._overrideConnectMethod(contract);
 
-    return contract.at(address);
+    const contractInstance = await contract.at(address);
+    (instance as any).setAsDeployed(contractInstance);
+
+    return contractInstance;
   }
 
   public getInterface(instance: TruffleContract): Interface {
@@ -63,9 +66,9 @@ export class TruffleAdapter extends Adapter {
     return bytecodeToString(instance.bytecode);
   }
 
-  public getContractName<A, I>(instance: Instance<A, I>, parameters: OverridesAndMisc): string {
-    if (parameters.misc) {
-      return parameters.misc;
+  public getContractName<A, I>(instance: Instance<A, I>, parameters: OverridesAndName): string {
+    if (parameters.name) {
+      return parameters.name;
     }
 
     try {

@@ -6,9 +6,9 @@ export type Bytecode = BytesLike;
 
 export type Args = Parameters<ContractFactory["getDeployTransaction"]>;
 
-export type OverridesAndMisc = Overrides & { misc?: string };
+export type OverridesAndName = Overrides & { name?: string };
 
-export type OverridesAndLibs = OverridesAndMisc & { libraries?: Libraries };
+export type OverridesAndLibs = OverridesAndName & { libraries?: Libraries };
 
 export type ContractDeployTransactionWithContractName = ContractDeployTransaction & { contractName: string };
 
