@@ -48,9 +48,10 @@ export class TruffleAdapter extends Adapter {
 
     await this._overrideConnectMethod(contract);
 
-    contract.setAsDeployed(address);
+    const contractInstance = await contract.at(address);
+    (instance as any).setAsDeployed(contractInstance);
 
-    return contract.at(address);
+    return contractInstance;
   }
 
   public getInterface(instance: TruffleContract): Interface {
