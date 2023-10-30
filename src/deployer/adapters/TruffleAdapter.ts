@@ -48,6 +48,8 @@ export class TruffleAdapter extends Adapter {
 
     await this._overrideConnectMethod(contract);
 
+    contract.setAsDeployed(address);
+
     return contract.at(address);
   }
 
