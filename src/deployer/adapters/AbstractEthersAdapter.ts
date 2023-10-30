@@ -15,7 +15,7 @@ import "../../type-extensions";
 
 import { bytecodeToString, fillParameters, getMethodString, getSignerHelper } from "../../utils";
 
-import { OverridesAndLibs, OverridesAndMisc } from "../../types/deployer";
+import { OverridesAndLibs, OverridesAndName } from "../../types/deployer";
 import { KeyTransactionFields } from "../../types/tools";
 import { EthersContract, BytecodeFactory } from "../../types/adapter";
 
@@ -31,7 +31,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
     return bytecodeToString(instance.bytecode);
   }
 
-  public async fromInstance<A, I>(instance: Factory<A, I>, parameters: OverridesAndMisc): Promise<MinimalContract> {
+  public async fromInstance<A, I>(instance: Factory<A, I>, parameters: OverridesAndName): Promise<MinimalContract> {
     return new MinimalContract(
       this._config,
       this.getRawBytecode(instance),

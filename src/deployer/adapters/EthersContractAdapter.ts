@@ -5,7 +5,7 @@ import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
 import { catchError, getSignerHelper } from "../../utils";
 
 import { EthersContract } from "../../types/adapter";
-import { OverridesAndMisc } from "../../types/deployer";
+import { OverridesAndName } from "../../types/deployer";
 
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 
@@ -19,7 +19,7 @@ export class EthersContractAdapter extends AbstractEthersAdapter {
     return instance.abi;
   }
 
-  public getContractName<A, I>(instance: EthersContract<A, I>, parameters: OverridesAndMisc): string {
+  public getContractName<A, I>(instance: EthersContract<A, I>, parameters: OverridesAndName): string {
     if (parameters.name) {
       return parameters.name;
     }
