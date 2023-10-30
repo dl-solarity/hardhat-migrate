@@ -190,10 +190,10 @@ export function getInterfaceOnlyWithConstructor(fragments: InterfaceAbi): Interf
     abi = fragments;
   }
 
-  for (const a of abi) {
-    if ((a as any).type === "constructor") {
-      return Interface.from([a]);
-    }
+  const fragment = abi.find((a: any) => a.type === "constructor");
+
+  if (fragment !== undefined) {
+    return Interface.from([fragment]);
   }
 
   return new Interface([ConstructorFragment.from("constructor()")]);
