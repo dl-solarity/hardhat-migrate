@@ -12,6 +12,10 @@ export class BytecodeAdapter extends AbstractEthersAdapter {
     return Interface.from(instance.abi);
   }
 
+  public getRawAbi(instance: BytecodeFactory): string {
+    return instance.abi as string;
+  }
+
   public getContractName(instance: BytecodeFactory): string {
     return instance.contractName;
   }

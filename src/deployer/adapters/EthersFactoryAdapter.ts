@@ -12,6 +12,10 @@ export class EthersFactoryAdapter extends AbstractEthersAdapter {
     return instance.interface;
   }
 
+  public getRawAbi(instance: ContractFactory): string {
+    return JSON.stringify(instance.interface.fragments);
+  }
+
   public getContractName(instance: ContractFactory): string {
     try {
       return ArtifactProcessor.tryGetContractName(this.getRawBytecode(instance));

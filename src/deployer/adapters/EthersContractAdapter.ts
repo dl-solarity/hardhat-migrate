@@ -15,6 +15,10 @@ export class EthersContractAdapter extends AbstractEthersAdapter {
     return Interface.from(instance.abi);
   }
 
+  public getRawAbi<A, I>(instance: EthersContract<A, I>): string {
+    return instance.abi;
+  }
+
   public getContractName<A, I>(instance: EthersContract<A, I>, parameters: OverridesAndMisc): string {
     if (parameters.misc) {
       return parameters.misc;

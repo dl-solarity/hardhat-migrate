@@ -35,7 +35,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
     return new MinimalContract(
       this._config,
       this.getRawBytecode(instance),
-      this.getInterface(instance),
+      this.getRawAbi(instance),
       this.getContractName(instance, parameters),
     );
   }
