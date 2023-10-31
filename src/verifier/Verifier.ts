@@ -52,7 +52,7 @@ export class Verifier {
 
   @catchError
   public async verifyBatch(verifierBatchArgs: VerifierArgs[]) {
-    if (verifierBatchArgs.length === 0) {
+    if (!verifierBatchArgs || verifierBatchArgs.length === 0) {
       Reporter.reportNothingToVerify();
       return;
     }
