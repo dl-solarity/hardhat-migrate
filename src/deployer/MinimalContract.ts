@@ -87,6 +87,8 @@ export class MinimalContract {
 
       Reporter.notifyContractRecovery(tx.contractName, contractAddress);
 
+      await this._saveContractForVerification(contractAddress, tx, args);
+
       return contractAddress;
     } catch {
       /* empty */
@@ -96,6 +98,8 @@ export class MinimalContract {
       const contractAddress = await TransactionProcessor.tryRestoreContractAddressByKeyFields(tx);
 
       Reporter.notifyContractRecovery(tx.contractName, contractAddress);
+
+      await this._saveContractForVerification(contractAddress, tx, args);
 
       return contractAddress;
     } catch {
@@ -123,7 +127,21 @@ export class MinimalContract {
       throw new MigrateError("Contract deployment failed. Invalid contract address conversion.");
     }
 
+    await this._saveContractForVerification(contractAddress, tx, args);
+
     TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);
+
+    return contractAddress;
+  }
+
+  private async _saveContractForVerification(
+    contractAddress: string,
+    tx: ContractDeployTransactionWithContractName,
+    args: any[],
+  ) {
+    if (VerificationProcessor.isVerificationDataSaved(contractAddress)) {
+      return;
+    }
 
     try {
       let contractName = tx.contractName;
@@ -141,7 +159,5 @@ export class MinimalContract {
     } catch {
       Reporter.reportVerificationFailedToSave(tx.contractName);
     }
-
-    return contractAddress;
   }
 }
