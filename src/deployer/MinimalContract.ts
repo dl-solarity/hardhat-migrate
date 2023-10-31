@@ -1,5 +1,7 @@
 import { ethers, InterfaceAbi, Overrides, Signer } from "ethers";
 
+import { isFullyQualifiedName } from "hardhat/utils/contract-names";
+
 import { Linker } from "./Linker";
 
 import { catchError, fillParameters, getChainId, getInterfaceOnlyWithConstructor, getSignerHelper } from "../utils";
@@ -16,6 +18,7 @@ import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 
 @catchError
 export class MinimalContract {
+  private readonly _rawBytecode: string;
   private readonly _interface;
 
   constructor(
@@ -25,6 +28,7 @@ export class MinimalContract {
     private readonly _contractName: string = "",
   ) {
     this._interface = getInterfaceOnlyWithConstructor(this._abi);
+    this._rawBytecode = this._bytecode;
 
     if (_contractName === "") {
       try {
@@ -122,9 +126,15 @@ export class MinimalContract {
     TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);
 
     try {
+      let contractName = tx.contractName;
+
+      if (!isFullyQualifiedName(contractName)) {
+        contractName = ArtifactProcessor.tryGetContractName(this._rawBytecode);
+      }
+
       VerificationProcessor.saveVerificationFunction({
         contractAddress,
-        contractName: ArtifactProcessor.tryGetContractName(this._bytecode),
+        contractName: contractName,
         constructorArguments: args,
         chainId: Number(await getChainId()),
       });
