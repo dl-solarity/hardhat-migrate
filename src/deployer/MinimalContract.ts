@@ -1,5 +1,7 @@
 import { ethers, InterfaceAbi, Overrides, Signer } from "ethers";
 
+import { isFullyQualifiedName } from "hardhat/utils/contract-names";
+
 import { Linker } from "./Linker";
 
 import { catchError, fillParameters, getChainId, getInterfaceOnlyWithConstructor, getSignerHelper } from "../utils";
@@ -16,6 +18,7 @@ import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 
 @catchError
 export class MinimalContract {
+  private readonly _rawBytecode: string;
   private readonly _interface;
 
   constructor(
@@ -25,6 +28,7 @@ export class MinimalContract {
     private readonly _contractName: string = "",
   ) {
     this._interface = getInterfaceOnlyWithConstructor(this._abi);
+    this._rawBytecode = this._bytecode;
 
     if (_contractName === "") {
       try {
@@ -83,6 +87,8 @@ export class MinimalContract {
 
       Reporter.notifyContractRecovery(tx.contractName, contractAddress);
 
+      await this._saveContractForVerification(contractAddress, tx, args);
+
       return contractAddress;
     } catch {
       /* empty */
@@ -92,6 +98,8 @@ export class MinimalContract {
       const contractAddress = await TransactionProcessor.tryRestoreContractAddressByKeyFields(tx);
 
       Reporter.notifyContractRecovery(tx.contractName, contractAddress);
+
+      await this._saveContractForVerification(contractAddress, tx, args);
 
       return contractAddress;
     } catch {
@@ -119,19 +127,37 @@ export class MinimalContract {
       throw new MigrateError("Contract deployment failed. Invalid contract address conversion.");
     }
 
+    await this._saveContractForVerification(contractAddress, tx, args);
+
     TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);
 
+    return contractAddress;
+  }
+
+  private async _saveContractForVerification(
+    contractAddress: string,
+    tx: ContractDeployTransactionWithContractName,
+    args: any[],
+  ) {
+    if (VerificationProcessor.isVerificationDataSaved(contractAddress)) {
+      return;
+    }
+
     try {
+      let contractName = tx.contractName;
+
+      if (!isFullyQualifiedName(contractName)) {
+        contractName = ArtifactProcessor.tryGetContractName(this._rawBytecode);
+      }
+
       VerificationProcessor.saveVerificationFunction({
         contractAddress,
-        contractName: ArtifactProcessor.tryGetContractName(this._bytecode),
+        contractName: contractName,
         constructorArguments: args,
         chainId: Number(await getChainId()),
       });
     } catch {
       Reporter.reportVerificationFailedToSave(tx.contractName);
     }
-
-    return contractAddress;
   }
 }

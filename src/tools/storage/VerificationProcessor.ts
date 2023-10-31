@@ -27,4 +27,8 @@ export class VerificationProcessor {
 
     return Object.values(data);
   }
+
+  public static isVerificationDataSaved(contractAddress: string): boolean {
+    return VerificationStorage.has(contractAddress);
+  }
 }
