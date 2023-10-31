@@ -108,7 +108,7 @@ export class Reporter {
   }
 
   public static notifyTransactionSendingInsteadOfRecovery(contractMethod: string): void {
-    const output = `\nCan't recover transaction for ${contractMethod}. Sending instead...`;
+    const output = `\nCan't recover transaction for ${contractMethod}. Being sent instead...`;
 
     console.log(output);
   }
