@@ -56,6 +56,8 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
 };
 
 const migrateVerify: ActionType<MigrateVerifyConfig> = async (taskArgs, env) => {
+  await Provider.init(env);
+
   const config = extendVerifyConfigs(taskArgs);
 
   await Reporter.init(env.config.migrate);
