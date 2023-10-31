@@ -130,7 +130,7 @@ export class Reporter {
   }
 
   public static reportNothingToVerify() {
-    console.log("\nNothing to verify\n");
+    console.log(`\nNothing to verify. Selected network is ${this._network.name}\n`);
   }
 
   public static reportSuccessfulVerification(contractAddress: string, contractName: string) {
