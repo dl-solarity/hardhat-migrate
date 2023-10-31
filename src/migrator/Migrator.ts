@@ -37,7 +37,7 @@ export class Migrator {
   }
 
   public async migrate() {
-    await Reporter.reportMigrationBegin(this._migrationFiles);
+    Reporter.reportMigrationBegin(this._migrationFiles);
 
     for (const element of this._migrationFiles) {
       Reporter.reportMigrationFileBegin(element);
@@ -55,7 +55,7 @@ export class Migrator {
       }
     }
 
-    await Reporter.summary();
+    Reporter.summary();
   }
 
   private _getMigrationFiles() {
