@@ -51,13 +51,13 @@ export class Verifier {
   }
 
   @catchError
-  public async verifyBatch(verifierButchArgs: VerifierArgs[]) {
+  public async verifyBatch(verifierBatchArgs: VerifierArgs[]) {
     Reporter.reportVerificationBatchBegin();
 
     const parallel = this._config.parallel;
 
-    for (let i = 0; i < verifierButchArgs.length; i += parallel) {
-      const batch = verifierButchArgs.slice(i, i + parallel);
+    for (let i = 0; i < verifierBatchArgs.length; i += parallel) {
+      const batch = verifierBatchArgs.slice(i, i + parallel);
 
       await Promise.all(batch.map((args) => this.verify(args)));
     }
@@ -72,13 +72,13 @@ export class Verifier {
   ) {
     await this._tryRunVerificationTask(contractAddress, contractName, constructorArguments);
 
-    const status = await instance.getVerificationStatus(contractAddress);
+    const isVerified = await instance.isVerified(contractAddress);
 
-    if (status.isSuccess()) {
+    if (isVerified) {
       Reporter.reportSuccessfulVerification(contractAddress, contractName);
       return;
     } else {
-      Reporter.reportVerificationError(contractAddress, contractName, status.message);
+      Reporter.reportVerificationError(contractAddress, contractName, "Verification failed");
     }
   }
 
