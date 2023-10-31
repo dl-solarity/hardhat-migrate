@@ -22,7 +22,29 @@ export class Verifier {
   }
 
   @catchError
-  public async verify(verifierArgs: VerifierArgs): Promise<void> {
+  public async verifyBatch(verifierBatchArgs: VerifierArgs[]) {
+    const currentChainId = Number(await getChainId());
+
+    const toVerify = verifierBatchArgs.filter((args) => args.chainId && currentChainId == args.chainId);
+
+    if (!toVerify || toVerify.length === 0) {
+      Reporter.reportNothingToVerify();
+      return;
+    }
+
+    Reporter.reportVerificationBatchBegin();
+
+    const parallel = this._config.parallel;
+
+    for (let i = 0; i < toVerify.length; i += parallel) {
+      const batch = toVerify.slice(i, i + parallel);
+
+      await Promise.all(batch.map((args) => this._verify(args)));
+    }
+  }
+
+  @catchError
+  private async _verify(verifierArgs: VerifierArgs): Promise<void> {
     const { contractAddress, contractName, constructorArguments } = verifierArgs;
 
     const instance = await this._getEtherscanInstance(this._hre);
@@ -42,28 +64,6 @@ export class Verifier {
       }
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-  }
-
-  @catchError
-  public async verifyBatch(verifierBatchArgs: VerifierArgs[]) {
-    const currentChainId = Number(await getChainId());
-
-    const toVerify = verifierBatchArgs.filter((args) => args.chainId && currentChainId == args.chainId);
-
-    if (!toVerify || toVerify.length === 0) {
-      Reporter.reportNothingToVerify();
-      return;
-    }
-
-    Reporter.reportVerificationBatchBegin();
-
-    const parallel = this._config.parallel;
-
-    for (let i = 0; i < toVerify.length; i += parallel) {
-      const batch = toVerify.slice(i, i + parallel);
-
-      await Promise.all(batch.map((args) => this.verify(args)));
     }
   }
 
