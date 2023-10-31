@@ -52,6 +52,11 @@ export class Verifier {
 
   @catchError
   public async verifyBatch(verifierBatchArgs: VerifierArgs[]) {
+    if (verifierBatchArgs.length === 0) {
+      Reporter.reportNothingToVerify();
+      return;
+    }
+
     Reporter.reportVerificationBatchBegin();
 
     const parallel = this._config.parallel;

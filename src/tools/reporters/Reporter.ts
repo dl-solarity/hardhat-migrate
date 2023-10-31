@@ -129,6 +129,10 @@ export class Reporter {
     console.log("\nStarting verification of all deployed contracts\n");
   }
 
+  public static reportNothingToVerify() {
+    console.log("\nNothing to verify\n");
+  }
+
   public static reportSuccessfulVerification(contractAddress: string, contractName: string) {
     const output = `\nContract ${contractName} (${contractAddress}) verified successfully.\n`;
 
