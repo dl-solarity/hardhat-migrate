@@ -22,13 +22,30 @@ export class Verifier {
   }
 
   @catchError
-  public async verify(verifierArgs: VerifierArgs): Promise<void> {
-    const { contractAddress, contractName, constructorArguments, chainId } = verifierArgs;
+  public async verifyBatch(verifierBatchArgs: VerifierArgs[]) {
+    const currentChainId = Number(await getChainId());
 
-    if (chainId && Number(await getChainId()) != chainId) {
-      // TODO: Add actions for this case.
+    const toVerify = verifierBatchArgs.filter((args) => args.chainId && currentChainId == args.chainId);
+
+    if (!toVerify || toVerify.length === 0) {
+      Reporter.reportNothingToVerify();
       return;
     }
+
+    Reporter.reportVerificationBatchBegin();
+
+    const parallel = this._config.parallel;
+
+    for (let i = 0; i < toVerify.length; i += parallel) {
+      const batch = toVerify.slice(i, i + parallel);
+
+      await Promise.all(batch.map((args) => this._verify(args)));
+    }
+  }
+
+  @catchError
+  private async _verify(verifierArgs: VerifierArgs): Promise<void> {
+    const { contractAddress, contractName, constructorArguments } = verifierArgs;
 
     const instance = await this._getEtherscanInstance(this._hre);
 
@@ -51,19 +68,6 @@ export class Verifier {
   }
 
   @catchError
-  public async verifyBatch(verifierButchArgs: VerifierArgs[]) {
-    Reporter.reportVerificationBatchBegin();
-
-    const parallel = this._config.parallel;
-
-    for (let i = 0; i < verifierButchArgs.length; i += parallel) {
-      const batch = verifierButchArgs.slice(i, i + parallel);
-
-      await Promise.all(batch.map((args) => this.verify(args)));
-    }
-  }
-
-  @catchError
   private async _tryVerify(
     instance: Etherscan,
     contractAddress: string,
@@ -72,13 +76,13 @@ export class Verifier {
   ) {
     await this._tryRunVerificationTask(contractAddress, contractName, constructorArguments);
 
-    const status = await instance.getVerificationStatus(contractAddress);
+    const isVerified = await instance.isVerified(contractAddress);
 
-    if (status.isSuccess()) {
+    if (isVerified) {
       Reporter.reportSuccessfulVerification(contractAddress, contractName);
       return;
     } else {
-      Reporter.reportVerificationError(contractAddress, contractName, status.message);
+      Reporter.reportVerificationError(contractAddress, contractName, "Verification failed");
     }
   }
 
