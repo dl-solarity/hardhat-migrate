@@ -236,7 +236,7 @@ export class Reporter {
         "To mitigate this, consider specifying a unique name for the contract during deployment.\n" +
         "Example:\n" +
         'await deployer.deploy(ERC1967Proxy, [contractsRegistry.address, "0x"], { name: "ERC1967Proxy" });\n' +
-        "                                                                          ----------------------     \n",
+        "                                                                        ----------------------     \n",
     );
 
     console.log("");
