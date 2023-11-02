@@ -8,9 +8,11 @@ import { catchError, fillParameters, getChainId, getInterfaceOnlyWithConstructor
 
 import { MigrateError } from "../errors";
 
+import { MigrationMetadata } from "../types/tools";
 import { MigrateConfig } from "../types/migrations";
 import { ContractDeployTransactionWithContractName, OverridesAndLibs } from "../types/deployer";
 
+import { Stats } from "../tools/Stats";
 import { Reporter } from "../tools/reporters/Reporter";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
@@ -129,7 +131,12 @@ export class MinimalContract {
 
     await this._saveContractForVerification(contractAddress, tx, args);
 
-    TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress);
+    const saveMetadata: MigrationMetadata = {
+      migrationNumber: Stats.currentMigration,
+      contractName: tx.contractName,
+    };
+
+    TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress, saveMetadata);
 
     return contractAddress;
   }

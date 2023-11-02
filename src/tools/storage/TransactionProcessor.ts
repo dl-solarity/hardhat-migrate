@@ -1,6 +1,8 @@
-import { ContractDeployTransaction, ContractTransactionResponse, isAddress } from "ethers";
+import { ContractDeployTransaction, isAddress, TransactionReceiptParams } from "ethers";
 
 import { TransactionStorage } from "./MigrateStorage";
+
+import { Reporter } from "../reporters/Reporter";
 
 import { MigrateError } from "../../errors";
 
@@ -11,28 +13,61 @@ import {
   isDeployedContractAddress,
 } from "../../utils";
 
-import { KeyTransactionFields } from "../../types/tools";
+import {
+  ContractFieldsToSave,
+  KeyTransactionFields,
+  MigrationMetadata,
+  TransactionFieldsToSave,
+  UNKNOWN_CONTRACT_NAME,
+} from "../../types/tools";
 import { validateKeyDeploymentFields, validateKeyTxFields } from "../../types/type-checks";
 
 @catchError
 export class TransactionProcessor {
-  private static _deployedContracts: Map<string, boolean> = new Map();
-
   @catchError
   @validateKeyDeploymentFields
-  public static saveDeploymentTransaction(args: ContractDeployTransaction, contractName: string, address: string) {
-    this._saveContract(args, address);
-    this._saveContractByName(contractName, address);
-  }
+  public static saveDeploymentTransaction(
+    args: ContractDeployTransaction,
+    contractName: string,
+    contractAddress: string,
+    metadata: MigrationMetadata,
+  ) {
+    const dataToSave: ContractFieldsToSave = {
+      contractKeyData: {
+        data: args.data,
+        from: args.from!,
+        chainId: args.chainId!,
+        value: args.value!,
+      },
+      contractAddress,
+      contractName,
+      metadata,
+    };
 
-  public static saveDeploymentTransactionWithContractName(contractName: string, address: string) {
-    this._saveContractByName(contractName, address);
+    if (contractName === UNKNOWN_CONTRACT_NAME) {
+      this._saveContract(args, dataToSave);
+
+      return;
+    }
+
+    if (TransactionStorage.has(contractName)) {
+      this._processCollision(contractName, dataToSave);
+    }
+
+    this._saveContractByName(contractName, dataToSave);
   }
 
   /**
    * @param tx - Transaction to save. Acts as a key and value at the same time.
+   * @param receipt
+   * @param metadata
    */
-  public static saveTransaction(tx: KeyTransactionFields) {
+  @validateKeyTxFields
+  public static saveTransaction(
+    tx: KeyTransactionFields,
+    receipt: TransactionReceiptParams,
+    metadata: MigrationMetadata,
+  ) {
     this._saveTransaction(
       {
         data: tx.data,
@@ -41,14 +76,15 @@ export class TransactionProcessor {
         to: tx.to,
         value: tx.value,
       },
-      tx,
+      receipt,
+      metadata,
     );
   }
 
   @catchError
   @validateKeyDeploymentFields
   public static async tryRestoreContractAddressByKeyFields(key: ContractDeployTransaction): Promise<string> {
-    const contractAddress = this._tryGetDataFromStorage(
+    const restoredData = this._tryGetDataFromStorage(
       createKeyDeploymentFieldsHash({
         data: key.data,
         from: key.from!,
@@ -57,31 +93,27 @@ export class TransactionProcessor {
       }),
     );
 
-    if (!isAddress(contractAddress) || !(await isDeployedContractAddress(contractAddress))) {
+    if (!isAddress(restoredData.contractAddress) || !(await isDeployedContractAddress(restoredData.contractAddress))) {
       throw new MigrateError(`Contract address is not valid`);
     }
 
-    return contractAddress;
+    return restoredData.contractAddress;
   }
 
   @catchError
   public static async tryRestoreContractAddressByName(contractName: string): Promise<string> {
-    const contractAddress = this._tryGetDataFromStorage(contractName);
+    const restoredData: ContractFieldsToSave = this._tryGetDataFromStorage(contractName);
 
-    if (!isAddress(contractAddress) || !(await isDeployedContractAddress(contractAddress))) {
+    if (!isAddress(restoredData.contractAddress) || !(await isDeployedContractAddress(restoredData.contractAddress))) {
       throw new MigrateError(`Contract address is not valid`);
     }
 
-    return contractAddress;
+    return restoredData.contractAddress;
   }
 
   @catchError
   @validateKeyTxFields
-  public static tryRestoreSavedTransaction(key: KeyTransactionFields): ContractTransactionResponse {
-    if (this._deployedContracts.has(key.to)) {
-      throw new MigrateError(`Contract is deployed in the current migration`);
-    }
-
+  public static tryRestoreSavedTransaction(key: KeyTransactionFields): TransactionFieldsToSave {
     return this._tryGetDataFromStorage(
       createKeyTxFieldsHash({
         data: key.data,
@@ -94,40 +126,67 @@ export class TransactionProcessor {
   }
 
   @catchError
-  @validateKeyTxFields
-  private static _saveTransaction(args: KeyTransactionFields, transaction: KeyTransactionFields) {
-    TransactionStorage.set(
-      createKeyTxFieldsHash({
-        data: args.data,
-        from: args.from,
-        chainId: args.chainId,
-        to: args.to,
-        value: args.value,
-      }),
-      transaction,
-      true,
-    );
+  private static _saveTransaction(
+    args: KeyTransactionFields,
+    transaction: TransactionReceiptParams,
+    metadata: MigrationMetadata,
+  ) {
+    const dataToSave: TransactionFieldsToSave = {
+      txKeyData: args,
+      receipt: transaction,
+      metadata,
+    };
+
+    const dataKey = createKeyTxFieldsHash({
+      data: args.data,
+      from: args.from,
+      chainId: args.chainId,
+      to: args.to,
+      value: args.value,
+    });
+
+    if (TransactionStorage.has(dataKey)) {
+      this._processCollision(dataKey, dataToSave);
+    }
+
+    TransactionStorage.set(dataKey, dataToSave, true);
   }
 
-  @catchError
-  @validateKeyDeploymentFields
-  private static _saveContract(args: ContractDeployTransaction, contractAddress: string) {
-    this._deployedContracts.set(contractAddress, true);
+  private static _saveContract(args: ContractDeployTransaction, dataToSave: ContractFieldsToSave) {
+    const keyByArgs = createKeyDeploymentFieldsHash({
+      data: args.data,
+      from: args.from!,
+      chainId: args.chainId!,
+      value: args.value!,
+    });
 
-    TransactionStorage.set(
-      createKeyDeploymentFieldsHash({
-        data: args.data,
-        from: args.from!,
-        chainId: args.chainId!,
-        value: args.value!,
-      }),
-      contractAddress,
-      true,
-    );
+    TransactionStorage.set(keyByArgs, dataToSave, true);
   }
 
-  private static _saveContractByName(contractName: string, address: string) {
-    TransactionStorage.set(contractName, address, true);
+  private static _saveContractByName(contractName: string, dataToSave: ContractFieldsToSave) {
+    TransactionStorage.set(contractName, dataToSave, true);
+  }
+
+  private static _processCollision(dataKey: string, dataToSave: TransactionFieldsToSave | ContractFieldsToSave) {
+    const oldData: {
+      receipt?: TransactionReceiptParams;
+      contractAddress?: string;
+      metadata: MigrationMetadata;
+    } = TransactionStorage.get(dataKey);
+
+    if (oldData.contractAddress) {
+      Reporter.notifyContractCollision(oldData as ContractFieldsToSave, dataToSave as ContractFieldsToSave);
+
+      return;
+    }
+
+    if (oldData.receipt) {
+      Reporter.notifyTransactionCollision(oldData as TransactionFieldsToSave, dataToSave as TransactionFieldsToSave);
+
+      return;
+    }
+
+    Reporter.notifyUnknownCollision(oldData.metadata, dataToSave);
   }
 
   private static _tryGetDataFromStorage(key: string): any {

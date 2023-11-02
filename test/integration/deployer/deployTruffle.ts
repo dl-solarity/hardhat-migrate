@@ -9,6 +9,7 @@ import { Deployer } from "../../../src/deployer/Deployer";
 import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
 import { Reporter } from "../../../src/tools/reporters/Reporter";
 import { Provider } from "../../../src/tools/Provider";
+import { Migrator } from "../../../src/migrator/Migrator";
 
 describe("Truffle -- deployer", () => {
   describe("deploy()", () => {
@@ -16,7 +17,7 @@ describe("Truffle -- deployer", () => {
 
     beforeEach(async function () {
       await Provider.init(this.hre);
-      Reporter.init(this.hre.config.migrate);
+      await Reporter.init(this.hre.config.migrate);
     });
 
     let contractWithConstructorArtifact: TruffleContract;

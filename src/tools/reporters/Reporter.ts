@@ -12,6 +12,7 @@ import { catchError, underline } from "../../utils";
 
 import { MigrateConfig } from "../../types/migrations";
 import { ChainRecord, predefinedChains } from "../../types/verifier";
+import { ContractFieldsToSave, MigrationMetadata, TransactionFieldsToSave } from "../../types/tools";
 
 @catchError
 export class Reporter {
@@ -22,6 +23,8 @@ export class Reporter {
 
   private static totalCost: bigint = 0n;
   private static totalTransactions: number = 0;
+
+  private static _warningsToPrint: string[] = [];
 
   public static async init(config: MigrateConfig) {
     this._config = config;
@@ -50,6 +53,8 @@ export class Reporter {
       `> ${"Final cost:".padEnd(20)} ${this.castAmount(this.totalCost, this._nativeSymbol)}\n`;
 
     console.log(`\n${output}`);
+
+    this.reportWarnings();
   }
 
   public static async reportTransactionByHash(txHash: string, instanceName: string) {
@@ -68,7 +73,7 @@ export class Reporter {
 
     console.log("\n" + underline(this._parseTransactionTitle(tx, instanceName)));
 
-    console.log(`> explorer: ${await this._getExplorerLink(tx.hash)}`);
+    console.log(`> explorer: ${this._getExplorerLink(tx.hash)}`);
 
     const formatPendingTimeTask = async () => this._formatPendingTime(tx, timeStart, blockStart);
 
@@ -114,47 +119,95 @@ export class Reporter {
   }
 
   public static notifyContractRecovery(contractName: string, contractAddress: string): void {
-    const output = `\nContract address for ${contractName} has been recovered: ${contractAddress}\n`;
+    const output = `\nContract address for ${contractName} has been recovered: ${contractAddress}`;
 
     console.log(output);
   }
 
   public static notifyTransactionRecovery(methodString: string): void {
-    const output = `\nTransaction ${methodString} has been recovered.\n`;
+    const output = `\nTransaction ${methodString} has been recovered.`;
 
     console.log(output);
   }
 
   public static reportVerificationBatchBegin() {
-    console.log("\nStarting verification of all deployed contracts\n");
+    console.log("\nStarting verification of all deployed contracts");
   }
 
   public static reportNothingToVerify() {
-    console.log(`\nNothing to verify. Selected network is ${this._network.name}\n`);
+    console.log(`\nNothing to verify. Selected network is ${this._network.name}`);
   }
 
   public static reportSuccessfulVerification(contractAddress: string, contractName: string) {
-    const output = `\nContract ${contractName} (${contractAddress}) verified successfully.\n`;
+    const output = `\nContract ${contractName} (${contractAddress}) verified successfully.`;
 
     console.log(output);
   }
 
   public static reportAlreadyVerified(contractAddress: string, contractName: string) {
-    const output = `\nContract ${contractName} (${contractAddress}) already verified.\n`;
+    const output = `\nContract ${contractName} (${contractAddress}) already verified.`;
 
     console.log(output);
   }
 
   public static reportVerificationError(contractAddress: string, contractName: string, message: string) {
-    const output = `\nContract ${contractName} (${contractAddress}) verification failed: ${message}\n`;
+    const output = `\nContract ${contractName} (${contractAddress}) verification failed: ${message}`;
 
     console.log(output);
   }
 
   public static reportVerificationFailedToSave(contractName: string) {
-    const output = `\nFailed to save verification arguments for contract: ${contractName}\n`;
+    const output = `\nFailed to save verification arguments for contract: ${contractName}`;
 
     console.log(output);
+  }
+
+  public static notifyContractCollision(oldData: ContractFieldsToSave, dataToSave: ContractFieldsToSave) {
+    let output = `\nContract collision detected!`;
+    output += `\n> Contract: ${oldData.contractName || dataToSave.contractName}`;
+    output += `\n> Previous Collision Details: `;
+    output += `\n\t- Migration Number: ${oldData.metadata.migrationNumber}`;
+    output += `\n\t- Contract Address: ${oldData.contractAddress}`;
+    output += `\n> New Collision Details: `;
+    output += `\n\t- Migration Number: ${dataToSave.metadata.migrationNumber}`;
+    output += `\n\t- Contract Address: ${dataToSave.contractAddress}`;
+
+    console.log(output);
+
+    this._warningsToPrint.push(output);
+  }
+
+  public static notifyTransactionCollision(oldData: TransactionFieldsToSave, dataToSave: TransactionFieldsToSave) {
+    let output = `\nTransaction collision detected!`;
+    output += `\n> Previous Collision Details: `;
+    output += `\n\t- Migration Number: ${oldData.metadata.migrationNumber}`;
+    output += `\n\t- Method Name: ${oldData.metadata.methodName || "N/A"}`;
+    output += `\n> New Collision Details: `;
+    output += `\n\t- Migration Number: ${dataToSave.metadata.migrationNumber}`;
+    output += `\n\t- Method Name: ${dataToSave.metadata.methodName || "N/A"}`;
+
+    console.log(output);
+
+    this._warningsToPrint.push(output);
+  }
+
+  public static notifyUnknownCollision(
+    metadata: MigrationMetadata,
+    dataToSave: TransactionFieldsToSave | ContractFieldsToSave,
+  ) {
+    let output = `\nUnknown collision detected!`;
+    output += `\n> Previous Collision Details: `;
+    output += `\n\t- Migration Number: ${metadata.migrationNumber}`;
+    output += `\n\t- Method Name: ${metadata.methodName || "N/A"}`;
+    output += `\n\t- Contract Name: ${metadata.contractName || "N/A"}`;
+    output += `\n> New Collision Details: `;
+    output += `\n\t- Migration Number: ${dataToSave.metadata.migrationNumber}`;
+    output += `\n\t- Method Name: ${dataToSave.metadata.methodName || "N/A"}`;
+    output += `\n\t- Contract Name: ${dataToSave.metadata.contractName || "N/A"}`;
+
+    console.log(output);
+
+    this._warningsToPrint.push(output);
   }
 
   public static reportContracts(...contracts: [string, string][]): void {
@@ -162,8 +215,28 @@ export class Reporter {
       Contract: contract,
       Address: address,
     }));
+    console.log();
     console.table(table);
     console.log();
+  }
+
+  public static reportWarnings() {
+    if (this._warningsToPrint.length === 0) {
+      return;
+    }
+
+    console.log("\nWarnings:");
+
+    this._warningsToPrint.forEach((warning) => {
+      console.log(warning);
+    });
+
+    console.log(
+      "\n\nDue to the detected collision(s), there's a high likelihood that migration recovery using '--continue' may not function as expected.\n" +
+        "To mitigate this, consider specifying a unique name for the contract during deployment.\n",
+    );
+
+    console.log("");
   }
 
   private static _parseTransactionTitle(tx: TransactionResponse, instanceName: string): string {

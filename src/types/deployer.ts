@@ -30,6 +30,7 @@ export interface ArtifactExtended extends Artifact {
 export interface TruffleTransactionResponse {
   tx: string;
   receipt: TransactionReceipt;
+  logs?: any[];
 }
 
 export interface TransactionReceipt {
@@ -44,6 +45,8 @@ export interface TransactionReceipt {
   logsBloom?: string;
   type?: string;
   status?: string;
+  gasPrice?: string;
+  effectiveGasPrice?: string;
   cumulativeGasUsed?: string;
   contractAddress?: string;
 }

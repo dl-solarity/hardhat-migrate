@@ -9,6 +9,7 @@ import { TruffleAdapter } from "../../../src/deployer/adapters/TruffleAdapter";
 import { ArtifactProcessor } from "../../../src/tools/storage/ArtifactProcessor";
 import { Provider } from "../../../src/tools/Provider";
 import { Reporter } from "../../../src/tools/reporters/Reporter";
+import { Migrator } from "../../../src/migrator/Migrator";
 
 describe("TruffleAdapter", () => {
   describe("getContractDeployParams()", () => {
@@ -49,7 +50,7 @@ describe("TruffleAdapter", () => {
 
       beforeEach(async function () {
         await Provider.init(this.hre);
-        Reporter.init(this.hre.config.migrate);
+        await Reporter.init(this.hre.config.migrate);
       });
 
       let contractWithConstructorArtifact: TruffleContract;
@@ -79,7 +80,7 @@ describe("TruffleAdapter", () => {
 
       beforeEach(async function () {
         await Provider.init(this.hre);
-        Reporter.init(this.hre.config.migrate);
+        await Reporter.init(this.hre.config.migrate);
       });
 
       let contractWithConstructorArtifact: TruffleContract;

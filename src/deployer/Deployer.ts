@@ -7,16 +7,17 @@ import { catchError, getChainId, getSignerHelper, isDeployedContractAddress } fr
 import { MigrateError } from "../errors";
 
 import { Adapter } from "./adapters/Adapter";
+import { TruffleAdapter } from "./adapters/TruffleAdapter";
 import { BytecodeAdapter } from "./adapters/BytecodeAdapter";
 import { EthersContractAdapter } from "./adapters/EthersContractAdapter";
-import { TruffleAdapter } from "./adapters/TruffleAdapter";
 import { EthersFactoryAdapter } from "./adapters/EthersFactoryAdapter";
 
 import { OverridesAndLibs } from "../types/deployer";
-import { KeyTransactionFields } from "../types/tools";
+import { KeyTransactionFields, MigrationMetadata } from "../types/tools";
 import { Instance, TypedArgs } from "../types/adapter";
 import { isContractFactory, isEthersContract, isBytecodeFactory, isTruffleFactory } from "../types/type-checks";
 
+import { Stats } from "../tools/Stats";
 import { Reporter } from "../tools/reporters/Reporter";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 
@@ -58,8 +59,6 @@ export class Deployer {
         throw new MigrateError(`Contract with address '${contractIdentifier}' is not deployed`);
       }
 
-      TransactionProcessor.saveDeploymentTransactionWithContractName(defaultContractName, contractIdentifier);
-
       return adapter.toInstance(contract, contractIdentifier, {});
     }
 
@@ -89,12 +88,17 @@ export class Deployer {
 
     const txResponse = await signer.sendTransaction(tx);
 
-    await Promise.all([
+    const [receipt] = await Promise.all([
       txResponse.wait(this._hre.config.migrate.wait),
       Reporter.reportTransaction(txResponse, methodString),
     ]);
 
-    TransactionProcessor.saveTransaction(tx);
+    const saveMetadata: MigrationMetadata = {
+      migrationNumber: Stats.currentMigration,
+      methodName: methodString,
+    };
+
+    TransactionProcessor.saveTransaction(tx, receipt!, saveMetadata);
   }
 
   public async getSigner(from?: string): Promise<Signer> {

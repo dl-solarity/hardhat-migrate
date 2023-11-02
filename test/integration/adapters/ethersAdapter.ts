@@ -10,6 +10,7 @@ import { EthersFactoryAdapter } from "../../../src/deployer/adapters/EthersFacto
 import { ContractWithConstructorArguments__factory } from "../../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
 import { Provider } from "../../../src/tools/Provider";
 import { Reporter } from "../../../src/tools/reporters/Reporter";
+import { Migrator } from "../../../src/migrator/Migrator";
 
 describe("EthersAdapter", () => {
   describe("getContractDeployParams()", () => {
@@ -51,7 +52,7 @@ describe("EthersAdapter", () => {
 
       beforeEach(async function () {
         await Provider.init(this.hre);
-        Reporter.init(this.hre.config.migrate);
+        await Reporter.init(this.hre.config.migrate);
       });
 
       let ContractWithConstructor: ContractFactory;
@@ -81,7 +82,7 @@ describe("EthersAdapter", () => {
 
       beforeEach(async function () {
         await Provider.init(this.hre);
-        Reporter.init(this.hre.config.migrate);
+        await Reporter.init(this.hre.config.migrate);
       });
 
       beforeEach("setup", async function () {
