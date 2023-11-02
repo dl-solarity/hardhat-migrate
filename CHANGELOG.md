@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.0.0-alpha.12
+
+* Added ability to accept Overrides as second parameter to the `deploy` function.
+
 ## Version 2.0.0-alpha.11
 
 * Initially, the fully qualified name is used to retrieve a contract from the Transaction Storage.
