@@ -14,13 +14,14 @@ import {
 } from "../fixture-projects/hardhat-project-repeats-typechain-ethers/typechain-types";
 import { Reporter } from "../../src/tools/reporters/Reporter";
 import { Provider } from "../../src/tools/Provider";
+import { UNKNOWN_CONTRACT_NAME } from "../../src/types/tools";
 
 describe("TransactionStorage", async () => {
   useEnvironment("repeats-typechain-ethers");
 
   beforeEach(async function () {
     await Provider.init(this.hre);
-    Reporter.init(this.hre.config.migrate);
+    await Reporter.init(this.hre.config.migrate);
 
     await ArtifactProcessor.parseArtifacts(this.hre);
   });
@@ -37,7 +38,9 @@ describe("TransactionStorage", async () => {
     });
 
     it("should save deployment transaction", async function () {
-      const contract = await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
+      const contract = await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"], {
+        name: UNKNOWN_CONTRACT_NAME,
+      });
 
       const factory = new ContractFactory(
         ContractWithConstructorArguments__factory.abi,
@@ -67,7 +70,10 @@ describe("TransactionStorage", async () => {
     it("should save deployment transaction with transmitted ether", async function () {
       const value = BigInt(1);
 
-      const contract = await deployer.deploy(ContractWithPayableConstructor__factory, [], { value: value });
+      const contract = await deployer.deploy(ContractWithPayableConstructor__factory, [], {
+        value: value,
+        name: UNKNOWN_CONTRACT_NAME,
+      });
       const factory = new ContractFactory(
         ContractWithPayableConstructor__factory.abi,
         ContractWithPayableConstructor__factory.bytecode,
@@ -121,7 +127,9 @@ describe("TransactionStorage", async () => {
     });
 
     it("should not differ contracts with nonce", async function () {
-      const contract = await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
+      const contract = await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"], {
+        name: UNKNOWN_CONTRACT_NAME,
+      });
 
       const factory = new ContractFactory(
         ContractWithConstructorArguments__factory.abi,

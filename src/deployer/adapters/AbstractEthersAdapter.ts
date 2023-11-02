@@ -2,6 +2,7 @@ import {
   BaseContract,
   BaseContractMethod,
   ContractFactory,
+  ContractTransactionReceipt,
   ContractTransactionResponse,
   defineProperties,
   FunctionFragment,
@@ -16,9 +17,10 @@ import "../../type-extensions";
 import { bytecodeToString, fillParameters, getMethodString, getSignerHelper } from "../../utils";
 
 import { OverridesAndLibs, OverridesAndName } from "../../types/deployer";
-import { KeyTransactionFields } from "../../types/tools";
 import { EthersContract, BytecodeFactory } from "../../types/adapter";
+import { KeyTransactionFields, MigrationMetadata, TransactionFieldsToSave } from "../../types/tools";
 
+import { Stats } from "../../tools/Stats";
 import { Reporter } from "../../tools/reporters/Reporter";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 
@@ -141,11 +143,11 @@ export abstract class AbstractEthersAdapter extends Adapter {
     args: any[],
   ) {
     try {
-      const txResponse = TransactionProcessor.tryRestoreSavedTransaction(tx);
+      const savedTransaction = TransactionProcessor.tryRestoreSavedTransaction(tx);
 
       Reporter.notifyTransactionRecovery(methodString);
 
-      return txResponse;
+      return this._wrapTransactionFieldsToSave(savedTransaction);
     } catch {
       Reporter.notifyTransactionSendingInsteadOfRecovery(methodString);
 
@@ -161,10 +163,24 @@ export abstract class AbstractEthersAdapter extends Adapter {
   ) {
     const txResponse: ContractTransactionResponse = (await oldMethod(...args)) as ContractTransactionResponse;
 
-    TransactionProcessor.saveTransaction(tx);
+    const saveMetadata: MigrationMetadata = {
+      migrationNumber: Stats.currentMigration,
+      methodName: methodString,
+    };
+
+    TransactionProcessor.saveTransaction(tx, (await txResponse.wait())!, saveMetadata);
 
     await Reporter.reportTransaction(txResponse, methodString);
 
     return txResponse;
+  }
+
+  private _wrapTransactionFieldsToSave(data: TransactionFieldsToSave): ContractTransactionResponse {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      wait(_confirms?: number): Promise<ContractTransactionReceipt | null> {
+        return data.receipt as unknown as Promise<ContractTransactionReceipt | null>;
+      },
+    } as unknown as ContractTransactionResponse;
   }
 }

@@ -4,6 +4,8 @@ import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
 
 import { catchError } from "../../utils";
 
+import { UNKNOWN_CONTRACT_NAME } from "../../types/tools";
+
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 
 @catchError
@@ -20,7 +22,7 @@ export class EthersFactoryAdapter extends AbstractEthersAdapter {
     try {
       return ArtifactProcessor.tryGetContractName(this.getRawBytecode(instance));
     } catch {
-      return "Unknown Contract";
+      return UNKNOWN_CONTRACT_NAME;
     }
   }
 

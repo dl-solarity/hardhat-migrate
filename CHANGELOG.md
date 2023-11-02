@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 2.0.0-alpha.11
+
+* Initially, the fully qualified name is used to retrieve a contract from the Transaction Storage.
+* If the fully qualified name is absent, the recovery process falls back to using the `ContractFieldsToSave` derived from the contract.
+* Should the name be located, the `ContractFieldsToSave` is disregarded and is not used as a key within the Transaction Storage.
+
 ## Version 2.0.0-alpha.2
 
 * Library linking fully relies on the hardhat artifacts.

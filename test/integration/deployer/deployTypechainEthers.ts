@@ -17,6 +17,7 @@ import {
 import { Reporter } from "../../../src/tools/reporters/Reporter";
 import { Provider } from "../../../src/tools/Provider";
 import { Linker } from "../../../src/deployer/Linker";
+import { Migrator } from "../../../src/migrator/Migrator";
 
 describe("Ehters Typechain -- Deployer", () => {
   describe("deploy()", () => {
@@ -24,7 +25,7 @@ describe("Ehters Typechain -- Deployer", () => {
 
     beforeEach(async function () {
       await Provider.init(this.hre);
-      Reporter.init(this.hre.config.migrate);
+      await Reporter.init(this.hre.config.migrate);
       Linker.setConfig(this.hre.config.migrate);
     });
 

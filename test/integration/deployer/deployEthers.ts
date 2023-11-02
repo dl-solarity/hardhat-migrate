@@ -11,6 +11,7 @@ import {
   ContractWithConstructorArguments__factory,
   ContractWithPayableConstructor__factory,
 } from "../../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
+import { Migrator } from "../../../src/migrator/Migrator";
 
 describe("deployer", () => {
   describe("deploy()", () => {
@@ -18,7 +19,7 @@ describe("deployer", () => {
 
     beforeEach(async function () {
       await Provider.init(this.hre);
-      Reporter.init(this.hre.config.migrate);
+      await Reporter.init(this.hre.config.migrate);
     });
 
     let deployer: Deployer;

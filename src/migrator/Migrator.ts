@@ -15,6 +15,7 @@ import { MigrateConfig } from "../types/migrations";
 import { Deployer } from "../deployer/Deployer";
 import { Verifier } from "../verifier/Verifier";
 
+import { Stats } from "../tools/Stats";
 import { Reporter } from "../tools/reporters/Reporter";
 
 export class Migrator {
@@ -40,6 +41,7 @@ export class Migrator {
     Reporter.reportMigrationBegin(this._migrationFiles);
 
     for (const element of this._migrationFiles) {
+      Stats.currentMigration = this._getMigrationNumber(element);
       Reporter.reportMigrationFileBegin(element);
       try {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -64,7 +66,7 @@ export class Migrator {
 
     const files = directoryContents
       .filter((file) => {
-        const migrationNumber = parseInt(basename(file));
+        const migrationNumber = this._getMigrationNumber(file);
 
         if (
           isNaN(migrationNumber) ||
@@ -80,7 +82,7 @@ export class Migrator {
         return statSync(resolvePathToFile(this._config.pathToMigrations, file)).isFile();
       })
       .sort((a, b) => {
-        return parseInt(basename(a)) - parseInt(basename(b));
+        return this._getMigrationNumber(b);
       });
 
     if (files.length === 0) {
@@ -88,5 +90,9 @@ export class Migrator {
     }
 
     return files;
+  }
+
+  private _getMigrationNumber(file: string) {
+    return parseInt(basename(file));
   }
 }

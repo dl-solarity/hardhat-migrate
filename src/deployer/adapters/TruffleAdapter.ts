@@ -1,4 +1,4 @@
-import { Interface, toBigInt } from "ethers";
+import { Interface, toBigInt, TransactionReceiptParams } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -8,7 +8,7 @@ import { Adapter } from "./Adapter";
 
 import { MinimalContract } from "../MinimalContract";
 
-import { bytecodeToString, catchError, fillParameters, getMethodString, toJSON } from "../../utils";
+import { bytecodeToString, catchError, fillParameters, getMethodString } from "../../utils";
 
 import { EthersContract, Instance, TruffleFactory } from "../../types/adapter";
 import {
@@ -17,8 +17,9 @@ import {
   OverridesAndName,
   TruffleTransactionResponse,
 } from "../../types/deployer";
-import { KeyTransactionFields } from "../../types/tools";
+import { KeyTransactionFields, MigrationMetadata, UNKNOWN_CONTRACT_NAME } from "../../types/tools";
 
+import { Stats } from "../../tools/Stats";
 import { Reporter } from "../../tools/reporters/Reporter";
 import { TruffleReporter } from "../../tools/reporters/TruffleReporter";
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
@@ -78,7 +79,7 @@ export class TruffleAdapter extends Adapter {
         return (instance as any).contractName;
       }
 
-      return "Unknown Contract";
+      return UNKNOWN_CONTRACT_NAME;
     }
   }
 
@@ -115,13 +116,21 @@ export class TruffleAdapter extends Adapter {
         continue;
       }
 
-      (contract as any)[methodName] = this._wrapOldMethod(contractName, methodName, oldMethod, to, parameters);
+      (contract as any)[methodName] = this._wrapOldMethod(
+        contractInterface,
+        contractName,
+        methodName,
+        oldMethod,
+        to,
+        parameters,
+      );
     }
 
     return contract;
   }
 
   protected _wrapOldMethod(
+    contractInterface: Interface,
     contractName: string,
     methodName: string,
     oldMethod: BaseTruffleMethod,
@@ -129,19 +138,25 @@ export class TruffleAdapter extends Adapter {
     parameters: OverridesAndLibs,
   ): (...args: any[]) => Promise<TruffleTransactionResponse> {
     return async (...args: any[]): Promise<TruffleTransactionResponse> => {
-      const onlyToSaveTx = await this._buildContractDeployTransaction(args, to, parameters);
-
       const methodString = getMethodString(contractName, methodName);
 
-      TruffleReporter.notifyTransactionSending(methodString);
+      const txData = contractInterface.encodeFunctionData(methodName, args);
+      const onlyToSaveTx = await this._buildContractDeployTransaction(txData, to, parameters);
 
       if (this._config.continue) {
         return this._recoverTransaction(methodString, onlyToSaveTx, oldMethod, args);
       }
 
+      TruffleReporter.notifyTransactionSending(methodString);
+
       const txResult = await oldMethod(...args);
 
-      TransactionProcessor.saveTransaction(onlyToSaveTx);
+      const saveMetadata: MigrationMetadata = {
+        migrationNumber: Stats.currentMigration,
+        methodName: methodString,
+      };
+
+      TransactionProcessor.saveTransaction(onlyToSaveTx, this._toTransactionReceipt(txResult), saveMetadata);
 
       await TruffleReporter.reportTransaction(txResult, methodString);
 
@@ -176,7 +191,12 @@ export class TruffleAdapter extends Adapter {
   ) {
     const txResult = await oldMethod(...args);
 
-    TransactionProcessor.saveTransaction(tx);
+    const saveMetadata: MigrationMetadata = {
+      migrationNumber: Stats.currentMigration,
+      methodName: methodString,
+    };
+
+    TransactionProcessor.saveTransaction(tx, this._toTransactionReceipt(txResult), saveMetadata);
 
     await TruffleReporter.reportTransaction(txResult, methodString);
 
@@ -187,7 +207,7 @@ export class TruffleAdapter extends Adapter {
    * @dev Build a transaction ONLY to save it in the storage.
    */
   private async _buildContractDeployTransaction(
-    args: any[],
+    data: string,
     to: string,
     parameters: OverridesAndLibs,
   ): Promise<KeyTransactionFields> {
@@ -196,9 +216,37 @@ export class TruffleAdapter extends Adapter {
     return {
       to: to,
       from: parameters.from! as string,
-      data: toJSON(args),
+      data: data,
       chainId: toBigInt(String(parameters.chainId)),
       value: toBigInt(String(parameters.value)),
+    };
+  }
+
+  private _toTransactionReceipt(tx: TruffleTransactionResponse): TransactionReceiptParams {
+    let txGasPrice: bigint = 0n;
+
+    if (tx.receipt.effectiveGasPrice != null) {
+      txGasPrice = toBigInt(tx.receipt.effectiveGasPrice);
+    } else if (tx.receipt.gasPrice != null) {
+      txGasPrice = toBigInt(tx.receipt.gasPrice);
+    }
+
+    return {
+      to: tx.receipt.to,
+      from: tx.receipt.from,
+      contractAddress: tx.receipt.contractAddress !== undefined ? tx.receipt.contractAddress : null,
+      hash: tx.receipt.transactionHash,
+      index: Number(tx.receipt.transactionIndex),
+      blockHash: tx.receipt.blockHash,
+      blockNumber: Number(tx.receipt.blockNumber),
+      logsBloom: tx.receipt.logsBloom ? tx.receipt.logsBloom : "",
+      logs: tx.logs !== undefined ? tx.logs : [],
+      gasUsed: tx.receipt.gasUsed ? toBigInt(tx.receipt.gasUsed) : 0n,
+      cumulativeGasUsed: tx.receipt.cumulativeGasUsed ? toBigInt(tx.receipt.cumulativeGasUsed) : 0n,
+      gasPrice: txGasPrice,
+      type: tx.receipt.type ? Number(tx.receipt.type) : 0,
+      status: tx.receipt.status ? Number(tx.receipt.status) : null,
+      root: null,
     };
   }
 }

@@ -6,6 +6,7 @@ import { catchError, getSignerHelper } from "../../utils";
 
 import { EthersContract } from "../../types/adapter";
 import { OverridesAndName } from "../../types/deployer";
+import { UNKNOWN_CONTRACT_NAME } from "../../types/tools";
 
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 
@@ -31,7 +32,7 @@ export class EthersContractAdapter extends AbstractEthersAdapter {
         return (instance as any).contractName;
       }
 
-      return "Unknown Contract";
+      return UNKNOWN_CONTRACT_NAME;
     }
   }
 
