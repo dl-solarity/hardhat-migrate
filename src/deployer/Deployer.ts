@@ -27,7 +27,7 @@ export class Deployer {
 
   public async deploy<T, A = T, I = any>(
     contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never),
-    args: TypedArgs<A> | OverridesAndLibs = {},
+    argsOrParameters: TypedArgs<A> | OverridesAndLibs = {},
     parameters: OverridesAndLibs = {},
   ): Promise<I> {
     const adapter = this._resolveAdapter(contract);
@@ -35,10 +35,10 @@ export class Deployer {
     const minimalContract = await adapter.fromInstance(contract, parameters);
 
     let contractAddress: string;
-    if (args instanceof Array) {
-      contractAddress = await minimalContract.deploy(args, parameters);
-    } else if (args instanceof Object) {
-      contractAddress = await minimalContract.deploy([], args);
+    if (argsOrParameters instanceof Array) {
+      contractAddress = await minimalContract.deploy(argsOrParameters, parameters);
+    } else if (argsOrParameters instanceof Object) {
+      contractAddress = await minimalContract.deploy([], argsOrParameters);
     } else {
       contractAddress = await minimalContract.deploy([], {});
     }
