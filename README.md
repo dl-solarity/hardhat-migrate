@@ -110,7 +110,7 @@ You can set your own migrations and deploy the contracts to the network you want
 #### With only parameter
 
 ```console
-npx hardhat migrate --network goerli --verify --only 2
+npx hardhat migrate --network sepolia --verify --only 2
 ```
 
 In this case, only the migration that begins with digit 2 will be applied. The plugin will also try to automatically verify the deployed contracts.
@@ -127,13 +127,7 @@ In this case, migrations 1 through 2 (both) will be applied without the automati
 
 > _This plugin has a `migrate:verify` task, to learn how to use it, see the example project._
 
-#### You can manually verify contracts
-
-```console
-npx hardhat verify --network goerli DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
-```
-
-Other examples of manual contract verification can be found here [@nomicfoundation/hardhat-verify](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify) -->
+-->
 
 ## How it works
 
@@ -146,7 +140,7 @@ The plugin includes the following packages to perform the deployment and verific
 
 The core of this plugin is migration files, you can specify the migration route that suits you best.
 
-You can find an example of migration files in the sample project.
+[//]: # (You can find an example of migration files in the sample project.)
 
 ### Migration Lifecycle
 
@@ -166,20 +160,11 @@ Under the hood, it uses `ContractFactory` from [@ethers](https://www.npmjs.com/p
 
 Returns the deployed contract instance.
 
-- **Link function**
-
-Used for backward compatibility with Truffle migrations.
-
-The link function of the `TruffleContract` class from the [@nomiclabs/hardhat-truffle5](https://www.npmjs.com/package/@nomiclabs/hardhat-truffle5)
-package is used to link external libraries to a contract.
-
 ### Verifier
 
 For a list of parameters that affect the verification process, see [Parameter Explanation](https://github.com/dl-solarity/hardhat-migrate#parameter-explanation).
 
 If verification fails, the `attempts` parameter indicates how many additional requests will be made before the migration process is terminated.
-
-<!-- The user can also define which verification errors are irrelevant and have to be ignored using the `skipVerificationErrors` parameter. By default, the `already verified` error is omitted. -->
 
 ## Known limitations
 
