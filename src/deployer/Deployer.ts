@@ -27,21 +27,18 @@ export class Deployer {
 
   public async deploy<T, A = T, I = any>(
     contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never),
-    argsOrParameters: TypedArgs<A> | OverridesAndLibs = {},
+    argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
     parameters: OverridesAndLibs = {},
   ): Promise<I> {
     const adapter = this._resolveAdapter(contract);
-
     const minimalContract = await adapter.fromInstance(contract, parameters);
 
-    let contractAddress: string;
-    if (argsOrParameters instanceof Array) {
-      contractAddress = await minimalContract.deploy(argsOrParameters, parameters);
-    } else if (argsOrParameters instanceof Object) {
-      contractAddress = await minimalContract.deploy([], argsOrParameters);
-    } else {
-      contractAddress = await minimalContract.deploy([], {});
+    if (!Array.isArray(argsOrParameters)) {
+      parameters = argsOrParameters;
+      argsOrParameters = [] as TypedArgs<A>;
     }
+
+    const contractAddress = await minimalContract.deploy(argsOrParameters as TypedArgs<A>, parameters);
 
     return adapter.toInstance(contract, contractAddress, parameters);
   }
