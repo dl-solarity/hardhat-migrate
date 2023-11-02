@@ -88,7 +88,7 @@ export class Deployer {
 
     const txResponse = await signer.sendTransaction(tx);
 
-    await Promise.all([
+    const [receipt] = await Promise.all([
       txResponse.wait(this._hre.config.migrate.wait),
       Reporter.reportTransaction(txResponse, methodString),
     ]);
@@ -98,7 +98,7 @@ export class Deployer {
       methodName: methodString,
     };
 
-    TransactionProcessor.saveTransaction(tx, (await txResponse.wait())!, saveMetadata);
+    TransactionProcessor.saveTransaction(tx, receipt!, saveMetadata);
   }
 
   public async getSigner(from?: string): Promise<Signer> {

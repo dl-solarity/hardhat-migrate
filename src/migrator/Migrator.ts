@@ -42,7 +42,9 @@ export class Migrator {
 
     for (const element of this._migrationFiles) {
       Stats.currentMigration = this._getMigrationNumber(element);
+
       Reporter.reportMigrationFileBegin(element);
+
       try {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const migration = require(resolvePathToFile(this._config.pathToMigrations, element));
@@ -82,7 +84,7 @@ export class Migrator {
         return statSync(resolvePathToFile(this._config.pathToMigrations, file)).isFile();
       })
       .sort((a, b) => {
-        return this._getMigrationNumber(b);
+        return this._getMigrationNumber(a) - this._getMigrationNumber(b);
       });
 
     if (files.length === 0) {

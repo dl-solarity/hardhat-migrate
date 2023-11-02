@@ -232,11 +232,8 @@ export class Reporter {
     });
 
     console.log(
-      "\n\nDue to the detected collision, there's a high likelihood that migration recovery using '--continue' may not function as expected.\n" +
-        "To mitigate this, consider specifying a unique name for the contract during deployment.\n" +
-        "Example:\n" +
-        'await deployer.deploy(ERC1967Proxy, [contractsRegistry.address, "0x"], { name: "ERC1967Proxy" });\n' +
-        "                                                                        ----------------------     \n",
+      "\n\nDue to the detected collision(s), there's a high likelihood that migration recovery using '--continue' may not function as expected.\n" +
+        "To mitigate this, consider specifying a unique name for the contract during deployment.\n",
     );
 
     console.log("");
