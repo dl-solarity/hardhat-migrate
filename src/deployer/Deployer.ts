@@ -30,14 +30,14 @@ export class Deployer {
     argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
     parameters: OverridesAndLibs = {},
   ): Promise<I> {
-    const adapter = this._resolveAdapter(contract);
-    const minimalContract = await adapter.fromInstance(contract, parameters);
-
     if (!Array.isArray(argsOrParameters)) {
       parameters = argsOrParameters;
       argsOrParameters = [] as TypedArgs<A>;
     }
 
+    const adapter = this._resolveAdapter(contract);
+
+    const minimalContract = await adapter.fromInstance(contract, parameters);
     const contractAddress = await minimalContract.deploy(argsOrParameters as TypedArgs<A>, parameters);
 
     return adapter.toInstance(contract, contractAddress, parameters);
