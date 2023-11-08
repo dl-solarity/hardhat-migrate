@@ -22,6 +22,7 @@ import { KeyTransactionFields, MigrationMetadata, TransactionFieldsToSave } from
 
 import { Stats } from "../../tools/Stats";
 import { Reporter } from "../../tools/reporters/Reporter";
+import { PublicReporter } from "../../tools/reporters/PublicReporter";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 
 type Factory<A, I> = EthersContract<A, I> | BytecodeFactory | ContractFactory;
@@ -170,7 +171,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
 
     TransactionProcessor.saveTransaction(tx, (await txResponse.wait())!, saveMetadata);
 
-    await Reporter.reportTransaction(txResponse, methodString);
+    await PublicReporter.reportTransactionResponse(txResponse, methodString);
 
     return txResponse;
   }

@@ -1,12 +1,9 @@
 /* eslint-disable no-console */
-import ora from "ora";
 import axios from "axios";
 
-import { Network, TransactionReceipt, TransactionResponse, formatEther, formatUnits } from "ethers";
+import { Network, TransactionResponse, formatEther, formatUnits } from "ethers";
 
 import { Provider } from "../Provider";
-
-import { MigrateError } from "../../errors";
 
 import { catchError, underline } from "../../utils";
 
@@ -16,15 +13,15 @@ import { ContractFieldsToSave, MigrationMetadata, TransactionFieldsToSave } from
 
 @catchError
 export class Reporter {
-  private static _config: MigrateConfig;
-  private static _network: Network;
-  private static _nativeSymbol: string;
-  private static _explorerUrl: string;
+  protected static _config: MigrateConfig;
+  protected static _network: Network;
+  protected static _nativeSymbol: string;
+  protected static _explorerUrl: string;
 
-  private static totalCost: bigint = 0n;
-  private static totalTransactions: number = 0;
+  protected static totalCost: bigint = 0n;
+  protected static totalTransactions: number = 0;
 
-  private static _warningsToPrint: string[] = [];
+  protected static _warningsToPrint: string[] = [];
 
   public static async init(config: MigrateConfig) {
     this._config = config;
@@ -50,54 +47,11 @@ export class Reporter {
   public static summary() {
     const output =
       `> ${"Total transactions:".padEnd(20)} ${this.totalTransactions}\n` +
-      `> ${"Final cost:".padEnd(20)} ${this.castAmount(this.totalCost, this._nativeSymbol)}\n`;
+      `> ${"Final cost:".padEnd(20)} ${this._castAmount(this.totalCost, this._nativeSymbol)}\n`;
 
     console.log(`\n${output}`);
 
     this.reportWarnings();
-  }
-
-  public static async reportTransactionByHash(txHash: string, instanceName: string) {
-    const tx = await Provider.provider.getTransaction(txHash);
-
-    if (!tx) {
-      throw new MigrateError("Transaction not found.");
-    }
-
-    await this.reportTransaction(tx, instanceName);
-  }
-
-  public static async reportTransaction(tx: TransactionResponse, instanceName: string) {
-    const timeStart = Date.now();
-    const blockStart = await Provider.provider.getBlockNumber();
-
-    console.log("\n" + underline(this._parseTransactionTitle(tx, instanceName)));
-
-    console.log(`> explorer: ${this._getExplorerLink(tx.hash)}`);
-
-    const formatPendingTimeTask = async () => this._formatPendingTime(tx, timeStart, blockStart);
-
-    const spinner = ora(await formatPendingTimeTask()).start();
-
-    // TODO: make 1000 configurable
-    const spinnerInterval = setInterval(async () => (spinner.text = await formatPendingTimeTask()), 1000);
-
-    let receipt: TransactionReceipt;
-    try {
-      // We will wait for both contract deployment and common transactions
-      receipt = (await tx.wait(this._config.wait))!;
-    } catch (e: any) {
-      throw new MigrateError(`Transaction failed: ${e.message}`);
-    } finally {
-      clearInterval(spinnerInterval);
-
-      spinner.stop();
-    }
-
-    await this._printTransaction(receipt);
-
-    this.totalCost += receipt.fee + tx.value ?? 0n;
-    this.totalTransactions++;
   }
 
   public static notifyDeploymentInsteadOfRecovery(contractName: string): void {
@@ -206,16 +160,6 @@ export class Reporter {
     this._warningsToPrint.push(output);
   }
 
-  public static reportContracts(...contracts: [string, string][]): void {
-    const table: { Contract: string; Address: string }[] = contracts.map(([contract, address]) => ({
-      Contract: contract,
-      Address: address,
-    }));
-    console.log();
-    console.table(table);
-    console.log();
-  }
-
   public static reportWarnings() {
     if (this._warningsToPrint.length === 0) {
       return;
@@ -235,7 +179,7 @@ export class Reporter {
     console.log("");
   }
 
-  private static _parseTransactionTitle(tx: TransactionResponse, instanceName: string): string {
+  protected static _parseTransactionTitle(tx: TransactionResponse, instanceName: string): string {
     if (tx.to === null) {
       if (instanceName.split(":").length == 1) {
         return `Deploying ${instanceName}`;
@@ -247,7 +191,7 @@ export class Reporter {
     return `Transaction: ${instanceName}`;
   }
 
-  private static async _formatPendingTime(
+  protected static async _formatPendingTime(
     tx: TransactionResponse,
     startTime: number,
     blockStart: number,
@@ -257,39 +201,11 @@ export class Reporter {
     }; Seconds: ${((Date.now() - startTime) / 1000).toFixed(0)}`;
   }
 
-  private static _getExplorerLink(txHash: string): string {
+  protected static _getExplorerLink(txHash: string): string {
     return this._explorerUrl + txHash;
   }
 
-  private static async _printTransaction(tx: TransactionReceipt) {
-    let output = "";
-
-    if (tx.contractAddress) {
-      output += `> contractAddress: ${tx.contractAddress}\n`;
-    }
-
-    const nativeSymbol = this._nativeSymbol;
-
-    output += `> blockNumber: ${tx.blockNumber}\n`;
-
-    output += `> blockTimestamp: ${(await tx.getBlock()).timestamp}\n`;
-
-    output += `> account: ${tx.from}\n`;
-
-    output += `> value: ${this.castAmount((await tx.getTransaction()).value, nativeSymbol)}\n`;
-
-    output += `> balance: ${this.castAmount(await tx.provider.getBalance(tx.from), nativeSymbol)}\n`;
-
-    output += `> gasUsed: ${tx.gasUsed}\n`;
-
-    output += `> gasPrice: ${this.castAmount(tx.gasPrice, nativeSymbol)}\n`;
-
-    output += `> fee: ${this.castAmount(tx.fee, nativeSymbol)}\n`;
-
-    console.log(output);
-  }
-
-  public static castAmount(value: bigint, nativeSymbol: string): string {
+  protected static _castAmount(value: bigint, nativeSymbol: string): string {
     if (value > 0n && value < 10n ** 12n) {
       return this._toGWei(value) + " GWei";
     }
@@ -297,11 +213,11 @@ export class Reporter {
     return formatEther(value) + ` ${nativeSymbol}`;
   }
 
-  private static _toGWei(value: bigint): string {
+  protected static _toGWei(value: bigint): string {
     return formatUnits(value, "gwei");
   }
 
-  private static _reportMigrationFiles(files: string[]) {
+  protected static _reportMigrationFiles(files: string[]) {
     console.log("\nMigration files:");
 
     files.forEach((file) => {
@@ -311,13 +227,13 @@ export class Reporter {
     console.log("");
   }
 
-  private static _reportChainInfo() {
+  protected static _reportChainInfo() {
     console.log(`> ${"Network:".padEnd(20)} ${this._network.name}`);
 
     console.log(`> ${"Network id:".padEnd(20)} ${this._network.chainId}`);
   }
 
-  private static _printContractCollision(
+  protected static _printContractCollision(
     output: string,
     oldData: ContractFieldsToSave,
     dataToSave: ContractFieldsToSave,
@@ -335,7 +251,7 @@ export class Reporter {
     this._warningsToPrint.push(output);
   }
 
-  private static async _getNetwork(): Promise<Network> {
+  protected static async _getNetwork(): Promise<Network> {
     try {
       return Provider.provider.getNetwork();
     } catch {
@@ -343,7 +259,7 @@ export class Reporter {
     }
   }
 
-  private static async _getExplorerUrl(): Promise<string> {
+  protected static async _getExplorerUrl(): Promise<string> {
     const chainId = Number(this._network.chainId);
 
     if (predefinedChains[chainId]) {
@@ -357,7 +273,7 @@ export class Reporter {
     return chain.explorers[0].url;
   }
 
-  private static async _getNativeSymbol(): Promise<string> {
+  protected static async _getNativeSymbol(): Promise<string> {
     const chainId = Number(this._network.chainId);
 
     if (predefinedChains[chainId]) {
@@ -369,7 +285,7 @@ export class Reporter {
     return chain.nativeCurrency.symbol;
   }
 
-  private static async _getChainMetadataById(chainId: number): Promise<ChainRecord> {
+  protected static async _getChainMetadataById(chainId: number): Promise<ChainRecord> {
     try {
       const chains = await this._tryGetAllRecords();
 
@@ -387,7 +303,7 @@ export class Reporter {
     }
   }
 
-  private static async _tryGetAllRecords(): Promise<ChainRecord[]> {
+  protected static async _tryGetAllRecords(): Promise<ChainRecord[]> {
     const url = "https://chainid.network/chains.json";
     const response = await axios.get(url);
 

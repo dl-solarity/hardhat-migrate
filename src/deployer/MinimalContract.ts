@@ -14,6 +14,7 @@ import { ContractDeployTxWithName, OverridesAndLibs } from "../types/deployer";
 
 import { Stats } from "../tools/Stats";
 import { Reporter } from "../tools/reporters/Reporter";
+import { PublicReporter } from "../tools/reporters/PublicReporter";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
@@ -103,7 +104,7 @@ export class MinimalContract {
 
     const txResponse = await signer.sendTransaction(tx);
 
-    await Reporter.reportTransaction(txResponse, tx.contractName);
+    await PublicReporter.reportTransactionResponse(txResponse, tx.contractName);
 
     const contractAddress = (await txResponse.wait(0))!.contractAddress;
 
