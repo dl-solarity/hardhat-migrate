@@ -84,6 +84,7 @@ export function bytecodeHash(bytecode: any): string {
 
 export function createKeyDeploymentFieldsHash(keyTxFields: KeyDeploymentFields): string {
   const obj: KeyDeploymentFields = {
+    name: keyTxFields.name,
     data: keyTxFields.data,
     from: keyTxFields.from,
     chainId: keyTxFields.chainId,

@@ -13,8 +13,8 @@ import { EthersContractAdapter } from "./adapters/EthersContractAdapter";
 import { EthersFactoryAdapter } from "./adapters/EthersFactoryAdapter";
 
 import { OverridesAndLibs } from "../types/deployer";
-import { KeyTransactionFields, MigrationMetadata } from "../types/tools";
 import { Instance, TypedArgs } from "../types/adapter";
+import { KeyTransactionFields, MigrationMetadata } from "../types/tools";
 import { isContractFactory, isEthersContract, isBytecodeFactory, isTruffleFactory } from "../types/type-checks";
 
 import { Stats } from "../tools/Stats";

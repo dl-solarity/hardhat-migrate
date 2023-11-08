@@ -162,19 +162,15 @@ export class Reporter {
     console.log(output);
   }
 
-  public static notifyContractCollision(oldData: ContractFieldsToSave, dataToSave: ContractFieldsToSave) {
-    let output = `\nContract collision detected!`;
-    output += `\n> Contract: ${oldData.contractName || dataToSave.contractName}`;
-    output += `\n> Previous Collision Details: `;
-    output += `\n\t- Migration Number: ${oldData.metadata.migrationNumber}`;
-    output += `\n\t- Contract Address: ${oldData.contractAddress}`;
-    output += `\n> New Collision Details: `;
-    output += `\n\t- Migration Number: ${dataToSave.metadata.migrationNumber}`;
-    output += `\n\t- Contract Address: ${dataToSave.contractAddress}`;
+  public static notifyContractCollisionByName(oldData: ContractFieldsToSave, dataToSave: ContractFieldsToSave) {
+    const output = `\nContract collision by Contract Name detected!`;
+    this._printContractCollision(output, oldData, dataToSave);
+  }
 
-    console.log(output);
-
-    this._warningsToPrint.push(output);
+  public static notifyContractCollisionByKeyFields(oldData: ContractFieldsToSave, dataToSave: ContractFieldsToSave) {
+    let output = `\nContract collision by key fields detected!`;
+    output += `\nKey fields are bytecode, from, chainId, value and contract name`;
+    this._printContractCollision(output, oldData, dataToSave);
   }
 
   public static notifyTransactionCollision(oldData: TransactionFieldsToSave, dataToSave: TransactionFieldsToSave) {
@@ -319,6 +315,24 @@ export class Reporter {
     console.log(`> ${"Network:".padEnd(20)} ${this._network.name}`);
 
     console.log(`> ${"Network id:".padEnd(20)} ${this._network.chainId}`);
+  }
+
+  private static _printContractCollision(
+    output: string,
+    oldData: ContractFieldsToSave,
+    dataToSave: ContractFieldsToSave,
+  ) {
+    output += `\n> Contract: ${oldData.contractKeyData?.name || dataToSave.contractKeyData?.name}`;
+    output += `\n> Previous Collision Details: `;
+    output += `\n\t- Migration Number: ${oldData.metadata.migrationNumber}`;
+    output += `\n\t- Contract Address: ${oldData.contractAddress}`;
+    output += `\n> New Collision Details: `;
+    output += `\n\t- Migration Number: ${dataToSave.metadata.migrationNumber}`;
+    output += `\n\t- Contract Address: ${dataToSave.contractAddress}`;
+
+    console.log(output);
+
+    this._warningsToPrint.push(output);
   }
 
   private static async _getNetwork(): Promise<Network> {

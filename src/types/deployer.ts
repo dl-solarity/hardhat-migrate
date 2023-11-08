@@ -10,7 +10,7 @@ export type OverridesAndName = Overrides & { name?: string };
 
 export type OverridesAndLibs = OverridesAndName & { libraries?: Libraries };
 
-export type ContractDeployTransactionWithContractName = ContractDeployTransaction & { contractName: string };
+export type ContractDeployTxWithName = ContractDeployTransaction & { contractName: string };
 
 export interface Link {
   sourceName: string;

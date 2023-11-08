@@ -1,6 +1,7 @@
 import { TransactionReceiptParams } from "ethers";
 
 export interface KeyDeploymentFields {
+  name: string;
   data: string;
   from: string;
   chainId: bigint;
@@ -23,7 +24,6 @@ export interface TransactionFieldsToSave {
 
 export interface ContractFieldsToSave {
   contractKeyData?: KeyDeploymentFields;
-  contractName?: string;
   contractAddress: string;
   metadata: MigrationMetadata;
 }
