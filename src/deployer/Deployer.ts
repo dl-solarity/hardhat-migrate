@@ -13,8 +13,8 @@ import { EthersContractAdapter } from "./adapters/EthersContractAdapter";
 import { EthersFactoryAdapter } from "./adapters/EthersFactoryAdapter";
 
 import { OverridesAndLibs } from "../types/deployer";
-import { KeyTransactionFields, MigrationMetadata } from "../types/tools";
 import { Instance, TypedArgs } from "../types/adapter";
+import { KeyTransactionFields, MigrationMetadata } from "../types/tools";
 import { isContractFactory, isEthersContract, isBytecodeFactory, isTruffleFactory } from "../types/type-checks";
 
 import { Stats } from "../tools/Stats";
@@ -94,7 +94,7 @@ export class Deployer {
 
     const [receipt] = await Promise.all([
       txResponse.wait(this._hre.config.migrate.wait),
-      Reporter.reportTransaction(txResponse, methodString),
+      Reporter.reportTransactionResponse(txResponse, methodString),
     ]);
 
     const saveMetadata: MigrationMetadata = {

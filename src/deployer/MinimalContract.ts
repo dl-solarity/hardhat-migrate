@@ -10,7 +10,7 @@ import { MigrateError } from "../errors";
 
 import { MigrationMetadata } from "../types/tools";
 import { MigrateConfig } from "../types/migrations";
-import { ContractDeployTransactionWithContractName, OverridesAndLibs } from "../types/deployer";
+import { ContractDeployTxWithName, OverridesAndLibs } from "../types/deployer";
 
 import { Stats } from "../tools/Stats";
 import { Reporter } from "../tools/reporters/Reporter";
@@ -69,10 +69,7 @@ export class MinimalContract {
     }
   }
 
-  private async _createDeployTransaction(
-    args: any[],
-    txOverrides: Overrides,
-  ): Promise<ContractDeployTransactionWithContractName> {
+  private async _createDeployTransaction(args: any[], txOverrides: Overrides): Promise<ContractDeployTxWithName> {
     const factory = new ethers.ContractFactory(this._interface, this._bytecode);
 
     return {
@@ -83,19 +80,7 @@ export class MinimalContract {
     };
   }
 
-  private async _recoverContractAddress(tx: ContractDeployTransactionWithContractName, args: any[]): Promise<string> {
-    try {
-      const contractAddress = await TransactionProcessor.tryRestoreContractAddressByName(tx.contractName);
-
-      Reporter.notifyContractRecovery(tx.contractName, contractAddress);
-
-      await this._saveContractForVerification(contractAddress, tx, args);
-
-      return contractAddress;
-    } catch {
-      /* empty */
-    }
-
+  private async _recoverContractAddress(tx: ContractDeployTxWithName, args: any[]): Promise<string> {
     try {
       const contractAddress = await TransactionProcessor.tryRestoreContractAddressByKeyFields(tx);
 
@@ -113,15 +98,12 @@ export class MinimalContract {
     return this._processContractDeploymentTransaction(tx, args);
   }
 
-  private async _processContractDeploymentTransaction(
-    tx: ContractDeployTransactionWithContractName,
-    args: any[],
-  ): Promise<string> {
+  private async _processContractDeploymentTransaction(tx: ContractDeployTxWithName, args: any[]): Promise<string> {
     const signer: Signer = await getSignerHelper(tx.from);
 
     const txResponse = await signer.sendTransaction(tx);
 
-    await Reporter.reportTransaction(txResponse, tx.contractName);
+    await Reporter.reportTransactionResponse(txResponse, tx.contractName);
 
     const contractAddress = (await txResponse.wait(0))!.contractAddress;
 
@@ -141,11 +123,7 @@ export class MinimalContract {
     return contractAddress;
   }
 
-  private async _saveContractForVerification(
-    contractAddress: string,
-    tx: ContractDeployTransactionWithContractName,
-    args: any[],
-  ) {
+  private async _saveContractForVerification(contractAddress: string, tx: ContractDeployTxWithName, args: any[]) {
     if (VerificationProcessor.isVerificationDataSaved(contractAddress)) {
       return;
     }

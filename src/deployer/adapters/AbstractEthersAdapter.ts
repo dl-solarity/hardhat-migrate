@@ -170,7 +170,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
 
     TransactionProcessor.saveTransaction(tx, (await txResponse.wait())!, saveMetadata);
 
-    await Reporter.reportTransaction(txResponse, methodString);
+    await Reporter.reportTransactionResponse(txResponse, methodString);
 
     return txResponse;
   }

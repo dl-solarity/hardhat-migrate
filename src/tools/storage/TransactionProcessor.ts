@@ -1,5 +1,7 @@
 import { ContractDeployTransaction, isAddress, TransactionReceiptParams } from "ethers";
 
+import { isFullyQualifiedName } from "hardhat/utils/contract-names";
+
 import { TransactionStorage } from "./MigrateStorage";
 
 import { Reporter } from "../reporters/Reporter";
@@ -18,8 +20,8 @@ import {
   KeyTransactionFields,
   MigrationMetadata,
   TransactionFieldsToSave,
-  UNKNOWN_CONTRACT_NAME,
 } from "../../types/tools";
+import { ContractDeployTxWithName } from "../../types/deployer";
 import { validateKeyDeploymentFields, validateKeyTxFields } from "../../types/type-checks";
 
 @catchError
@@ -34,26 +36,19 @@ export class TransactionProcessor {
   ) {
     const dataToSave: ContractFieldsToSave = {
       contractKeyData: {
+        name: contractName,
         data: args.data,
         from: args.from!,
         chainId: args.chainId!,
         value: args.value!,
       },
       contractAddress,
-      contractName,
       metadata,
     };
 
-    if (contractName === UNKNOWN_CONTRACT_NAME) {
-      this._saveContract(args, dataToSave);
+    const keyByArgs = createKeyDeploymentFieldsHash(dataToSave.contractKeyData!);
 
-      return;
-    }
-
-    if (TransactionStorage.has(contractName)) {
-      this._processCollision(contractName, dataToSave);
-    }
-
+    this._saveContract(keyByArgs, dataToSave);
     this._saveContractByName(contractName, dataToSave);
   }
 
@@ -83,9 +78,10 @@ export class TransactionProcessor {
 
   @catchError
   @validateKeyDeploymentFields
-  public static async tryRestoreContractAddressByKeyFields(key: ContractDeployTransaction): Promise<string> {
+  public static async tryRestoreContractAddressByKeyFields(key: ContractDeployTxWithName): Promise<string> {
     const restoredData = this._tryGetDataFromStorage(
       createKeyDeploymentFieldsHash({
+        name: key.contractName,
         data: key.data,
         from: key.from!,
         chainId: key.chainId!,
@@ -152,18 +148,19 @@ export class TransactionProcessor {
     TransactionStorage.set(dataKey, dataToSave, true);
   }
 
-  private static _saveContract(args: ContractDeployTransaction, dataToSave: ContractFieldsToSave) {
-    const keyByArgs = createKeyDeploymentFieldsHash({
-      data: args.data,
-      from: args.from!,
-      chainId: args.chainId!,
-      value: args.value!,
-    });
+  private static _saveContract(keyByArgs: string, dataToSave: ContractFieldsToSave) {
+    if (TransactionStorage.has(keyByArgs)) {
+      this._processCollision(keyByArgs, dataToSave);
+    }
 
     TransactionStorage.set(keyByArgs, dataToSave, true);
   }
 
   private static _saveContractByName(contractName: string, dataToSave: ContractFieldsToSave) {
+    if (TransactionStorage.has(contractName)) {
+      this._processCollision(contractName, dataToSave);
+    }
+
     TransactionStorage.set(contractName, dataToSave, true);
   }
 
@@ -174,8 +171,14 @@ export class TransactionProcessor {
       metadata: MigrationMetadata;
     } = TransactionStorage.get(dataKey);
 
+    if (oldData.contractAddress && isFullyQualifiedName(dataKey)) {
+      Reporter.notifyContractCollisionByName(oldData as ContractFieldsToSave, dataToSave as ContractFieldsToSave);
+
+      return;
+    }
+
     if (oldData.contractAddress) {
-      Reporter.notifyContractCollision(oldData as ContractFieldsToSave, dataToSave as ContractFieldsToSave);
+      Reporter.notifyContractCollisionByKeyFields(oldData as ContractFieldsToSave, dataToSave as ContractFieldsToSave);
 
       return;
     }

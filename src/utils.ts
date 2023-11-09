@@ -84,6 +84,7 @@ export function bytecodeHash(bytecode: any): string {
 
 export function createKeyDeploymentFieldsHash(keyTxFields: KeyDeploymentFields): string {
   const obj: KeyDeploymentFields = {
+    name: keyTxFields.name,
     data: keyTxFields.data,
     from: keyTxFields.from,
     chainId: keyTxFields.chainId,
@@ -206,6 +207,7 @@ export function suppressLogs(target: any, propertyKey: string, descriptor: Prope
   descriptor.value = function (...args: any[]) {
     const log = console.log;
 
+    console.log();
     console.log = () => {};
 
     const result = originalMethod.apply(this, args);
