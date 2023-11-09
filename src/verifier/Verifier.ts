@@ -63,7 +63,7 @@ export class Verifier {
         this._handleVerificationError(contractAddress, contractName, e);
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 2500));
     }
   }
 
