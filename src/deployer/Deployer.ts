@@ -94,7 +94,7 @@ export class Deployer {
 
     const [receipt] = await Promise.all([
       txResponse.wait(this._hre.config.migrate.wait),
-      Reporter.reportTransaction(txResponse, methodString),
+      Reporter.reportTransactionResponse(txResponse, methodString),
     ]);
 
     const saveMetadata: MigrationMetadata = {

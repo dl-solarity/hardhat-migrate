@@ -103,7 +103,7 @@ export class MinimalContract {
 
     const txResponse = await signer.sendTransaction(tx);
 
-    await Reporter.reportTransaction(txResponse, tx.contractName);
+    await Reporter.reportTransactionResponse(txResponse, tx.contractName);
 
     const contractAddress = (await txResponse.wait(0))!.contractAddress;
 

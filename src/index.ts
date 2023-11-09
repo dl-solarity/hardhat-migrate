@@ -23,8 +23,8 @@ import { Provider } from "./tools/Provider";
 import { Verifier } from "./verifier/Verifier";
 
 export { Deployer } from "./deployer/Deployer";
-export { Reporter } from "./tools/reporters/Reporter";
 export { DefaultStorage } from "./tools/storage/MigrateStorage";
+export { PublicReporter as Reporter } from "./tools/reporters/PublicReporter";
 
 extendConfig(migrateConfigExtender);
 
