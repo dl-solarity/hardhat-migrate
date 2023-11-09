@@ -207,6 +207,7 @@ export function suppressLogs(target: any, propertyKey: string, descriptor: Prope
   descriptor.value = function (...args: any[]) {
     const log = console.log;
 
+    console.log();
     console.log = () => {};
 
     const result = originalMethod.apply(this, args);

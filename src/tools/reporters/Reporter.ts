@@ -106,33 +106,33 @@ export class Reporter {
   }
 
   public static reportVerificationBatchBegin() {
-    console.log("\nStarting verification of all deployed contracts\n");
+    console.log("\nStarting verification of all deployed contracts");
   }
 
   public static reportNothingToVerify() {
-    console.log(`\nNothing to verify. Selected network is ${this._network.name}\n`);
+    console.log(`\nNothing to verify. Selected network is ${this._network.name}`);
   }
 
   public static reportSuccessfulVerification(contractAddress: string, contractName: string) {
-    const output = `Contract ${contractName} (${contractAddress}) verified successfully.\n`;
+    const output = `\nContract ${contractName} (${contractAddress}) verified successfully.`;
 
     console.log(output);
   }
 
   public static reportAlreadyVerified(contractAddress: string, contractName: string) {
-    const output = `Contract ${contractName} (${contractAddress}) already verified.\n`;
+    const output = `\nContract ${contractName} (${contractAddress}) already verified.`;
 
     console.log(output);
   }
 
   public static reportVerificationError(contractAddress: string, contractName: string, message: string) {
-    const output = `Contract ${contractName} (${contractAddress}) verification failed: ${message}\n`;
+    const output = `\nContract ${contractName} (${contractAddress}) verification failed: ${message}`;
 
     console.log(output);
   }
 
   public static reportVerificationFailedToSave(contractName: string) {
-    const output = `Failed to save verification arguments for contract: ${contractName}\n`;
+    const output = `\nFailed to save verification arguments for contract: ${contractName}`;
 
     console.log(output);
   }
