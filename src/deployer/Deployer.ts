@@ -19,7 +19,6 @@ import { isContractFactory, isEthersContract, isBytecodeFactory, isTruffleFactor
 
 import { Stats } from "../tools/Stats";
 import { Reporter } from "../tools/reporters/Reporter";
-import { PublicReporter } from "../tools/reporters/PublicReporter";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 
 @catchError
@@ -95,7 +94,7 @@ export class Deployer {
 
     const [receipt] = await Promise.all([
       txResponse.wait(this._hre.config.migrate.wait),
-      PublicReporter.reportTransactionResponse(txResponse, methodString),
+      Reporter.reportTransactionResponse(txResponse, methodString),
     ]);
 
     const saveMetadata: MigrationMetadata = {
