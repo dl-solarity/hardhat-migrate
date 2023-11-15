@@ -44,7 +44,7 @@ export class EthersContractAdapter extends AbstractEthersAdapter {
     instance.connect = (address: string, runner?: ContractRunner): I => {
       const contract = connectMethod(address, runner ?? defaultRunner) as BaseContract;
 
-      return this._insertHandlers(contract, contractName, {}) as unknown as I;
+      return this._insertHandlers(contract, contractName) as unknown as I;
     };
   }
 }

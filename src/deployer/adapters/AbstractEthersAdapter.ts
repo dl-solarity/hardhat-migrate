@@ -56,10 +56,10 @@ export abstract class AbstractEthersAdapter extends Adapter {
     }
 
     this._insertAddressGetter(contract, address);
-    return this._insertHandlers(contract, contractName, parameters) as unknown as I;
+    return this._insertHandlers(contract, contractName) as unknown as I;
   }
 
-  protected _insertHandlers(contract: BaseContract, contractName: string, parameters: OverridesAndLibs): BaseContract {
+  protected _insertHandlers(contract: BaseContract, contractName: string): BaseContract {
     const methodSet = new Set<string>();
 
     for (const methodFragments of this._getContractFunctionFragments(contract.interface)) {
@@ -72,7 +72,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
 
       const oldMethod: BaseContractMethod = (contract as any)[methodName];
 
-      const newMethod = this._wrapOldMethod(contractName, methodName, methodFragments, oldMethod, parameters);
+      const newMethod = this._wrapOldMethod(contractName, methodName, methodFragments, oldMethod);
 
       defineProperties<any>(newMethod, {
         name: oldMethod.name,
@@ -120,19 +120,18 @@ export abstract class AbstractEthersAdapter extends Adapter {
     methodName: string,
     methodFragments: FunctionFragment,
     oldMethod: BaseContractMethod,
-    parameters: OverridesAndLibs,
   ): (...args: any[]) => Promise<ContractTransactionResponse> {
     return async (...args: any[]): Promise<ContractTransactionResponse> => {
-      await fillParameters(parameters);
-      const tx = (await oldMethod.populateTransaction(...args, parameters)) as KeyTransactionFields;
+      const tx = (await oldMethod.populateTransaction(...args)) as KeyTransactionFields;
+      await fillParameters(tx);
 
       const methodString = getMethodString(contractName, methodName, methodFragments, args);
 
       if (this._config.continue) {
         return this._recoverTransaction(methodString, tx, oldMethod, args);
-      } else {
-        return this._sendTransaction(methodString, tx, oldMethod, args);
       }
+
+      return this._sendTransaction(methodString, tx, oldMethod, args);
     };
   }
 
@@ -168,9 +167,9 @@ export abstract class AbstractEthersAdapter extends Adapter {
       methodName: methodString,
     };
 
-    TransactionProcessor.saveTransaction(tx, (await txResponse.wait())!, saveMetadata);
-
     await Reporter.reportTransactionResponse(txResponse, methodString);
+
+    TransactionProcessor.saveTransaction(tx, (await txResponse.wait())!, saveMetadata);
 
     return txResponse;
   }
