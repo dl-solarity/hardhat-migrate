@@ -1,7 +1,7 @@
 # Changelog
 
 ## Version 2.0.0-alpha.16
-* Fixed a bug when txs could not be sent with override
+* Fixed a bug when txs could not be sent with overrides
 * Eliminate a collision warning during recovery
 
 ## Version 2.0.0-alpha.15
