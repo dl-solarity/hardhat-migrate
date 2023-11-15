@@ -21,11 +21,18 @@ import {
   MigrationMetadata,
   TransactionFieldsToSave,
 } from "../../types/tools";
+import { MigrateConfig } from "../../types/migrations";
 import { ContractDeployTxWithName } from "../../types/deployer";
 import { validateKeyDeploymentFields, validateKeyTxFields } from "../../types/type-checks";
 
 @catchError
 export class TransactionProcessor {
+  protected static _config: MigrateConfig;
+
+  public static setConfig(config: MigrateConfig) {
+    this._config = config;
+  }
+
   @catchError
   @validateKeyDeploymentFields
   public static saveDeploymentTransaction(
@@ -165,6 +172,10 @@ export class TransactionProcessor {
   }
 
   private static _processCollision(dataKey: string, dataToSave: TransactionFieldsToSave | ContractFieldsToSave) {
+    if (this._config.continue) {
+      return;
+    }
+
     const oldData: {
       receipt?: TransactionReceiptParams;
       contractAddress?: string;

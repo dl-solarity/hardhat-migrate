@@ -21,6 +21,7 @@ import { Linker } from "./deployer/Linker";
 import { Migrator } from "./migrator/Migrator";
 import { Provider } from "./tools/Provider";
 import { Verifier } from "./verifier/Verifier";
+import { TransactionProcessor } from "./tools/storage/TransactionProcessor";
 
 export { Deployer } from "./deployer/Deployer";
 export { DefaultStorage } from "./tools/storage/MigrateStorage";
@@ -34,6 +35,8 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
   env.config.migrate = mergeConfigs(taskArgs, env.config.migrate);
 
   Linker.setConfig(env.config.migrate);
+  TransactionProcessor.setConfig(env.config.migrate);
+
   await Reporter.init(env.config.migrate);
 
   // Make sure that contract artifacts are up-to-date.
