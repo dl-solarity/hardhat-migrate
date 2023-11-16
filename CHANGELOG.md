@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 2.0.0-alpha.16
+
+* Fixed a bug when txs could not be sent with overrides
+* Eliminate a collision warning during recovery
+
+## Version 2.0.0-alpha.15
+
+* Added ethers to dependencies
+
 ## Version 2.0.0-alpha.12
 
 * Added ability to accept Overrides as second parameter to the `deploy` function.

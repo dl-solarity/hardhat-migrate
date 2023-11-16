@@ -138,7 +138,7 @@ export function getMethodString(
   if (methodFragment.inputs === undefined) {
     return `${contractName}.${methodName}()`;
   }
-  const argsString = args.map((arg, i) => `${methodFragment.inputs[i].name}:${arg}`).join(", ");
+  const argsString = methodFragment.inputs.map((input, i) => `${input.name}:${args[i]}`).join(", ");
 
   const methodSting = `${contractName}.${methodName}(${argsString})`;
 

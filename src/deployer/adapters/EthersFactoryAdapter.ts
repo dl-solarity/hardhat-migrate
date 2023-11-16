@@ -32,7 +32,7 @@ export class EthersFactoryAdapter extends AbstractEthersAdapter {
     instance.attach = (target: string | Addressable): any => {
       const contract = attachMethod(target);
 
-      return this._insertHandlers(contract, contractName, {});
+      return this._insertHandlers(contract, contractName);
     };
   }
 }
