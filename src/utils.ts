@@ -1,3 +1,5 @@
+import axios from "axios";
+
 import { join } from "path";
 import { realpathSync, existsSync } from "fs";
 import {
@@ -220,6 +222,17 @@ export function suppressLogs(target: any, propertyKey: string, descriptor: Prope
   return descriptor;
 }
 /* eslint-enable no-console */
+
+export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export async function isOnline(): Promise<boolean> {
+  try {
+    await axios.get("https://www.google.com");
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function _generateDescriptor(propertyName: string, descriptor: PropertyDescriptor): PropertyDescriptor {
   const method = descriptor.value;
