@@ -1,4 +1,5 @@
 import { assert } from "chai";
+
 import { resolvePathToFile } from "../../src/utils";
 
 describe("ResolvePathToFile()", () => {

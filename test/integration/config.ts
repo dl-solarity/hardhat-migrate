@@ -6,9 +6,12 @@ import { HardhatPluginError } from "hardhat/plugins";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 
 import { extendConfig } from "hardhat/config";
-import { migrateConfigExtender } from "../../src/config";
-import { MigrateConfig } from "../../src/types/migrations";
+
 import { useEnvironment } from "../helpers";
+
+import { migrateConfigExtender } from "../../src/config";
+
+import { MigrateConfig } from "../../src/types/migrations";
 
 describe("config", () => {
   describe("loading", () => {

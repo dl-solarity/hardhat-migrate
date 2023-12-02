@@ -6,22 +6,14 @@ import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
 import { useEnvironment } from "../../helpers";
 
 import { Deployer } from "../../../src/deployer/Deployer";
-
-import { Reporter } from "../../../src/tools/reporters/Reporter";
-import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
-import { Provider } from "../../../src/tools/Provider";
-import { Linker } from "../../../src/deployer/Linker";
 import { Migrator } from "../../../src/migrator/Migrator";
+
+import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
+import { resetEthersProvider } from "../../../src/tools/network/EthersProvider";
 
 describe("Truffle Typechain -- Deployer", () => {
   describe("deploy()", () => {
     useEnvironment("minimal-typechain-truffle");
-
-    beforeEach(async function () {
-      await Provider.init(this.hre);
-      await Reporter.init(this.hre.config.migrate);
-      Linker.setConfig(this.hre.config.migrate);
-    });
 
     let contractWithConstructorArtifact: TruffleContract;
     let ContractWithExternalLibraryArtifact: TruffleContract;
@@ -30,14 +22,18 @@ describe("Truffle Typechain -- Deployer", () => {
     let deployer: Deployer;
 
     beforeEach("setup", async function () {
+      library1Artifact = this.hre.artifacts.require("Library1");
+      library2Artifact = this.hre.artifacts.require("Library2");
+      ContractWithExternalLibraryArtifact = this.hre.artifacts.require("ContractWithExternalLibrary");
+      contractWithConstructorArtifact = this.hre.artifacts.require("ContractWithConstructorArguments");
+
+      resetEthersProvider();
+
+      await Migrator.initializeDependencies(this.hre);
+
       deployer = new Deployer(this.hre);
 
       TransactionStorage.clear();
-
-      contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
-      ContractWithExternalLibraryArtifact = await this.hre.artifacts.require("ContractWithExternalLibrary");
-      library1Artifact = await this.hre.artifacts.require("Library1");
-      library2Artifact = await this.hre.artifacts.require("Library2");
     });
 
     it("should deploy contract with constructor arguments", async function () {

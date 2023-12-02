@@ -3,10 +3,10 @@ import { ZeroAddress } from "ethers";
 
 import { useEnvironment } from "../../helpers";
 
+import { Migrator } from "../../../src/migrator/Migrator";
 import { Deployer } from "../../../src/deployer/Deployer";
 
 import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
-import { ArtifactProcessor } from "../../../src/tools/storage/ArtifactProcessor";
 
 import {
   ContractWithConstructorArguments__factory,
@@ -14,27 +14,17 @@ import {
   Library1__factory,
   Library2__factory,
 } from "../../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
-import { Reporter } from "../../../src/tools/reporters/Reporter";
-import { Provider } from "../../../src/tools/Provider";
-import { Linker } from "../../../src/deployer/Linker";
-import { Migrator } from "../../../src/migrator/Migrator";
 
 describe("Ehters Typechain -- Deployer", () => {
   describe("deploy()", () => {
     useEnvironment("minimal-typechain-ethers");
 
-    beforeEach(async function () {
-      await Provider.init(this.hre);
-      await Reporter.init(this.hre.config.migrate);
-      Linker.setConfig(this.hre.config.migrate);
-    });
-
     let deployer: Deployer;
 
     beforeEach("setup", async function () {
-      deployer = new Deployer(this.hre);
+      await Migrator.initializeDependencies(this.hre);
 
-      await ArtifactProcessor.parseArtifacts(this.hre);
+      deployer = new Deployer(this.hre);
 
       TransactionStorage.clear();
     });

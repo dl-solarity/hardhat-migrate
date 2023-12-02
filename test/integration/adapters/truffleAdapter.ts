@@ -5,11 +5,11 @@ import { Interface } from "ethers";
 
 import { useEnvironment } from "../../helpers";
 
-import { TruffleAdapter } from "../../../src/deployer/adapters/TruffleAdapter";
-import { ArtifactProcessor } from "../../../src/tools/storage/ArtifactProcessor";
-import { Provider } from "../../../src/tools/Provider";
-import { Reporter } from "../../../src/tools/reporters/Reporter";
 import { Migrator } from "../../../src/migrator/Migrator";
+
+import { resetEthersProvider } from "../../../src/tools/network/EthersProvider";
+
+import { TruffleAdapter } from "../../../src/deployer/adapters/TruffleAdapter";
 
 describe("TruffleAdapter", () => {
   describe("getContractDeployParams()", () => {
@@ -48,16 +48,14 @@ describe("TruffleAdapter", () => {
     describe("with pure truffle", () => {
       useEnvironment("minimal-truffle");
 
-      beforeEach(async function () {
-        await Provider.init(this.hre);
-        await Reporter.init(this.hre.config.migrate);
-      });
-
       let contractWithConstructorArtifact: TruffleContract;
 
       beforeEach("setup", async function () {
+        resetEthersProvider();
+
+        await Migrator.initializeDependencies(this.hre);
+
         adapter = new TruffleAdapter(this.hre);
-        await ArtifactProcessor.parseArtifacts(this.hre);
 
         contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
       });
@@ -78,16 +76,12 @@ describe("TruffleAdapter", () => {
     describe("with typechain", () => {
       useEnvironment("minimal-typechain-truffle");
 
-      beforeEach(async function () {
-        await Provider.init(this.hre);
-        await Reporter.init(this.hre.config.migrate);
-      });
-
       let contractWithConstructorArtifact: TruffleContract;
 
       beforeEach("setup", async function () {
+        await Migrator.initializeDependencies(this.hre);
+
         adapter = new TruffleAdapter(this.hre);
-        await ArtifactProcessor.parseArtifacts(this.hre);
 
         contractWithConstructorArtifact = await this.hre.artifacts.require("ContractWithConstructorArguments");
       });

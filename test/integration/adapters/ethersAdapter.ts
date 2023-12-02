@@ -3,14 +3,12 @@ import { ContractFactory, Interface } from "ethers";
 
 import { useEnvironment } from "../../helpers";
 
-import { EthersContractAdapter } from "../../../src/deployer/adapters/EthersContractAdapter";
-import { ArtifactProcessor } from "../../../src/tools/storage/ArtifactProcessor";
+import { Migrator } from "../../../src/migrator/Migrator";
+
 import { EthersFactoryAdapter } from "../../../src/deployer/adapters/EthersFactoryAdapter";
+import { EthersContractAdapter } from "../../../src/deployer/adapters/EthersContractAdapter";
 
 import { ContractWithConstructorArguments__factory } from "../../fixture-projects/hardhat-project-minimal-typechain-ethers/typechain-types";
-import { Provider } from "../../../src/tools/Provider";
-import { Reporter } from "../../../src/tools/reporters/Reporter";
-import { Migrator } from "../../../src/migrator/Migrator";
 
 describe("EthersAdapter", () => {
   describe("getContractDeployParams()", () => {
@@ -50,16 +48,12 @@ describe("EthersAdapter", () => {
     describe("pure ethers", () => {
       useEnvironment("minimal-ethers");
 
-      beforeEach(async function () {
-        await Provider.init(this.hre);
-        await Reporter.init(this.hre.config.migrate);
-      });
-
       let ContractWithConstructor: ContractFactory;
 
       beforeEach("setup", async function () {
+        await Migrator.initializeDependencies(this.hre);
+
         pureEhtersAdapter = new EthersFactoryAdapter(this.hre);
-        await ArtifactProcessor.parseArtifacts(this.hre);
 
         ContractWithConstructor = <ContractFactory>(<unknown>new ContractWithConstructorArguments__factory());
       });
@@ -81,13 +75,9 @@ describe("EthersAdapter", () => {
       useEnvironment("minimal-typechain-ethers");
 
       beforeEach(async function () {
-        await Provider.init(this.hre);
-        await Reporter.init(this.hre.config.migrate);
-      });
+        await Migrator.initializeDependencies(this.hre);
 
-      beforeEach("setup", async function () {
         ethersAdapter = new EthersContractAdapter(this.hre);
-        await ArtifactProcessor.parseArtifacts(this.hre);
       });
 
       it("should get abi", async () => {
