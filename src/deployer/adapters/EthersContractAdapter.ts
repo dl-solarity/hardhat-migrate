@@ -4,9 +4,10 @@ import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
 
 import { catchError, getSignerHelper } from "../../utils";
 
+import { UNKNOWN_CONTRACT_NAME } from "../../constants";
+
 import { EthersContract } from "../../types/adapter";
 import { OverridesAndName } from "../../types/deployer";
-import { UNKNOWN_CONTRACT_NAME } from "../../types/tools";
 
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 

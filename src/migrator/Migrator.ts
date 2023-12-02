@@ -38,12 +38,12 @@ export class Migrator {
   }
 
   public async migrate() {
-    Reporter.reportMigrationBegin(this._migrationFiles);
+    reporter!.reportMigrationBegin(this._migrationFiles);
 
     for (const element of this._migrationFiles) {
       Stats.currentMigration = this._getMigrationNumber(element);
 
-      Reporter.reportMigrationFileBegin(element);
+      reporter!.reportMigrationFileBegin(element);
 
       try {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -59,7 +59,7 @@ export class Migrator {
       }
     }
 
-    Reporter.summary();
+    transactionRunner!.summary();
   }
 
   private _getMigrationFiles() {

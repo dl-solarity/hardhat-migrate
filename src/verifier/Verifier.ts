@@ -9,7 +9,7 @@ import { Args } from "../types/deployer";
 import { VerifyConfig } from "../types/migrations";
 import { VerifierArgs } from "../types/verifier";
 
-import { Reporter } from "../tools/reporters/Reporter";
+import { reporter } from "../tools/reporters/Reporter";
 
 export class Verifier {
   private readonly _etherscanConfig: EtherscanConfig;
@@ -28,11 +28,11 @@ export class Verifier {
     const toVerify = verifierBatchArgs.filter((args) => args.chainId && currentChainId == args.chainId);
 
     if (!toVerify || toVerify.length === 0) {
-      Reporter.reportNothingToVerify();
+      reporter!.reportNothingToVerify();
       return;
     }
 
-    Reporter.reportVerificationBatchBegin();
+    reporter!.reportVerificationBatchBegin();
 
     const parallel = this._config.parallel;
 
@@ -51,7 +51,7 @@ export class Verifier {
 
     for (let attempts = 0; attempts < this._config.attempts; attempts++) {
       if (await instance.isVerified(contractAddress)) {
-        Reporter.reportAlreadyVerified(contractAddress, contractName);
+        reporter!.reportAlreadyVerified(contractAddress, contractName);
 
         break;
       }
@@ -79,20 +79,20 @@ export class Verifier {
     const isVerified = await instance.isVerified(contractAddress);
 
     if (isVerified) {
-      Reporter.reportSuccessfulVerification(contractAddress, contractName);
+      reporter!.reportSuccessfulVerification(contractAddress, contractName);
       return;
     } else {
-      Reporter.reportVerificationError(contractAddress, contractName, "Verification failed");
+      reporter!.reportVerificationError(contractAddress, contractName, "Verification failed");
     }
   }
 
   @catchError
   private _handleVerificationError(contractAddress: string, contractName: string, error: any) {
     if (error.message.toLowerCase().includes("already verified")) {
-      Reporter.reportAlreadyVerified(contractAddress, contractName);
+      reporter!.reportAlreadyVerified(contractAddress, contractName);
       return;
     } else {
-      Reporter.reportVerificationError(contractAddress, contractName, error.message);
+      reporter!.reportVerificationError(contractAddress, contractName, error.message);
     }
   }
 

@@ -18,7 +18,8 @@ import { KeyTransactionFields, MigrationMetadata } from "../types/tools";
 import { isContractFactory, isEthersContract, isBytecodeFactory, isTruffleFactory } from "../types/type-checks";
 
 import { Stats } from "../tools/Stats";
-import { Reporter } from "../tools/reporters/Reporter";
+import { reporter } from "../tools/reporters/Reporter";
+import { transactionRunner } from "../tools/runners/TransactionRunner";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 
 @catchError
@@ -82,11 +83,11 @@ export class Deployer {
       try {
         TransactionProcessor.tryRestoreSavedTransaction(tx);
 
-        Reporter.notifyTransactionRecovery(methodString);
+        reporter!.notifyTransactionRecovery(methodString);
 
         return;
       } catch {
-        Reporter.notifyTransactionSendingInsteadOfRecovery(methodString);
+        reporter!.notifyTransactionSendingInsteadOfRecovery(methodString);
       }
     }
 
@@ -94,7 +95,7 @@ export class Deployer {
 
     const [receipt] = await Promise.all([
       txResponse.wait(this._hre.config.migrate.wait),
-      Reporter.reportTransactionResponse(txResponse, methodString),
+      transactionRunner!.reportTransactionResponse(txResponse, methodString),
     ]);
 
     const saveMetadata: MigrationMetadata = {

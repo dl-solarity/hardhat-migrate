@@ -4,7 +4,7 @@ import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 
 import { TransactionStorage } from "./MigrateStorage";
 
-import { Reporter } from "../reporters/Reporter";
+import { reporter } from "../reporters/Reporter";
 
 import { MigrateError } from "../../errors";
 
@@ -183,24 +183,24 @@ export class TransactionProcessor {
     } = TransactionStorage.get(dataKey);
 
     if (oldData.contractAddress && isFullyQualifiedName(dataKey)) {
-      Reporter.notifyContractCollisionByName(oldData as ContractFieldsToSave, dataToSave as ContractFieldsToSave);
+      reporter!.notifyContractCollisionByName(oldData as ContractFieldsToSave, dataToSave as ContractFieldsToSave);
 
       return;
     }
 
     if (oldData.contractAddress) {
-      Reporter.notifyContractCollisionByKeyFields(oldData as ContractFieldsToSave, dataToSave as ContractFieldsToSave);
+      reporter!.notifyContractCollisionByKeyFields(oldData as ContractFieldsToSave, dataToSave as ContractFieldsToSave);
 
       return;
     }
 
     if (oldData.receipt) {
-      Reporter.notifyTransactionCollision(oldData as TransactionFieldsToSave, dataToSave as TransactionFieldsToSave);
+      reporter!.notifyTransactionCollision(oldData as TransactionFieldsToSave, dataToSave as TransactionFieldsToSave);
 
       return;
     }
 
-    Reporter.notifyUnknownCollision(oldData.metadata, dataToSave);
+    reporter!.notifyUnknownCollision(oldData.metadata, dataToSave);
   }
 
   private static _tryGetDataFromStorage(key: string): any {

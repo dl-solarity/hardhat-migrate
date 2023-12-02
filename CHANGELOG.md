@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.0.0-alpha.17
+
+* Separated the logic of the Reporter and moved transaction-related functions to the TransactionRunner class.
+
 ## Version 2.0.0-alpha.16
 
 * Fixed a bug when txs could not be sent with overrides

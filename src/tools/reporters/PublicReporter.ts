@@ -1,19 +1,19 @@
 /* eslint-disable no-console */
-import { Reporter } from "./Reporter";
+import { networkManager } from "../network/NetworkManager";
 
-import { Provider } from "../Provider";
+import { transactionRunner } from "../runners/TransactionRunner";
 
 import { MigrateError } from "../../errors";
 
 export class PublicReporter {
-  public static async reportTransactionByHash(txHash: string, instanceName: string) {
-    const tx = await Provider.provider.getTransaction(txHash);
+  public static async reportTransactionByHash(txHash: string, name?: string) {
+    const tx = await networkManager!.provider.getTransaction(txHash);
 
     if (!tx) {
       throw new MigrateError("Transaction not found.");
     }
 
-    await Reporter.reportTransactionResponse(tx, instanceName);
+    await transactionRunner!.reportTransactionResponse(tx, name || "Unknown");
   }
 
   public static reportContracts(...contracts: [string, string][]): void {

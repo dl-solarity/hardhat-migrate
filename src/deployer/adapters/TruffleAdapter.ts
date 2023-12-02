@@ -22,7 +22,8 @@ import { OverridesAndName, TruffleTransactionResponse } from "../../types/deploy
 import { KeyTransactionFields, MigrationMetadata, UNKNOWN_CONTRACT_NAME } from "../../types/tools";
 
 import { Stats } from "../../tools/Stats";
-import { Reporter } from "../../tools/reporters/Reporter";
+import { reporter } from "../../tools/reporters/Reporter";
+import { transactionRunner } from "../../tools/runners/TransactionRunner";
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 
@@ -155,11 +156,11 @@ export class TruffleAdapter extends Adapter {
     try {
       const txResponse = TransactionProcessor.tryRestoreSavedTransaction(tx);
 
-      Reporter.notifyTransactionRecovery(methodString);
+      reporter!.notifyTransactionRecovery(methodString);
 
       return txResponse as unknown as TruffleTransactionResponse;
     } catch {
-      Reporter.notifyTransactionSendingInsteadOfRecovery(methodString);
+      reporter!.notifyTransactionSendingInsteadOfRecovery(methodString);
 
       return this._sendTransaction(methodString, tx, oldMethod, args);
     }
@@ -178,7 +179,7 @@ export class TruffleAdapter extends Adapter {
       methodName: methodString,
     };
 
-    await Reporter.reportTransactionResponse(txResponse, methodString);
+    await transactionRunner!.reportTransactionResponse(txResponse, methodString);
 
     const receipt = (await txResponse.wait())!;
     TransactionProcessor.saveTransaction(tx, receipt, saveMetadata);
