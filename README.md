@@ -85,6 +85,9 @@ module.exports = {
     pathToMigrations: "./deploy",
     force: false,
     continue: false,
+    transactionStatusCheckInterval: 2000,
+    maxRetryAttempts: 10,
+    retryGapMs: 3000,
   },
 };
 ```
@@ -102,6 +105,9 @@ module.exports = {
 - `pathToMigrations` : The path to the folder with the specified migrations.
 - `force` : The flag indicating whether the contracts compilation is forced.
 - `continue` : The flag indicating whether the deployment should restore the state from the previous deployment.
+- `transactionStatusCheckInterval` : The interval in milliseconds between transaction status checks.
+- `maxRetryAttempts` : The maximum number of attempts to retry operation (e.g., in case of the Network error).
+- `retryGapMs` The interval in milliseconds between attempts to retry operation.: 
 
 ### Deploying
 
@@ -122,12 +128,6 @@ npx hardhat migrate --network sepolia --from 1 --to 2
 ```
 
 In this case, migrations 1 through 2 (both) will be applied without the automatic verification.
-
-<!-- ### Verifying
-
-> _This plugin has a `migrate:verify` task, to learn how to use it, see the example project._
-
--->
 
 ## How it works
 
@@ -159,6 +159,35 @@ Under the hood, it uses `ContractFactory` from [@ethers](https://www.npmjs.com/p
 - **deployed()**
 
 Returns the deployed contract instance.
+
+### Transactions
+
+We have introduced the capability to assign a specific name to each transaction, enhancing its entropy. 
+This feature varies depending on the framework used.
+
+#### Ethers.js Usage:
+In Ethers.js, you can specify the transaction name using the `customData` field within the overrides. 
+A special field, `txName`, is dedicated for this purpose. 
+Here’s an example of how to set a transaction name using Ethers.js:
+
+```javascript
+await contract.runner.sendTransaction({ customData: { txName: "Funding Transaction" }});
+```
+
+This method helps avoid potential collisions and ensures a smoother recovery process.
+
+#### Truffle Usage:
+For those using Truffle, the transaction name can be specified using the `hardfork` field. Here's how you can do it:
+
+``` javascript
+await contract.send(1, { hardfork: "Funding Transaction" });
+```
+
+#### Purpose
+
+The primary purpose of naming transactions is to facilitate the deployment process.
+If an error occurs, you can use the `--continue` flag to resume the deployment from the point of failure. 
+The Migrator will utilize these names to distinguish between identical transactions
 
 ### Verifier
 
