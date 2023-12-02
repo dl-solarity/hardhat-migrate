@@ -1,5 +1,3 @@
-import axios from "axios";
-
 import { join } from "path";
 import { realpathSync, existsSync } from "fs";
 import {
@@ -22,23 +20,24 @@ import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 import { MigrateError } from "./errors";
 
-import { KeyDeploymentFields, KeyTransactionFields } from "./types/tools";
 import { Bytecode } from "./types/deployer";
-import { Provider } from "./tools/Provider";
+import { KeyDeploymentFields, KeyTransactionFields } from "./types/tools";
+
+import { networkManager } from "./tools/network/NetworkManager";
 
 export async function getSignerHelper(from?: null | AddressLike): Promise<HardhatEthersSigner> {
   if (!from) {
-    return Provider.provider.getSigner();
+    return networkManager!.provider.getSigner();
   }
 
-  const address = await ethers.resolveAddress(from, Provider.provider);
+  const address = await ethers.resolveAddress(from, networkManager!.provider);
 
-  return Provider.provider.getSigner(address);
+  return networkManager!.provider.getSigner(address);
 }
 
 export async function fillParameters(parameters: Overrides): Promise<Overrides> {
   if (parameters.from === undefined) {
-    parameters.from = await (await Provider.provider.getSigner()).getAddress();
+    parameters.from = await (await networkManager!.provider.getSigner()).getAddress();
   }
 
   if (parameters.chainId === undefined) {
@@ -65,7 +64,7 @@ export function resolvePathToFile(path: string, file: string = ""): string {
 }
 
 export async function getChainId(): Promise<bigint> {
-  return toBigInt(await Provider.provider.send("eth_chainId"));
+  return toBigInt(await networkManager!.provider.send("eth_chainId"));
 }
 
 export function toJSON(data: any): string {
@@ -110,7 +109,7 @@ export function createKeyTxFieldsHash(keyTxFields: KeyTransactionFields): string
 }
 
 export async function isDeployedContractAddress(address: string): Promise<boolean> {
-  return (await Provider.provider.getCode(address)) !== "0x";
+  return (await networkManager!.provider.getCode(address)) !== "0x";
 }
 
 export function bytecodeToString(bytecode: Bytecode): string {

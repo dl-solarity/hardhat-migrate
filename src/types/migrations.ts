@@ -56,6 +56,21 @@ export interface MigrateConfig {
    * The flag indicating whether the previous deployment should be continued.
    */
   continue: boolean;
+
+  /*
+   * The interval in milliseconds between transaction status checks.
+   */
+  transactionStatusCheckInterval: number;
+
+  /*
+   * The maximum number of attempts to retry operation.
+   */
+  maxRetryAttempts: number;
+
+  /*
+   * The interval in milliseconds between attempts to retry operation.
+   */
+  retryGapMs: number;
 }
 
 export interface VerifyConfig {

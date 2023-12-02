@@ -19,6 +19,9 @@ const defaultConfig: MigrateConfig = {
   pathToMigrations: "./deploy",
   force: false,
   continue: false,
+  transactionStatusCheckInterval: 2000,
+  maxRetryAttempts: 10,
+  retryGapMs: 3000,
 };
 
 const defaultVerifyConfig: MigrateVerifyConfig = {
