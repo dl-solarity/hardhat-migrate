@@ -6,6 +6,8 @@ import { catchError, getChainId, getSignerHelper, isDeployedContractAddress } fr
 
 import { MigrateError } from "../errors";
 
+import { SEND_NATIVE_TX_NAME } from "../constants";
+
 import { Adapter } from "./adapters/Adapter";
 import { TruffleAdapter } from "./adapters/TruffleAdapter";
 import { BytecodeAdapter } from "./adapters/BytecodeAdapter";
@@ -36,7 +38,7 @@ export class Deployer {
       argsOrParameters = [] as TypedArgs<A>;
     }
 
-    const adapter = this._resolveAdapter(contract);
+    const adapter = Deployer.resolveAdapter(this._hre, contract);
 
     const minimalContract = await adapter.fromInstance(contract, parameters);
     const contractAddress = await minimalContract.deploy(argsOrParameters as TypedArgs<A>, parameters);
@@ -48,7 +50,7 @@ export class Deployer {
     contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never),
     contractIdentifier?: string,
   ): Promise<I> {
-    const adapter = this._resolveAdapter(contract);
+    const adapter = Deployer.resolveAdapter(this._hre, contract);
     const defaultContractName = adapter.getContractName(contract, {});
 
     let contractAddress;
@@ -72,10 +74,10 @@ export class Deployer {
     return adapter.toInstance(contract, contractAddress, {});
   }
 
-  public async sendNative(to: string, value: bigint): Promise<void> {
+  public async sendNative(to: string, value: bigint, name: string = SEND_NATIVE_TX_NAME): Promise<void> {
     const signer = await getSignerHelper();
 
-    const tx = await this._buildSendTransaction(to, value);
+    const tx = await this._buildSendTransaction(to, value, name);
 
     const methodString = "sendNative";
 
@@ -114,33 +116,34 @@ export class Deployer {
     return getChainId();
   }
 
-  private _resolveAdapter<A, I>(contract: Instance<A, I>): Adapter {
-    if (isEthersContract(contract)) {
-      return new EthersContractAdapter(this._hre.config.migrate);
-    }
-
-    if (isTruffleFactory(contract)) {
-      return new TruffleAdapter(this._hre);
-    }
-
-    if (isBytecodeFactory(contract)) {
-      return new BytecodeAdapter(this._hre.config.migrate);
-    }
-
-    if (isContractFactory(contract)) {
-      return new EthersFactoryAdapter(this._hre.config.migrate);
-    }
-
-    throw new MigrateError("Unknown Contract Factory Type");
-  }
-
-  private async _buildSendTransaction(to: string, value: bigint): Promise<KeyTransactionFields> {
+  private async _buildSendTransaction(to: string, value: bigint, name: string): Promise<KeyTransactionFields> {
     return {
       to,
       value,
       chainId: await getChainId(),
       data: "0x",
       from: (await getSignerHelper()).address,
+      name,
     };
+  }
+
+  public static resolveAdapter<A, I>(hre: HardhatRuntimeEnvironment, contract: Instance<A, I>): Adapter {
+    if (isEthersContract(contract)) {
+      return new EthersContractAdapter(hre.config.migrate);
+    }
+
+    if (isTruffleFactory(contract)) {
+      return new TruffleAdapter(hre);
+    }
+
+    if (isBytecodeFactory(contract)) {
+      return new BytecodeAdapter(hre.config.migrate);
+    }
+
+    if (isContractFactory(contract)) {
+      return new EthersFactoryAdapter(hre.config.migrate);
+    }
+
+    throw new MigrateError("Unknown Contract Factory Type");
   }
 }

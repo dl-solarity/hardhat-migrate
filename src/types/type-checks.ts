@@ -1,31 +1,17 @@
 import { ContractFactory } from "ethers";
 
 import { EthersContract, BytecodeFactory, TruffleFactory } from "./adapter";
-import { KeyDeploymentFields, KeyTransactionFields } from "./tools";
+import { BaseTxFields, KeyDeploymentFields, KeyTransactionFields } from "./tools";
 
 import { MigrateError } from "../errors";
 
-export function validateKeyDeploymentFields(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+export function validateKeyDeploymentFields(_target: any, _propertyKey: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
 
   descriptor.value = function (...args: any[]) {
     const key = args[0] as KeyDeploymentFields;
 
-    if (!key.data || key.data === "") {
-      throw new MigrateError(`KeyDeploymentFields.data is not valid`);
-    }
-
-    if (!key.from || key.from === "") {
-      throw new MigrateError(`KeyDeploymentFields.from is not valid`);
-    }
-
-    if (!key.chainId || key.chainId === 0n) {
-      throw new MigrateError(`KeyDeploymentFields.chainId is not valid`);
-    }
-
-    if (key.value === undefined) {
-      throw new MigrateError(`KeyDeploymentFields.value is not valid`);
-    }
+    baseTxValidation(key, "KeyDeploymentFields");
 
     return originalMethod.apply(this, args);
   };
@@ -33,30 +19,20 @@ export function validateKeyDeploymentFields(target: any, propertyKey: string, de
   return descriptor;
 }
 
-export function validateKeyTxFields(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+export function validateKeyTxFields(_target: any, _propertyKey: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
 
   descriptor.value = function (...args: any[]) {
     const key = args[0] as KeyTransactionFields;
 
-    if (!key.data || key.data === "") {
-      throw new MigrateError(`KeyDeploymentFields.data is not valid`);
-    }
-
-    if (!key.from || key.from === "") {
-      throw new MigrateError(`KeyDeploymentFields.from is not valid`);
-    }
-
-    if (!key.chainId || key.chainId === 0n) {
-      throw new MigrateError(`KeyDeploymentFields.chainId is not valid`);
-    }
+    baseTxValidation(key, "KeyTransactionFields");
 
     if (!key.to || key.to === "") {
-      throw new MigrateError(`KeyDeploymentFields.to is not valid`);
+      throw new MigrateError(`KeyTransactionFields.to is not valid`);
     }
 
-    if (key.value === undefined) {
-      throw new MigrateError(`KeyDeploymentFields.value is not valid`);
+    if (key.name === undefined) {
+      throw new MigrateError(`KeyTransactionFields.name is not valid`);
     }
 
     return originalMethod.apply(this, args);
@@ -79,4 +55,22 @@ export function isBytecodeFactory(instance: any): instance is BytecodeFactory {
 
 export function isContractFactory(instance: any): instance is ContractFactory {
   return instance.interface !== undefined && instance.bytecode !== undefined;
+}
+
+function baseTxValidation(key: BaseTxFields, namespace: string) {
+  if (!key.data || key.data === "") {
+    throw new MigrateError(`${namespace}.data is not valid`);
+  }
+
+  if (!key.from || key.from === "") {
+    throw new MigrateError(`${namespace}.from is not valid`);
+  }
+
+  if (!key.chainId || key.chainId === 0n) {
+    throw new MigrateError(`${namespace}.chainId is not valid`);
+  }
+
+  if (key.value === undefined) {
+    throw new MigrateError(`${namespace}.value is not valid`);
+  }
 }

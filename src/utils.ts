@@ -57,7 +57,7 @@ export function underline(str: string): string {
 }
 
 export function resolvePathToFile(path: string, file: string = ""): string {
-  if (!existsSync(join(path, file))) {
+  if (!existsSync(path)) {
     path = "./";
   }
 
@@ -103,6 +103,7 @@ export function createKeyTxFieldsHash(keyTxFields: KeyTransactionFields): string
     chainId: keyTxFields.chainId,
     to: keyTxFields.to,
     value: keyTxFields.value,
+    name: keyTxFields.name,
   };
 
   return id(toJSON(obj));
@@ -155,16 +156,6 @@ export function getMethodString(
   return methodSting;
 }
 
-export async function waitForBlock(desiredBlock: number) {
-  return new Promise<void>((resolve) => {
-    Provider.provider.on("block", (blockNumber) => {
-      if (blockNumber == desiredBlock) {
-        resolve();
-      }
-    });
-  });
-}
-
 export function catchError(target: any, propertyName?: string, descriptor?: PropertyDescriptor) {
   // Method decorator
   if (descriptor) {
@@ -203,7 +194,7 @@ export function getInterfaceOnlyWithConstructor(fragments: InterfaceAbi): Interf
 }
 
 /* eslint-disable no-console */
-export function suppressLogs(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+export function suppressLogs(_target: any, _propertyKey: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
 
   descriptor.value = function (...args: any[]) {
@@ -224,15 +215,6 @@ export function suppressLogs(target: any, propertyKey: string, descriptor: Prope
 /* eslint-enable no-console */
 
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-export async function isOnline(): Promise<boolean> {
-  try {
-    await axios.get("https://www.google.com");
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 function _generateDescriptor(propertyName: string, descriptor: PropertyDescriptor): PropertyDescriptor {
   const method = descriptor.value;

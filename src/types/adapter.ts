@@ -45,7 +45,7 @@ type TruffleParameters<T extends { (...args: any[]): any }> = T extends { (...ar
 export type TypedArgs<A> = A extends { deploy(...args: any): any }
   ? Parameters<A["deploy"]>
   : A extends { "new"(...args: any): any }
-  ? TruffleParameters<A["new"]>
-  : any;
+    ? TruffleParameters<A["new"]>
+    : any;
 
 export type Instance<A, I> = TruffleFactory<I> | EthersContract<A, I> | BytecodeFactory | ContractFactory;

@@ -77,6 +77,7 @@ export class TransactionProcessor {
         chainId: tx.chainId,
         to: tx.to,
         value: tx.value,
+        name: tx.name,
       },
       receipt,
       metadata,
@@ -124,6 +125,7 @@ export class TransactionProcessor {
         chainId: key.chainId,
         to: key.to,
         value: key.value,
+        name: key.name,
       }),
     );
   }
@@ -146,9 +148,10 @@ export class TransactionProcessor {
       chainId: args.chainId,
       to: args.to,
       value: args.value,
+      name: args.name,
     });
 
-    if (TransactionStorage.has(dataKey)) {
+    if (TransactionStorage.has(dataKey) && !this._config.continue) {
       this._processCollision(dataKey, dataToSave);
     }
 
@@ -156,7 +159,7 @@ export class TransactionProcessor {
   }
 
   private static _saveContract(keyByArgs: string, dataToSave: ContractFieldsToSave) {
-    if (TransactionStorage.has(keyByArgs)) {
+    if (TransactionStorage.has(keyByArgs) && !this._config.continue) {
       this._processCollision(keyByArgs, dataToSave);
     }
 
@@ -164,7 +167,7 @@ export class TransactionProcessor {
   }
 
   private static _saveContractByName(contractName: string, dataToSave: ContractFieldsToSave) {
-    if (TransactionStorage.has(contractName)) {
+    if (TransactionStorage.has(contractName) && !this._config.continue) {
       this._processCollision(contractName, dataToSave);
     }
 

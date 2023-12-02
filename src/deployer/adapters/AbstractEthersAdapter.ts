@@ -2,6 +2,7 @@ import {
   BaseContract,
   BaseContractMethod,
   ContractFactory,
+  ContractTransaction,
   ContractTransactionReceipt,
   ContractTransactionResponse,
   defineProperties,
@@ -123,16 +124,18 @@ export abstract class AbstractEthersAdapter extends Adapter {
     oldMethod: BaseContractMethod,
   ): (...args: any[]) => Promise<ContractTransactionResponse> {
     return async (...args: any[]): Promise<ContractTransactionResponse> => {
-      const tx = (await oldMethod.populateTransaction(...args)) as KeyTransactionFields;
+      const tx = await oldMethod.populateTransaction(...args);
       await fillParameters(tx);
 
       const methodString = getMethodString(contractName, methodName, methodFragments, args);
 
+      const keyFields = this._getKeyFieldsFromTransaction(tx);
+
       if (this._config.continue) {
-        return this._recoverTransaction(methodString, tx, oldMethod, args);
+        return this._recoverTransaction(methodString, keyFields, oldMethod, args);
       }
 
-      return this._sendTransaction(methodString, tx, oldMethod, args);
+      return this._sendTransaction(methodString, keyFields, oldMethod, args);
     };
   }
 
@@ -182,5 +185,16 @@ export abstract class AbstractEthersAdapter extends Adapter {
         return data.receipt as unknown as Promise<ContractTransactionReceipt | null>;
       },
     } as unknown as ContractTransactionResponse;
+  }
+
+  private _getKeyFieldsFromTransaction(tx: ContractTransaction): KeyTransactionFields {
+    return {
+      name: tx.customData.txName,
+      data: tx.data,
+      from: tx.from!,
+      chainId: tx.chainId!,
+      value: tx.value!,
+      to: tx.to,
+    };
   }
 }

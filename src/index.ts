@@ -2,7 +2,7 @@ import "@nomicfoundation/hardhat-verify";
 
 import { ActionType } from "hardhat/types";
 import { lazyObject } from "hardhat/plugins";
-import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { extendConfig, extendEnvironment, task, types } from "hardhat/config";
 
 import "./type-extensions";
@@ -78,7 +78,12 @@ extendEnvironment((hre) => {
   hre.storage = lazyObject(() => DefaultStorage);
 });
 
-// TODO: override the `clean` task
+task(TASK_CLEAN, "Clears the cache and deletes all artifacts").setAction(async (conf, hre, runSuper) => {
+  MigrateStorage.clean();
+
+  await runSuper();
+});
+
 task(TASK_MIGRATE, "Deploy contracts via migration files")
   .addOptionalParam("from", "The migration number from which the migration will be applied.", undefined, types.int)
   .addOptionalParam("to", "The migration number up to which the migration will be applied.", undefined, types.int)
