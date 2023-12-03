@@ -26,6 +26,13 @@ class StateMiddleware {
 
       return result;
     } catch (e: any) {
+      const networkErrorCodes = ["EAI_AGAIN", "ENETDOWN", "ENETUNREACH", "ENOTFOUND", "ECONNABORTED"];
+      const isNetworkError = networkErrorCodes.includes(e.code) || e.isAxiosError;
+
+      if (!isNetworkError) {
+        throw e;
+      }
+
       reporter!.reportNetworkError(retryCount, maxTry, fn.name, e);
 
       await sleep(retryGapMs);
