@@ -186,10 +186,10 @@ export class TruffleAdapter extends Adapter {
 
     await transactionRunner!.reportTransactionResponse(txResponse, methodString);
 
-    const receipt = (await txResponse.wait())!;
-    TransactionProcessor.saveTransaction(tx, receipt, saveMetadata);
+    const response = this._toTruffleTransactionResponse((await txResponse.wait())!);
+    TransactionProcessor.saveTransaction(tx, response.receipt, saveMetadata);
 
-    return this._toTruffleTransactionResponse(receipt);
+    return response;
   }
 
   private _toTruffleTransactionResponse(receipt: ContractTransactionReceipt): TruffleTransactionResponse {

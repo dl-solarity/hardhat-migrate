@@ -22,7 +22,7 @@ import {
   TransactionFieldsToSave,
 } from "../../types/tools";
 import { MigrateConfig } from "../../types/migrations";
-import { ContractDeployTxWithName } from "../../types/deployer";
+import { ContractDeployTxWithName, TransactionReceipt } from "../../types/deployer";
 import { validateKeyDeploymentFields, validateKeyTxFields } from "../../types/type-checks";
 
 @catchError
@@ -67,7 +67,7 @@ export class TransactionProcessor {
   @validateKeyTxFields
   public static saveTransaction(
     tx: KeyTransactionFields,
-    receipt: TransactionReceiptParams,
+    receipt: TransactionReceiptParams | TransactionReceipt,
     metadata: MigrationMetadata,
   ) {
     this._saveTransaction(
@@ -133,7 +133,7 @@ export class TransactionProcessor {
   @catchError
   private static _saveTransaction(
     args: KeyTransactionFields,
-    transaction: TransactionReceiptParams,
+    transaction: TransactionReceiptParams | TransactionReceipt,
     metadata: MigrationMetadata,
   ) {
     const dataToSave: TransactionFieldsToSave = {

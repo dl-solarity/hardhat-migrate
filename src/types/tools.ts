@@ -1,5 +1,7 @@
 import { TransactionReceiptParams } from "ethers";
 
+import { TransactionReceipt } from "./deployer";
+
 export interface BaseTxFields {
   name: string;
   data: string;
@@ -16,7 +18,7 @@ export interface KeyTransactionFields extends BaseTxFields {
 
 export interface TransactionFieldsToSave {
   txKeyData: KeyTransactionFields;
-  receipt: TransactionReceiptParams;
+  receipt: TransactionReceiptParams | TransactionReceipt;
   metadata: MigrationMetadata;
 }
 
