@@ -26,6 +26,7 @@ class StateMiddleware {
 
       return result;
     } catch (e: any) {
+      // TODO: use spinner instead of console.log.
       const networkErrorCodes = ["EAI_AGAIN", "ENETDOWN", "ENETUNREACH", "ENOTFOUND", "ECONNABORTED"];
       const isNetworkError = networkErrorCodes.includes(e.code) || e.isAxiosError;
 

@@ -272,7 +272,7 @@ class Reporter {
 
   public reportNetworkError(retry: number, fnName: string, error: Error) {
     if (this._isSpinnerActive) {
-      this._spinnerMessageIfActive = `Network error in ${fnName}: Reconnect attempt ${retry}...`;
+      this._spinnerMessageIfActive = `Network error in '${fnName}': Reconnect attempt ${retry}...`;
 
       return;
     }
