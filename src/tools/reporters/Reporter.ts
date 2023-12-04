@@ -270,18 +270,17 @@ class Reporter {
     this._spinnerMessageIfActive = null;
   }
 
-  public reportNetworkError(retry: number, maxRetry: number, fnName: string, error: Error) {
+  public reportNetworkError(retry: number, fnName: string, error: Error) {
     if (this._isSpinnerActive) {
-      this._spinnerMessageIfActive = `Network error in ${fnName}: Retry ${retry} of ${maxRetry} failed.`;
+      this._spinnerMessageIfActive = `Network error in ${fnName}: Reconnect attempt ${retry}...`;
 
       return;
     }
 
-    const prefix = `Network error in ${fnName}:\n`;
-    const retryMessage = retry === maxRetry ? "All retry attempts exhausted" : `Retry ${retry} failed.`;
+    const prefix = `\nNetwork error in ${fnName}:\n`;
     const postfix = `\n${error.message}`;
 
-    console.log(prefix + retryMessage + postfix);
+    console.log(prefix + postfix);
   }
 
   private _parseTransactionTitle(tx: TransactionResponse, instanceName: string): string {

@@ -22,7 +22,7 @@ describe("deployer", () => {
     let ContractWithPayableConstructor: ContractFactory<any[], Contract>;
 
     beforeEach("setup", async function () {
-      await Migrator.initializeDependencies(this.hre);
+      await Migrator.initialize(this.hre);
 
       deployer = new Deployer(this.hre);
 

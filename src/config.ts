@@ -20,8 +20,6 @@ const defaultConfig: MigrateConfig = {
   force: false,
   continue: false,
   transactionStatusCheckInterval: 2000,
-  maxRetryAttempts: 10,
-  retryGapMs: 3000,
 };
 
 const defaultVerifyConfig: MigrateVerifyConfig = {
@@ -35,46 +33,49 @@ export const migrateConfigExtender: ConfigExtender = (resolvedConfig, config) =>
 };
 
 export const mergeConfigs = (
-  config: Partial<MigrateConfig> | undefined,
-  defaultConfig: MigrateConfig,
+  cliArgs: Partial<MigrateConfig> | undefined,
+  migrateConfig: MigrateConfig,
 ): MigrateConfig => {
-  if (config === undefined) {
-    return defaultConfig;
-  }
+  const config = cliArgs === undefined ? migrateConfig : { ...migrateConfig, ...definedProps(cliArgs) };
 
-  if (config.wait && config.wait < 1) {
+  if (config.wait !== undefined && config.wait < 1) {
     throw new HardhatPluginError(pluginName, "config.migrate.wait must be greater than 0");
   }
 
-  if (config.verifyParallel && config.verifyParallel < 1) {
+  if (config.verifyParallel !== undefined && config.verifyParallel < 1) {
     throw new HardhatPluginError(pluginName, "config.migrate.verifyParallel must be greater than 0");
   }
 
-  if (config.verifyAttempts && config.verifyAttempts < 1) {
+  if (config.verifyAttempts !== undefined && config.verifyAttempts < 1) {
     throw new HardhatPluginError(pluginName, "config.migrate.verifyAttempts must be greater than 0");
   }
 
-  if (config.pathToMigrations && !isRelativePath(config.pathToMigrations)) {
+  if (config.pathToMigrations !== undefined && !isRelativePath(config.pathToMigrations)) {
     throw new HardhatPluginError(pluginName, "config.migrate.pathToMigrations must be a relative path");
   }
 
-  return { ...defaultConfig, ...definedProps(config) };
-};
-
-export const extendVerifyConfigs = (config: Partial<MigrateVerifyConfig> | undefined): MigrateVerifyConfig => {
-  if (config === undefined) {
-    return defaultVerifyConfig;
+  if (config.transactionStatusCheckInterval !== undefined && config.transactionStatusCheckInterval < 1000) {
+    throw new HardhatPluginError(
+      pluginName,
+      "config.migrate.transactionStatusCheckInterval must be greater or equal to 1000",
+    );
   }
 
-  if (config.parallel && config.parallel < 1) {
+  return config;
+};
+
+export const extendVerifyConfigs = (cliArgs: Partial<MigrateVerifyConfig> | undefined): MigrateVerifyConfig => {
+  const config = cliArgs === undefined ? defaultVerifyConfig : { ...defaultVerifyConfig, ...definedProps(cliArgs) };
+
+  if (config.parallel !== undefined && config.parallel < 1) {
     throw new HardhatPluginError(pluginName, "parallel must be greater than 0");
   }
 
-  if (config.attempts && config.attempts < 1) {
+  if (config.attempts !== undefined && config.attempts < 1) {
     throw new HardhatPluginError(pluginName, "attempts must be greater than 0");
   }
 
-  return { ...defaultVerifyConfig, ...definedProps(config) };
+  return config;
 };
 
 const definedProps = (obj: any): any => Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));

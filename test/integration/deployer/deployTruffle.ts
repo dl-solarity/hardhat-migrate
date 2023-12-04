@@ -8,6 +8,7 @@ import { Deployer } from "../../../src/deployer/Deployer";
 import { Migrator } from "../../../src/migrator/Migrator";
 
 import { resetEthersProvider } from "../../../src/tools/network/EthersProvider";
+import { resetNetworkManager } from "../../../src/tools/network/NetworkManager";
 import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
 
 describe("Truffle -- deployer", () => {
@@ -19,8 +20,9 @@ describe("Truffle -- deployer", () => {
 
     beforeEach("setup", async function () {
       resetEthersProvider();
+      resetNetworkManager();
 
-      await Migrator.initializeDependencies(this.hre);
+      await Migrator.initialize(this.hre);
 
       deployer = new Deployer(this.hre);
 

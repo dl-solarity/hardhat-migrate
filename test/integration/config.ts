@@ -11,6 +11,8 @@ import { useEnvironment } from "../helpers";
 
 import { migrateConfigExtender } from "../../src/config";
 
+import { resetNetworkManager } from "../../src/tools/network/NetworkManager";
+
 import { MigrateConfig } from "../../src/types/migrations";
 
 describe("config", () => {
@@ -81,6 +83,7 @@ describe("config", () => {
       }).to.throw(HardhatPluginError, "config.migrate.pathToMigrations must be a relative path");
 
       resetHardhatContext();
+      resetNetworkManager();
     });
   });
 

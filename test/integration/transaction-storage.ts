@@ -21,7 +21,7 @@ describe("TransactionStorage", async () => {
   useEnvironment("repeats-typechain-ethers");
 
   beforeEach(async function () {
-    await Migrator.initializeDependencies(this.hre);
+    await Migrator.initialize(this.hre);
   });
 
   afterEach(async function () {

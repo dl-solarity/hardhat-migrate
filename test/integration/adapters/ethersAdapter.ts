@@ -51,7 +51,7 @@ describe("EthersAdapter", () => {
       let ContractWithConstructor: ContractFactory;
 
       beforeEach("setup", async function () {
-        await Migrator.initializeDependencies(this.hre);
+        await Migrator.initialize(this.hre);
 
         pureEhtersAdapter = new EthersFactoryAdapter(this.hre);
 
@@ -75,7 +75,7 @@ describe("EthersAdapter", () => {
       useEnvironment("minimal-typechain-ethers");
 
       beforeEach(async function () {
-        await Migrator.initializeDependencies(this.hre);
+        await Migrator.initialize(this.hre);
 
         ethersAdapter = new EthersContractAdapter(this.hre);
       });

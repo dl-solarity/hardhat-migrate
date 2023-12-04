@@ -107,7 +107,7 @@ export class Migrator {
     return parseInt(basename(file));
   }
 
-  public static async initializeDependencies(hre: HardhatRuntimeEnvironment): Promise<void> {
+  public static async initialize(hre: HardhatRuntimeEnvironment): Promise<void> {
     Linker.setConfig(hre.config.migrate);
     TransactionProcessor.setConfig(hre.config.migrate);
 

@@ -8,6 +8,7 @@ import { useEnvironment } from "../../helpers";
 import { Migrator } from "../../../src/migrator/Migrator";
 
 import { resetEthersProvider } from "../../../src/tools/network/EthersProvider";
+import { resetNetworkManager } from "../../../src/tools/network/NetworkManager";
 
 import { TruffleAdapter } from "../../../src/deployer/adapters/TruffleAdapter";
 
@@ -52,8 +53,9 @@ describe("TruffleAdapter", () => {
 
       beforeEach("setup", async function () {
         resetEthersProvider();
+        resetNetworkManager();
 
-        await Migrator.initializeDependencies(this.hre);
+        await Migrator.initialize(this.hre);
 
         adapter = new TruffleAdapter(this.hre);
 
@@ -79,7 +81,7 @@ describe("TruffleAdapter", () => {
       let contractWithConstructorArtifact: TruffleContract;
 
       beforeEach("setup", async function () {
-        await Migrator.initializeDependencies(this.hre);
+        await Migrator.initialize(this.hre);
 
         adapter = new TruffleAdapter(this.hre);
 

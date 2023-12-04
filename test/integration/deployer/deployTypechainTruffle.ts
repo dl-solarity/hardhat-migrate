@@ -10,6 +10,7 @@ import { Migrator } from "../../../src/migrator/Migrator";
 
 import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
 import { resetEthersProvider } from "../../../src/tools/network/EthersProvider";
+import { resetNetworkManager } from "../../../src/tools/network/NetworkManager";
 
 describe("Truffle Typechain -- Deployer", () => {
   describe("deploy()", () => {
@@ -28,8 +29,9 @@ describe("Truffle Typechain -- Deployer", () => {
       contractWithConstructorArtifact = this.hre.artifacts.require("ContractWithConstructorArguments");
 
       resetEthersProvider();
+      resetNetworkManager();
 
-      await Migrator.initializeDependencies(this.hre);
+      await Migrator.initialize(this.hre);
 
       deployer = new Deployer(this.hre);
 

@@ -33,7 +33,7 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
     force: env.config.migrate.force,
   });
 
-  await Migrator.initializeDependencies(env);
+  await Migrator.initialize(env);
 
   await new Migrator(env).migrate();
 
@@ -45,7 +45,7 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
 const migrateVerify: ActionType<MigrateVerifyConfig> = async (taskArgs, env) => {
   const config = extendVerifyConfigs(taskArgs);
 
-  await Migrator.initializeDependencies(env);
+  await Migrator.initialize(env);
 
   await new Verifier(env, config).verifyBatch(
     VerificationProcessor.restoreSavedVerificationFunctions(config.inputFile),
