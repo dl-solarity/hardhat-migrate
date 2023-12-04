@@ -1,4 +1,4 @@
-import { BytesLike, ContractDeployTransaction, ContractFactory, FunctionFragment, Overrides } from "ethers";
+import { BytesLike, ContractDeployTransaction, ContractFactory, Overrides } from "ethers";
 
 import { Artifact, Libraries } from "hardhat/types";
 
@@ -50,11 +50,3 @@ export interface TransactionReceipt {
   cumulativeGasUsed?: string;
   contractAddress?: string;
 }
-
-export type BaseTruffleMethod = {
-  (...args: any[]): Promise<TruffleTransactionResponse>;
-  call: (...args: any[]) => Promise<any>;
-  sendTransaction: (...args: any[]) => Promise<TruffleTransactionResponse>;
-  estimateGas: (...args: any[]) => Promise<any>;
-  fragment: FunctionFragment;
-};

@@ -13,7 +13,8 @@ import { MigrateConfig } from "../types/migrations";
 import { ContractDeployTxWithName, OverridesAndLibs } from "../types/deployer";
 
 import { Stats } from "../tools/Stats";
-import { Reporter } from "../tools/reporters/Reporter";
+import { reporter } from "../tools/reporters/Reporter";
+import { transactionRunner } from "../tools/runners/TransactionRunner";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
@@ -84,7 +85,7 @@ export class MinimalContract {
     try {
       const contractAddress = await TransactionProcessor.tryRestoreContractAddressByKeyFields(tx);
 
-      Reporter.notifyContractRecovery(tx.contractName, contractAddress);
+      reporter!.notifyContractRecovery(tx.contractName, contractAddress);
 
       await this._saveContractForVerification(contractAddress, tx, args);
 
@@ -93,7 +94,7 @@ export class MinimalContract {
       /* empty */
     }
 
-    Reporter.notifyDeploymentInsteadOfRecovery(tx.contractName);
+    reporter!.notifyDeploymentInsteadOfRecovery(tx.contractName);
 
     return this._processContractDeploymentTransaction(tx, args);
   }
@@ -103,7 +104,7 @@ export class MinimalContract {
 
     const txResponse = await signer.sendTransaction(tx);
 
-    await Reporter.reportTransactionResponse(txResponse, tx.contractName);
+    await transactionRunner!.reportTransactionResponse(txResponse, tx.contractName);
 
     const contractAddress = (await txResponse.wait(0))!.contractAddress;
 
@@ -142,7 +143,7 @@ export class MinimalContract {
         chainId: Number(await getChainId()),
       });
     } catch {
-      Reporter.reportVerificationFailedToSave(tx.contractName);
+      reporter!.reportVerificationFailedToSave(tx.contractName);
     }
   }
 }

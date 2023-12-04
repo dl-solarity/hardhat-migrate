@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, readFileSync, writeFileSync, rmSync } from "fs";
 
 import { lazyObject } from "hardhat/plugins";
 
@@ -21,7 +21,9 @@ export class MigrateStorage {
   }
 
   public static clearAll(): void {
-    MigrateStorage._state = {};
+    for (const namespace of Object.values(StorageNamespaces)) {
+      MigrateStorage._state[namespace] = {};
+    }
 
     MigrateStorage._saveStateToFile();
   }
@@ -64,6 +66,12 @@ export class MigrateStorage {
     MigrateStorage._saveStateToFile();
   }
 
+  public static clean(): void {
+    if (this._stateExistsInFile()) {
+      rmSync(this._filePath(), { force: true });
+    }
+  }
+
   private static _stateExistsInFile(): boolean {
     return existsSync(this._filePath());
   }
@@ -88,7 +96,7 @@ export class MigrateStorage {
   }
 
   private static _filePath(): string {
-    return resolvePathToFile("artifacts/build-info", MigrateStorage._fileName);
+    return resolvePathToFile("cache", MigrateStorage._fileName);
   }
 }
 

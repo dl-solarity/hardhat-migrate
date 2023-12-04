@@ -6,9 +6,14 @@ import { HardhatPluginError } from "hardhat/plugins";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 
 import { extendConfig } from "hardhat/config";
-import { migrateConfigExtender } from "../../src/config";
-import { MigrateConfig } from "../../src/types/migrations";
+
 import { useEnvironment } from "../helpers";
+
+import { migrateConfigExtender } from "../../src/config";
+
+import { resetNetworkManager } from "../../src/tools/network/NetworkManager";
+
+import { MigrateConfig } from "../../src/types/migrations";
 
 describe("config", () => {
   describe("loading", () => {
@@ -78,6 +83,7 @@ describe("config", () => {
       }).to.throw(HardhatPluginError, "config.migrate.pathToMigrations must be a relative path");
 
       resetHardhatContext();
+      resetNetworkManager();
     });
   });
 

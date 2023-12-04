@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 2.0.0-alpha.17
+
+* Separated the logic of the Reporter and moved transaction-related functions to the TransactionRunner class.
+* Added the ability to specify a name for each transaction, essentially enabling the same transaction to be distinguishable. Also fixed a few bugs related to migration storage.
+* Added a Network Manager to handle network errors and implemented logic for reconnection. Also updated the Reporter to support these changes properly.
+
 ## Version 2.0.0-alpha.16
 
 * Fixed a bug when txs could not be sent with overrides

@@ -12,11 +12,20 @@ import { MigrateError } from "../errors";
 
 import { MigrateConfig } from "../types/migrations";
 
+import { Linker } from "../deployer/Linker";
 import { Deployer } from "../deployer/Deployer";
 import { Verifier } from "../verifier/Verifier";
 
 import { Stats } from "../tools/Stats";
-import { Reporter } from "../tools/reporters/Reporter";
+
+import { initReporter, reporter } from "../tools/reporters/Reporter";
+import { transactionRunner } from "../tools/runners/TransactionRunner";
+
+import { initNetworkManager } from "../tools/network/NetworkManager";
+
+import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
+import { MigrateStorage } from "../tools/storage/MigrateStorage";
+import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 
 export class Migrator {
   private readonly _deployer: Deployer;
@@ -38,12 +47,12 @@ export class Migrator {
   }
 
   public async migrate() {
-    Reporter.reportMigrationBegin(this._migrationFiles);
+    reporter!.reportMigrationBegin(this._migrationFiles);
 
     for (const element of this._migrationFiles) {
       Stats.currentMigration = this._getMigrationNumber(element);
 
-      Reporter.reportMigrationFileBegin(element);
+      reporter!.reportMigrationFileBegin(element);
 
       try {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -59,7 +68,7 @@ export class Migrator {
       }
     }
 
-    Reporter.summary();
+    transactionRunner!.summary();
   }
 
   private _getMigrationFiles() {
@@ -96,5 +105,19 @@ export class Migrator {
 
   private _getMigrationNumber(file: string) {
     return parseInt(basename(file));
+  }
+
+  public static async initialize(hre: HardhatRuntimeEnvironment): Promise<void> {
+    Linker.setConfig(hre.config.migrate);
+    TransactionProcessor.setConfig(hre.config.migrate);
+
+    initNetworkManager(hre);
+    await initReporter(hre.config.migrate);
+
+    if (!hre.config.migrate.continue) {
+      MigrateStorage.clearAll();
+    }
+
+    await ArtifactProcessor.parseArtifacts(hre);
   }
 }

@@ -4,7 +4,7 @@ import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
 
 import { catchError } from "../../utils";
 
-import { UNKNOWN_CONTRACT_NAME } from "../../types/tools";
+import { UNKNOWN_CONTRACT_NAME } from "../../constants";
 
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 

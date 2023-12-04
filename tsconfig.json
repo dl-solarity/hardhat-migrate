@@ -13,6 +13,7 @@
     "outDir": "./dist",
     "experimentalDecorators": true,
     "types": [
+      "@typechain/truffle-v5/static/types",
       "@nomiclabs/hardhat-truffle5",
       "@nomicfoundation/hardhat-ethers"
     ]

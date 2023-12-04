@@ -1,6 +1,7 @@
 import {
   BaseContract,
   ContractMethodArgs,
+  ContractTransaction,
   ContractTransactionReceipt,
   ContractTransactionResponse,
   ethers,
@@ -17,12 +18,15 @@ import { MinimalContract } from "../MinimalContract";
 
 import { bytecodeToString, catchError, fillParameters, getMethodString, getSignerHelper } from "../../utils";
 
+import { UNKNOWN_CONTRACT_NAME, UNKNOWN_TRANSACTION_NAME } from "../../constants";
+
 import { EthersContract, Instance, TruffleFactory } from "../../types/adapter";
 import { OverridesAndName, TruffleTransactionResponse } from "../../types/deployer";
-import { KeyTransactionFields, MigrationMetadata, UNKNOWN_CONTRACT_NAME } from "../../types/tools";
+import { KeyTransactionFields, MigrationMetadata } from "../../types/tools";
 
 import { Stats } from "../../tools/Stats";
-import { Reporter } from "../../tools/reporters/Reporter";
+import { reporter } from "../../tools/reporters/Reporter";
+import { transactionRunner } from "../../tools/runners/TransactionRunner";
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 
@@ -130,8 +134,10 @@ export class TruffleAdapter extends Adapter {
       let contractMethod = ethersBaseContract.getFunction(methodName);
 
       // Build transaction. Under the hood, ethers handle overrides.
-      const tx = (await contractMethod.populateTransaction(...args)) as KeyTransactionFields;
+      const tx = await contractMethod.populateTransaction(...args);
       await fillParameters(tx);
+
+      const keyFields = this._getKeyFieldsFromTransaction(tx, contractMethod, args);
 
       // Connect to signer and get method again with signer
       contractMethod = ethersBaseContract.connect(await getSignerHelper(tx.from)).getFunction(methodName);
@@ -139,10 +145,10 @@ export class TruffleAdapter extends Adapter {
       const methodString = getMethodString(contractName, methodName, contractMethod.fragment, args);
 
       if (this._config.continue) {
-        return this._recoverTransaction(methodString, tx, contractMethod.send, args);
+        return this._recoverTransaction(methodString, keyFields, contractMethod.send, args);
       }
 
-      return this._sendTransaction(methodString, tx, contractMethod.send, args);
+      return this._sendTransaction(methodString, keyFields, contractMethod.send, args);
     };
   }
 
@@ -155,11 +161,11 @@ export class TruffleAdapter extends Adapter {
     try {
       const txResponse = TransactionProcessor.tryRestoreSavedTransaction(tx);
 
-      Reporter.notifyTransactionRecovery(methodString);
+      reporter!.notifyTransactionRecovery(methodString);
 
       return txResponse as unknown as TruffleTransactionResponse;
     } catch {
-      Reporter.notifyTransactionSendingInsteadOfRecovery(methodString);
+      reporter!.notifyTransactionSendingInsteadOfRecovery(methodString);
 
       return this._sendTransaction(methodString, tx, oldMethod, args);
     }
@@ -178,12 +184,12 @@ export class TruffleAdapter extends Adapter {
       methodName: methodString,
     };
 
-    await Reporter.reportTransactionResponse(txResponse, methodString);
+    await transactionRunner!.reportTransactionResponse(txResponse, methodString);
 
-    const receipt = (await txResponse.wait())!;
-    TransactionProcessor.saveTransaction(tx, receipt, saveMetadata);
+    const response = this._toTruffleTransactionResponse((await txResponse.wait())!);
+    TransactionProcessor.saveTransaction(tx, response.receipt, saveMetadata);
 
-    return this._toTruffleTransactionResponse(receipt);
+    return response;
   }
 
   private _toTruffleTransactionResponse(receipt: ContractTransactionReceipt): TruffleTransactionResponse {
@@ -208,5 +214,28 @@ export class TruffleAdapter extends Adapter {
       },
       logs: receipt.logs,
     };
+  }
+
+  private _getKeyFieldsFromTransaction(
+    tx: ContractTransaction,
+    contractMethod: ethers.ContractMethod<any[], any, any>,
+    args: any[],
+  ): KeyTransactionFields {
+    return {
+      data: tx.data,
+      from: tx.from!,
+      chainId: tx.chainId!,
+      to: tx.to,
+      value: tx.value!,
+      name: this._getTransactionName(contractMethod, args),
+    };
+  }
+
+  private _getTransactionName(contractMethod: ethers.ContractMethod<any[], any, any>, args: any[]): string {
+    if (contractMethod.fragment.inputs.length + 1 === args.length) {
+      return args[args.length - 1].hardfork || UNKNOWN_TRANSACTION_NAME;
+    }
+
+    return UNKNOWN_TRANSACTION_NAME;
   }
 }

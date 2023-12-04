@@ -1,6 +1,8 @@
 import { TransactionReceiptParams } from "ethers";
 
-export interface KeyDeploymentFields {
+import { TransactionReceipt } from "./deployer";
+
+export interface BaseTxFields {
   name: string;
   data: string;
   from: string;
@@ -8,17 +10,15 @@ export interface KeyDeploymentFields {
   value: bigint;
 }
 
-export interface KeyTransactionFields {
-  data: string;
-  from: string;
-  chainId: bigint;
+export interface KeyDeploymentFields extends BaseTxFields {}
+
+export interface KeyTransactionFields extends BaseTxFields {
   to: string;
-  value: bigint;
 }
 
 export interface TransactionFieldsToSave {
   txKeyData: KeyTransactionFields;
-  receipt: TransactionReceiptParams;
+  receipt: TransactionReceiptParams | TransactionReceipt;
   metadata: MigrationMetadata;
 }
 
@@ -44,5 +44,3 @@ export enum StorageNamespaces {
   Transactions = "transactions",
   Verification = "verification",
 }
-
-export const UNKNOWN_CONTRACT_NAME = "Unknown Contract";

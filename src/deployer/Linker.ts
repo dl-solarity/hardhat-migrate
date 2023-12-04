@@ -11,7 +11,7 @@ import { catchError } from "../utils";
 import { MigrateConfig } from "../types/migrations";
 import { ArtifactExtended, Link, NeededLibrary } from "../types/deployer";
 
-import { Reporter } from "../tools/reporters/Reporter";
+import { reporter } from "../tools/reporters/Reporter";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 
@@ -170,7 +170,7 @@ export class Linker {
       // https://github.com/ethers-io/ethers.js/issues/1126
       const core = new MinimalContract(this._config, artifact.bytecode, artifact.abi, libraryName);
 
-      Reporter.notifyDeploymentOfMissingLibrary(libraryName);
+      reporter!.notifyDeploymentOfMissingLibrary(libraryName);
 
       return core.deploy();
     }

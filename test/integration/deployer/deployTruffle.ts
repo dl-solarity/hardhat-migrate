@@ -5,25 +5,25 @@ import { expect } from "chai";
 import { useEnvironment } from "../../helpers";
 
 import { Deployer } from "../../../src/deployer/Deployer";
-
-import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
-import { Reporter } from "../../../src/tools/reporters/Reporter";
-import { Provider } from "../../../src/tools/Provider";
 import { Migrator } from "../../../src/migrator/Migrator";
+
+import { resetEthersProvider } from "../../../src/tools/network/EthersProvider";
+import { resetNetworkManager } from "../../../src/tools/network/NetworkManager";
+import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
 
 describe("Truffle -- deployer", () => {
   describe("deploy()", () => {
     useEnvironment("minimal-truffle");
 
-    beforeEach(async function () {
-      await Provider.init(this.hre);
-      await Reporter.init(this.hre.config.migrate);
-    });
-
-    let contractWithConstructorArtifact: TruffleContract;
     let deployer: Deployer;
+    let contractWithConstructorArtifact: TruffleContract;
 
     beforeEach("setup", async function () {
+      resetEthersProvider();
+      resetNetworkManager();
+
+      await Migrator.initialize(this.hre);
+
       deployer = new Deployer(this.hre);
 
       TransactionStorage.clear();

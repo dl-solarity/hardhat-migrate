@@ -4,13 +4,11 @@ import { ContractFactory, ZeroAddress } from "ethers";
 import { useEnvironment } from "../helpers";
 
 import { Deployer } from "../../src/deployer/Deployer";
+import { Migrator } from "../../src/migrator/Migrator";
 
-import { UNKNOWN_CONTRACT_NAME } from "../../src/types/tools";
+import { UNKNOWN_CONTRACT_NAME } from "../../src/constants";
 import { ContractDeployTxWithName } from "../../src/types/deployer";
 
-import { Provider } from "../../src/tools/Provider";
-import { Reporter } from "../../src/tools/reporters/Reporter";
-import { ArtifactProcessor } from "../../src/tools/storage/ArtifactProcessor";
 import { TransactionStorage } from "../../src/tools/storage/MigrateStorage";
 import { TransactionProcessor } from "../../src/tools/storage/TransactionProcessor";
 
@@ -23,10 +21,7 @@ describe("TransactionStorage", async () => {
   useEnvironment("repeats-typechain-ethers");
 
   beforeEach(async function () {
-    await Provider.init(this.hre);
-    await Reporter.init(this.hre.config.migrate);
-
-    await ArtifactProcessor.parseArtifacts(this.hre);
+    await Migrator.initialize(this.hre);
   });
 
   afterEach(async function () {

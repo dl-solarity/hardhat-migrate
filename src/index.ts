@@ -2,7 +2,7 @@ import "@nomicfoundation/hardhat-verify";
 
 import { ActionType } from "hardhat/types";
 import { lazyObject } from "hardhat/plugins";
-import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { extendConfig, extendEnvironment, task, types } from "hardhat/config";
 
 import "./type-extensions";
@@ -12,16 +12,11 @@ import { TASK_MIGRATE, TASK_MIGRATE_VERIFY } from "./constants";
 
 import { MigrateConfig, MigrateVerifyConfig } from "./types/migrations";
 
-import { Reporter } from "./tools/reporters/Reporter";
-import { ArtifactProcessor } from "./tools/storage/ArtifactProcessor";
 import { DefaultStorage, MigrateStorage } from "./tools/storage/MigrateStorage";
 import { VerificationProcessor } from "./tools/storage/VerificationProcessor";
 
-import { Linker } from "./deployer/Linker";
 import { Migrator } from "./migrator/Migrator";
-import { Provider } from "./tools/Provider";
 import { Verifier } from "./verifier/Verifier";
-import { TransactionProcessor } from "./tools/storage/TransactionProcessor";
 
 export { Deployer } from "./deployer/Deployer";
 export { DefaultStorage } from "./tools/storage/MigrateStorage";
@@ -30,14 +25,7 @@ export { PublicReporter as Reporter } from "./tools/reporters/PublicReporter";
 extendConfig(migrateConfigExtender);
 
 const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
-  await Provider.init(env);
-
   env.config.migrate = mergeConfigs(taskArgs, env.config.migrate);
-
-  Linker.setConfig(env.config.migrate);
-  TransactionProcessor.setConfig(env.config.migrate);
-
-  await Reporter.init(env.config.migrate);
 
   // Make sure that contract artifacts are up-to-date.
   await env.run(TASK_COMPILE, {
@@ -45,11 +33,7 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
     force: env.config.migrate.force,
   });
 
-  if (!env.config.migrate.continue) {
-    MigrateStorage.clearAll();
-  }
-
-  await ArtifactProcessor.parseArtifacts(env);
+  await Migrator.initialize(env);
 
   await new Migrator(env).migrate();
 
@@ -59,11 +43,9 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
 };
 
 const migrateVerify: ActionType<MigrateVerifyConfig> = async (taskArgs, env) => {
-  await Provider.init(env);
-
   const config = extendVerifyConfigs(taskArgs);
 
-  await Reporter.init(env.config.migrate);
+  await Migrator.initialize(env);
 
   await new Verifier(env, config).verifyBatch(
     VerificationProcessor.restoreSavedVerificationFunctions(config.inputFile),
@@ -78,7 +60,12 @@ extendEnvironment((hre) => {
   hre.storage = lazyObject(() => DefaultStorage);
 });
 
-// TODO: override the `clean` task
+task(TASK_CLEAN, "Clears the cache and deletes all artifacts").setAction(async (conf, hre, runSuper) => {
+  MigrateStorage.clean();
+
+  await runSuper();
+});
+
 task(TASK_MIGRATE, "Deploy contracts via migration files")
   .addOptionalParam("from", "The migration number from which the migration will be applied.", undefined, types.int)
   .addOptionalParam("to", "The migration number up to which the migration will be applied.", undefined, types.int)

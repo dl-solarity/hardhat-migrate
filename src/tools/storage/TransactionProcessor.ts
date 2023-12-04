@@ -4,7 +4,7 @@ import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 
 import { TransactionStorage } from "./MigrateStorage";
 
-import { Reporter } from "../reporters/Reporter";
+import { reporter } from "../reporters/Reporter";
 
 import { MigrateError } from "../../errors";
 
@@ -22,7 +22,7 @@ import {
   TransactionFieldsToSave,
 } from "../../types/tools";
 import { MigrateConfig } from "../../types/migrations";
-import { ContractDeployTxWithName } from "../../types/deployer";
+import { ContractDeployTxWithName, TransactionReceipt } from "../../types/deployer";
 import { validateKeyDeploymentFields, validateKeyTxFields } from "../../types/type-checks";
 
 @catchError
@@ -67,7 +67,7 @@ export class TransactionProcessor {
   @validateKeyTxFields
   public static saveTransaction(
     tx: KeyTransactionFields,
-    receipt: TransactionReceiptParams,
+    receipt: TransactionReceiptParams | TransactionReceipt,
     metadata: MigrationMetadata,
   ) {
     this._saveTransaction(
@@ -77,6 +77,7 @@ export class TransactionProcessor {
         chainId: tx.chainId,
         to: tx.to,
         value: tx.value,
+        name: tx.name,
       },
       receipt,
       metadata,
@@ -124,6 +125,7 @@ export class TransactionProcessor {
         chainId: key.chainId,
         to: key.to,
         value: key.value,
+        name: key.name,
       }),
     );
   }
@@ -131,7 +133,7 @@ export class TransactionProcessor {
   @catchError
   private static _saveTransaction(
     args: KeyTransactionFields,
-    transaction: TransactionReceiptParams,
+    transaction: TransactionReceiptParams | TransactionReceipt,
     metadata: MigrationMetadata,
   ) {
     const dataToSave: TransactionFieldsToSave = {
@@ -146,9 +148,10 @@ export class TransactionProcessor {
       chainId: args.chainId,
       to: args.to,
       value: args.value,
+      name: args.name,
     });
 
-    if (TransactionStorage.has(dataKey)) {
+    if (TransactionStorage.has(dataKey) && !this._config.continue) {
       this._processCollision(dataKey, dataToSave);
     }
 
@@ -156,7 +159,7 @@ export class TransactionProcessor {
   }
 
   private static _saveContract(keyByArgs: string, dataToSave: ContractFieldsToSave) {
-    if (TransactionStorage.has(keyByArgs)) {
+    if (TransactionStorage.has(keyByArgs) && !this._config.continue) {
       this._processCollision(keyByArgs, dataToSave);
     }
 
@@ -164,7 +167,7 @@ export class TransactionProcessor {
   }
 
   private static _saveContractByName(contractName: string, dataToSave: ContractFieldsToSave) {
-    if (TransactionStorage.has(contractName)) {
+    if (TransactionStorage.has(contractName) && !this._config.continue) {
       this._processCollision(contractName, dataToSave);
     }
 
@@ -183,24 +186,24 @@ export class TransactionProcessor {
     } = TransactionStorage.get(dataKey);
 
     if (oldData.contractAddress && isFullyQualifiedName(dataKey)) {
-      Reporter.notifyContractCollisionByName(oldData as ContractFieldsToSave, dataToSave as ContractFieldsToSave);
+      reporter!.notifyContractCollisionByName(oldData as ContractFieldsToSave, dataToSave as ContractFieldsToSave);
 
       return;
     }
 
     if (oldData.contractAddress) {
-      Reporter.notifyContractCollisionByKeyFields(oldData as ContractFieldsToSave, dataToSave as ContractFieldsToSave);
+      reporter!.notifyContractCollisionByKeyFields(oldData as ContractFieldsToSave, dataToSave as ContractFieldsToSave);
 
       return;
     }
 
     if (oldData.receipt) {
-      Reporter.notifyTransactionCollision(oldData as TransactionFieldsToSave, dataToSave as TransactionFieldsToSave);
+      reporter!.notifyTransactionCollision(oldData as TransactionFieldsToSave, dataToSave as TransactionFieldsToSave);
 
       return;
     }
 
-    Reporter.notifyUnknownCollision(oldData.metadata, dataToSave);
+    reporter!.notifyUnknownCollision(oldData.metadata, dataToSave);
   }
 
   private static _tryGetDataFromStorage(key: string): any {

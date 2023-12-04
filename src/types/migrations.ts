@@ -56,6 +56,11 @@ export interface MigrateConfig {
    * The flag indicating whether the previous deployment should be continued.
    */
   continue: boolean;
+
+  /*
+   * The interval in milliseconds between transaction status checks.
+   */
+  transactionStatusCheckInterval: number;
 }
 
 export interface VerifyConfig {

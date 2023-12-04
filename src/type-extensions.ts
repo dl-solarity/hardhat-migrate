@@ -26,7 +26,7 @@ declare module "hardhat/types/runtime" {
 }
 
 declare module "ethers" {
-  interface BaseContract {
-    address: string;
+  interface ContractTransaction {
+    customData: any & { txName?: string };
   }
 }

@@ -2,6 +2,7 @@ import {
   BaseContract,
   BaseContractMethod,
   ContractFactory,
+  ContractTransaction,
   ContractTransactionReceipt,
   ContractTransactionResponse,
   defineProperties,
@@ -21,7 +22,8 @@ import { EthersContract, BytecodeFactory } from "../../types/adapter";
 import { KeyTransactionFields, MigrationMetadata, TransactionFieldsToSave } from "../../types/tools";
 
 import { Stats } from "../../tools/Stats";
-import { Reporter } from "../../tools/reporters/Reporter";
+import { reporter } from "../../tools/reporters/Reporter";
+import { transactionRunner } from "../../tools/runners/TransactionRunner";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 
 type Factory<A, I> = EthersContract<A, I> | BytecodeFactory | ContractFactory;
@@ -102,7 +104,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
   protected abstract _overrideConnectMethod<A, I>(instance: Factory<A, I>, contractName: string): Promise<void>;
 
   private _insertAddressGetter(contract: BaseContract, contractAddress: string): void {
-    contract.address = contractAddress;
+    (contract as any).address = contractAddress;
   }
 
   private _getContractFunctionFragments(contractInterface: Interface): FunctionFragment[] {
@@ -122,16 +124,18 @@ export abstract class AbstractEthersAdapter extends Adapter {
     oldMethod: BaseContractMethod,
   ): (...args: any[]) => Promise<ContractTransactionResponse> {
     return async (...args: any[]): Promise<ContractTransactionResponse> => {
-      const tx = (await oldMethod.populateTransaction(...args)) as KeyTransactionFields;
+      const tx = await oldMethod.populateTransaction(...args);
       await fillParameters(tx);
 
       const methodString = getMethodString(contractName, methodName, methodFragments, args);
 
+      const keyFields = this._getKeyFieldsFromTransaction(tx);
+
       if (this._config.continue) {
-        return this._recoverTransaction(methodString, tx, oldMethod, args);
+        return this._recoverTransaction(methodString, keyFields, oldMethod, args);
       }
 
-      return this._sendTransaction(methodString, tx, oldMethod, args);
+      return this._sendTransaction(methodString, keyFields, oldMethod, args);
     };
   }
 
@@ -144,11 +148,11 @@ export abstract class AbstractEthersAdapter extends Adapter {
     try {
       const savedTransaction = TransactionProcessor.tryRestoreSavedTransaction(tx);
 
-      Reporter.notifyTransactionRecovery(methodString);
+      reporter!.notifyTransactionRecovery(methodString);
 
       return this._wrapTransactionFieldsToSave(savedTransaction);
     } catch {
-      Reporter.notifyTransactionSendingInsteadOfRecovery(methodString);
+      reporter!.notifyTransactionSendingInsteadOfRecovery(methodString);
 
       return this._sendTransaction(methodString, tx, oldMethod, args);
     }
@@ -167,7 +171,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
       methodName: methodString,
     };
 
-    await Reporter.reportTransactionResponse(txResponse, methodString);
+    await transactionRunner!.reportTransactionResponse(txResponse, methodString);
 
     TransactionProcessor.saveTransaction(tx, (await txResponse.wait())!, saveMetadata);
 
@@ -181,5 +185,16 @@ export abstract class AbstractEthersAdapter extends Adapter {
         return data.receipt as unknown as Promise<ContractTransactionReceipt | null>;
       },
     } as unknown as ContractTransactionResponse;
+  }
+
+  private _getKeyFieldsFromTransaction(tx: ContractTransaction): KeyTransactionFields {
+    return {
+      name: tx.customData.txName,
+      data: tx.data,
+      from: tx.from!,
+      chainId: tx.chainId!,
+      value: tx.value!,
+      to: tx.to,
+    };
   }
 }
