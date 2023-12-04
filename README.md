@@ -86,8 +86,6 @@ module.exports = {
     force: false,
     continue: false,
     transactionStatusCheckInterval: 2000,
-    maxRetryAttempts: 10,
-    retryGapMs: 3000,
   },
 };
 ```
@@ -106,8 +104,6 @@ module.exports = {
 - `force` : The flag indicating whether the contracts compilation is forced.
 - `continue` : The flag indicating whether the deployment should restore the state from the previous deployment.
 - `transactionStatusCheckInterval` : The interval in milliseconds between transaction status checks.
-- `maxRetryAttempts` : The maximum number of attempts to retry operation (e.g., in case of the Network error).
-- `retryGapMs` The interval in milliseconds between attempts to retry operation.: 
 
 ### Deploying
 
@@ -166,6 +162,7 @@ We have introduced the capability to assign a specific name to each transaction,
 This feature varies depending on the framework used.
 
 #### Ethers.js Usage:
+
 In Ethers.js, you can specify the transaction name using the `customData` field within the overrides. 
 A special field, `txName`, is dedicated for this purpose. 
 Here’s an example of how to set a transaction name using Ethers.js:
@@ -177,6 +174,7 @@ await contract.runner.sendTransaction({ customData: { txName: "Funding Transacti
 This method helps avoid potential collisions and ensures a smoother recovery process.
 
 #### Truffle Usage:
+
 For those using Truffle, the transaction name can be specified using the `hardfork` field. Here's how you can do it:
 
 ``` javascript
