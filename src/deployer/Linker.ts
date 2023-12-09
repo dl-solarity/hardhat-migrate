@@ -29,7 +29,7 @@ export class Linker {
 
   public static async tryLinkBytecode(contractName: string, bytecode: string, libraries: Libraries): Promise<string> {
     const artifact: ArtifactExtended = this._mustGetContractArtifact(contractName);
-    const neededLibraries = artifact.neededLibraries;
+    const neededLibraries = this._cleanNeededLibraries(bytecode, artifact, artifact.neededLibraries);
 
     let linksToApply: Map<string, Link> = new Map();
     for (const [linkedLibraryName, linkedLibraryAddress] of Object.entries(libraries)) {
@@ -43,8 +43,6 @@ export class Linker {
         address: await resolveAddress(linkedLibraryAddress),
       });
     }
-
-    linksToApply = this._fillLinksToApply(bytecode, artifact, neededLibraries);
 
     if (linksToApply.size < neededLibraries.length) {
       const separatelyDeployedLibraries = await this._findMissingLibraries(
@@ -145,42 +143,37 @@ export class Linker {
     }
   }
 
-  private static _fillLinksToApply(
+  private static _cleanNeededLibraries(
     bytecode: string,
     artifact: Artifact,
     libraries: NeededLibrary[],
-  ): Map<string, Link> {
-    const linksToApplyFilled: Map<string, Link> = new Map();
+  ): NeededLibrary[] {
+    const actuallyNeededLibs: Map<string, NeededLibrary> = new Map();
 
     for (const { sourceName, libName } of libraries) {
       const linkReferences = artifact.linkReferences[sourceName][libName];
 
       for (const { start, length } of linkReferences) {
-        const [isLinkedLibrary, address] = this._getLinkedLibrary(bytecode, start, length);
-
-        if (isLinkedLibrary) {
-          linksToApplyFilled.set(`${sourceName}:${libName}`, {
-            sourceName: sourceName,
-            libraryName: libName,
-            address,
-          });
+        if (!this._isLinkedLibrary(bytecode, start, length)) {
+          actuallyNeededLibs.set(`${sourceName}:${libName}`, { sourceName, libName });
         }
       }
     }
 
-    return linksToApplyFilled;
+    return [...actuallyNeededLibs.values()];
   }
 
-  private static _getLinkedLibrary(bytecode: string, start: number, length: number): [boolean, string] {
+  /**
+   * The address of the linked library can be extracted like this: bytecode.slice(prefixLength + 2, suffixStart + 2)
+   */
+  private static _isLinkedLibrary(bytecode: string, start: number, length: number): boolean {
     const prefixLength = start * 2;
     const prefix = bytecode.slice(prefixLength + 2, prefixLength + 5);
 
     const suffixStart = (start + length) * 2;
     const suffix = bytecode.slice(suffixStart - 1, suffixStart + 2);
 
-    const address = bytecode.slice(prefixLength + 2, suffixStart + 2);
-
-    return [`${prefix}${suffix}` !== "__$$__", `0x${address}`];
+    return `${prefix}${suffix}` !== "__$$__";
   }
 
   private static _linkBytecode(bytecode: string, artifact: Artifact, libraries: Link[]): string {
@@ -188,12 +181,6 @@ export class Linker {
       const linkReferences = artifact.linkReferences[sourceName][libraryName];
 
       for (const { start, length } of linkReferences) {
-        const [isLinkedLibrary] = this._getLinkedLibrary(bytecode, start, length);
-
-        if (isLinkedLibrary) {
-          continue;
-        }
-
         const prefixLength = 2 + start * 2;
         const prefix = bytecode.slice(0, prefixLength);
 
