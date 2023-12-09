@@ -44,6 +44,8 @@ export class Linker {
       });
     }
 
+    linksToApply = this._fillLinksToApply(bytecode, artifact, neededLibraries);
+
     if (linksToApply.size < neededLibraries.length) {
       const separatelyDeployedLibraries = await this._findMissingLibraries(
         neededLibraries.filter((lib) => !linksToApply.has(`${lib.sourceName}:${lib.libName}`)),
@@ -143,10 +145,55 @@ export class Linker {
     }
   }
 
+  private static _fillLinksToApply(
+    bytecode: string,
+    artifact: Artifact,
+    libraries: NeededLibrary[],
+  ): Map<string, Link> {
+    const linksToApplyFilled: Map<string, Link> = new Map();
+
+    for (const { sourceName, libName } of libraries) {
+      const linkReferences = artifact.linkReferences[sourceName][libName];
+
+      for (const { start, length } of linkReferences) {
+        const [isLinkedLibrary, address] = this._getLinkedLibrary(bytecode, start, length);
+
+        if (isLinkedLibrary) {
+          linksToApplyFilled.set(`${sourceName}:${libName}`, {
+            sourceName: sourceName,
+            libraryName: libName,
+            address,
+          });
+        }
+      }
+    }
+
+    return linksToApplyFilled;
+  }
+
+  private static _getLinkedLibrary(bytecode: string, start: number, length: number): [boolean, string] {
+    const prefixLength = start * 2;
+    const prefix = bytecode.slice(prefixLength + 2, prefixLength + 5);
+
+    const suffixStart = (start + length) * 2;
+    const suffix = bytecode.slice(suffixStart - 1, suffixStart + 2);
+
+    const address = bytecode.slice(prefixLength + 2, suffixStart + 2);
+
+    return [`${prefix}${suffix}` !== "__$$__", `0x${address}`];
+  }
+
   private static _linkBytecode(bytecode: string, artifact: Artifact, libraries: Link[]): string {
     for (const { sourceName, libraryName, address } of libraries) {
       const linkReferences = artifact.linkReferences[sourceName][libraryName];
+
       for (const { start, length } of linkReferences) {
+        const [isLinkedLibrary] = this._getLinkedLibrary(bytecode, start, length);
+
+        if (isLinkedLibrary) {
+          continue;
+        }
+
         const prefixLength = 2 + start * 2;
         const prefix = bytecode.slice(0, prefixLength);
 

@@ -69,7 +69,11 @@ export class TruffleAdapter extends Adapter {
   }
 
   public getRawBytecode(instance: TruffleContract): string {
-    return bytecodeToString(instance.bytecode);
+    try {
+      return bytecodeToString(instance.binary);
+    } catch {
+      return bytecodeToString(instance.bytecode);
+    }
   }
 
   public getContractName<A, I>(instance: Instance<A, I>, parameters: OverridesAndName): string {
@@ -80,8 +84,8 @@ export class TruffleAdapter extends Adapter {
     try {
       return ArtifactProcessor.tryGetContractName(this.getRawBytecode(instance));
     } catch {
-      if ((instance as any).contractName) {
-        return (instance as any).contractName;
+      if ((instance as any)._hArtifact) {
+        return this._getFullyQualifiedName(instance as any) || (instance as any).contractName;
       }
 
       return UNKNOWN_CONTRACT_NAME;
@@ -237,5 +241,13 @@ export class TruffleAdapter extends Adapter {
     }
 
     return UNKNOWN_TRANSACTION_NAME;
+  }
+
+  private _getFullyQualifiedName(instance: any): string | undefined {
+    if (!instance._hArtifact.sourceName || !instance._hArtifact.contractName) {
+      return undefined;
+    }
+
+    return `${instance._hArtifact.sourceName}:${instance._hArtifact.contractName}`;
   }
 }
