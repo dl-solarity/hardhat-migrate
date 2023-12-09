@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.0.0-alpha.18
+
+* Handle the partially linked Bytecode in the Truffle Adapter.
+
 ## Version 2.0.0-alpha.17
 
 * Separated the logic of the Reporter and moved transaction-related functions to the TransactionRunner class.

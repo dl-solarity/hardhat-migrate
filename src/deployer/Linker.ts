@@ -29,7 +29,7 @@ export class Linker {
 
   public static async tryLinkBytecode(contractName: string, bytecode: string, libraries: Libraries): Promise<string> {
     const artifact: ArtifactExtended = this._mustGetContractArtifact(contractName);
-    const neededLibraries = artifact.neededLibraries;
+    const neededLibraries = this._cleanNeededLibraries(bytecode, artifact, artifact.neededLibraries);
 
     let linksToApply: Map<string, Link> = new Map();
     for (const [linkedLibraryName, linkedLibraryAddress] of Object.entries(libraries)) {
@@ -143,9 +143,43 @@ export class Linker {
     }
   }
 
+  private static _cleanNeededLibraries(
+    bytecode: string,
+    artifact: Artifact,
+    libraries: NeededLibrary[],
+  ): NeededLibrary[] {
+    const actuallyNeededLibs: Map<string, NeededLibrary> = new Map();
+
+    for (const { sourceName, libName } of libraries) {
+      const linkReferences = artifact.linkReferences[sourceName][libName];
+
+      for (const { start, length } of linkReferences) {
+        if (!this._isLinkedLibrary(bytecode, start, length)) {
+          actuallyNeededLibs.set(`${sourceName}:${libName}`, { sourceName, libName });
+        }
+      }
+    }
+
+    return [...actuallyNeededLibs.values()];
+  }
+
+  /**
+   * The address of the linked library can be extracted like this: bytecode.slice(prefixLength + 2, suffixStart + 2)
+   */
+  private static _isLinkedLibrary(bytecode: string, start: number, length: number): boolean {
+    const prefixLength = start * 2;
+    const prefix = bytecode.slice(prefixLength + 2, prefixLength + 5);
+
+    const suffixStart = (start + length) * 2;
+    const suffix = bytecode.slice(suffixStart - 1, suffixStart + 2);
+
+    return `${prefix}${suffix}` !== "__$$__";
+  }
+
   private static _linkBytecode(bytecode: string, artifact: Artifact, libraries: Link[]): string {
     for (const { sourceName, libraryName, address } of libraries) {
       const linkReferences = artifact.linkReferences[sourceName][libraryName];
+
       for (const { start, length } of linkReferences) {
         const prefixLength = 2 + start * 2;
         const prefix = bytecode.slice(0, prefixLength);
