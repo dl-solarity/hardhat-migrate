@@ -15,6 +15,8 @@ import { MinimalContract } from "../MinimalContract";
 
 import "../../type-extensions";
 
+import { UNKNOWN_TRANSACTION_NAME } from "../../constants";
+
 import { bytecodeToString, fillParameters, getMethodString, getSignerHelper } from "../../utils";
 
 import { OverridesAndLibs, OverridesAndName } from "../../types/deployer";
@@ -25,7 +27,6 @@ import { Stats } from "../../tools/Stats";
 import { reporter } from "../../tools/reporters/Reporter";
 import { transactionRunner } from "../../tools/runners/TransactionRunner";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
-import { UNKNOWN_TRANSACTION_NAME } from "../../constants";
 
 type Factory<A, I> = EthersContract<A, I> | BytecodeFactory | ContractFactory;
 
