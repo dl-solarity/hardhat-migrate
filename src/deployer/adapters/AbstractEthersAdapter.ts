@@ -15,6 +15,8 @@ import { MinimalContract } from "../MinimalContract";
 
 import "../../type-extensions";
 
+import { UNKNOWN_TRANSACTION_NAME } from "../../constants";
+
 import { bytecodeToString, fillParameters, getMethodString, getSignerHelper } from "../../utils";
 
 import { OverridesAndLibs, OverridesAndName } from "../../types/deployer";
@@ -187,14 +189,23 @@ export abstract class AbstractEthersAdapter extends Adapter {
     } as unknown as ContractTransactionResponse;
   }
 
+  // TODO: run normal migrations in tests.
   private _getKeyFieldsFromTransaction(tx: ContractTransaction): KeyTransactionFields {
     return {
-      name: tx.customData.txName,
+      name: this._getTransactionName(tx),
       data: tx.data,
       from: tx.from!,
       chainId: tx.chainId!,
       value: tx.value!,
       to: tx.to,
     };
+  }
+
+  private _getTransactionName(tx: ContractTransaction): string {
+    if (tx.customData === undefined || tx.customData.txName === undefined) {
+      return UNKNOWN_TRANSACTION_NAME;
+    }
+
+    return tx.customData.txName;
   }
 }
