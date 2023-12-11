@@ -1,8 +1,12 @@
 # Changelog
 
-## Version 2.0.0-alpha.19
+## Version 2.0.0-alpha.20
 
 * Remove redundant initializers in a verifier task
+
+## Version 2.0.0-alpha.19
+
+* Handle the potentially undefined tx.customData.txName field
 
 ## Version 2.0.0-alpha.18
 
