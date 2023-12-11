@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.0.0-alpha.19
+
+* Remove redundant initializers in a verifier task
+
 ## Version 2.0.0-alpha.18
 
 * Handle the partially linked Bytecode in the Truffle Adapter.
