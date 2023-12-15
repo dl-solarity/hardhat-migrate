@@ -9,7 +9,8 @@ import { Args } from "../types/deployer";
 import { VerifyConfig } from "../types/migrations";
 import { VerifierArgs } from "../types/verifier";
 
-import { reporter } from "../tools/reporters/Reporter";
+import { initReporter, reporter } from "../tools/reporters/Reporter";
+import { initNetworkManager } from "../tools/network/NetworkManager";
 
 export class Verifier {
   private readonly _etherscanConfig: EtherscanConfig;
@@ -114,5 +115,10 @@ export class Verifier {
       constructorArguments: args,
       contract: contractName,
     });
+  }
+
+  public static async initialize(hre: HardhatRuntimeEnvironment): Promise<void> {
+    initNetworkManager(hre);
+    await initReporter(hre.config.migrate);
   }
 }
