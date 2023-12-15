@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.0.0-alpha.22
+
+* Enforce the overwriting in ArtifactStorage in the case of bytecodeHash as a key
+
 ## Version 2.0.0-alpha.21
 
 * Fix a bug related to parsing the same bytecode for two different contracts
