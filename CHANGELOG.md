@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.0.0-alpha.21
+
+* Fix a bug related to parsing the same bytecode for two different contracts
+
 ## Version 2.0.0-alpha.20
 
 * Remove redundant initializers in a verifier task
