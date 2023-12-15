@@ -11,6 +11,8 @@ import { MigrateConfig } from "../../types/migrations";
 import { ChainRecord, predefinedChains } from "../../types/verifier";
 import { ContractFieldsToSave, MigrationMetadata, TransactionFieldsToSave } from "../../types/tools";
 
+// TODO: parse everything that is possible from hardhat config (deployment on q devnet bad UI)
+
 @catchError
 class Reporter {
   private _config: MigrateConfig = {} as any;
