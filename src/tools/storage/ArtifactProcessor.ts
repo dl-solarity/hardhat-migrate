@@ -28,7 +28,7 @@ export class ArtifactProcessor {
 
       // Forcing the overwriting of the existing bytecode value in the Artifacts storage is necessary to prevent
       // failure in edge cases, such as with internal libraries or disabled bytecode metadata hash generation.
-      ArtifactStorage.set(bytecodeHash(artifact.bytecode), contract, artifact.abi.length === 0);
+      ArtifactStorage.set(bytecodeHash(artifact.bytecode), contract, true);
     }
   }
 
