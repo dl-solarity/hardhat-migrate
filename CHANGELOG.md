@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 2.0.0-beta.1
+
+* Added handling of the custom chains specified in the Hardhat config
+* Refactored the architecture and made it consistent
+* Used spinner instead of console.log for network errors
+
 ## Version 2.0.0-alpha.22
 
 * Enforce the overwriting in ArtifactStorage in the case of bytecodeHash as a key
