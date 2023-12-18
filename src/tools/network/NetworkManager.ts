@@ -13,6 +13,8 @@ import { sleep } from "../../utils";
 import { MAX_RECONNECT_ATTEMPTS, RECONNECT_INTERVAL } from "../../constants";
 
 class StateMiddleware {
+  private static _isNetworkIssue: boolean = false;
+
   public static async retry<T extends (...args: any[]) => any>(
     fn: T,
     args: Parameters<T>,
@@ -21,20 +23,29 @@ class StateMiddleware {
     try {
       const result = await fn(...args);
 
-      reporter?.resetSpinnerMessageIfActive();
+      if (this._isNetworkIssue) {
+        Reporter?.stopSpinner();
+
+        this._isNetworkIssue = false;
+      }
 
       return result;
     } catch (e: any) {
-      // TODO: use spinner instead of console.log.
       const networkErrorCodes = ["EAI_AGAIN", "ENETDOWN", "ENETUNREACH", "ENOTFOUND", "ECONNABORTED"];
       const isNetworkError = networkErrorCodes.includes(e.code) || e.isAxiosError;
 
       if (!isNetworkError) {
+        Reporter?.stopSpinner();
+
         throw e;
       }
 
+      await Reporter?.startSpinner("network-error");
+
       // TODO: set timeout manually.
-      reporter!.reportNetworkError(retryCount, fn.name, e);
+      Reporter!.reportNetworkError(retryCount, fn.name, e);
+
+      this._isNetworkIssue = true;
 
       await sleep(RECONNECT_INTERVAL);
 

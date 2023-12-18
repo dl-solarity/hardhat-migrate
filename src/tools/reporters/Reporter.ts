@@ -22,8 +22,10 @@ class BaseReporter {
   private _config: MigrateConfig = {} as any;
   private _network: Network = {} as any;
 
-  private _isSpinnerActive: boolean = false;
-  private _spinnerMessageIfActive: string | null = null;
+  private _spinner: ora.Ora | null = null;
+  private _spinnerMessage: string | null = null;
+  private _spinnerInterval: NodeJS.Timeout | null = null;
+  private _spinnerState: string[] = [];
 
   private _nativeSymbol: string = "";
   private _explorerUrl: string = "";
@@ -63,29 +65,44 @@ class BaseReporter {
 
     const formatPendingTimeTask = async () => this._formatPendingTime(tx, timeStart, blockStart);
 
-    const spinner = ora(await formatPendingTimeTask()).start();
-
-    const setSpinnerText = async () => {
-      if (!this._isSpinnerActive) return;
-
-      spinner.text = await formatPendingTimeTask();
-
-      setTimeout(setSpinnerText, this._config.transactionStatusCheckInterval);
-    };
-
-    this._isSpinnerActive = true;
-
-    await setSpinnerText();
-
-    return spinner;
+    return this.startSpinner("tx-report", formatPendingTimeTask);
   }
 
-  public stopTxReporting(spinner: ora.Ora) {
-    this._isSpinnerActive = false;
+  public async startSpinner(
+    id: string,
+    getSpinnerText: (args?: any) => string | Promise<string> = this._getDefaultMessage,
+  ) {
+    if (this._spinnerState.includes(id)) return;
 
-    this._spinnerMessageIfActive = null;
+    if (this._spinnerState.length === 0) {
+      this._spinner = ora(await getSpinnerText()).start();
 
-    spinner.stop();
+      this._spinnerInterval = setInterval(async () => {
+        if (!this._spinner) {
+          clearInterval(this._spinnerInterval!);
+
+          return;
+        }
+
+        this._spinner.text = await getSpinnerText();
+      }, this._config.transactionStatusCheckInterval);
+    }
+
+    this._spinnerState.push(id);
+  }
+
+  public stopSpinner() {
+    if (!this._spinner) return;
+
+    this._spinnerMessage = null;
+    this._spinnerState.pop();
+
+    if (this._spinnerState.length === 0) {
+      clearInterval(this._spinnerInterval!);
+
+      this._spinner.stop();
+      this._spinner = null;
+    }
   }
 
   public async reportTransactionReceipt(receipt: TransactionReceipt) {
@@ -277,13 +294,9 @@ class BaseReporter {
     this._warningsToPrint.set(key, output);
   }
 
-  public resetSpinnerMessageIfActive() {
-    this._spinnerMessageIfActive = null;
-  }
-
   public reportNetworkError(retry: number, fnName: string, error: Error) {
-    if (this._isSpinnerActive) {
-      this._spinnerMessageIfActive = `Network error in '${fnName}': Reconnect attempt ${retry}...`;
+    if (this._spinner) {
+      this._spinnerMessage = `Network error in '${fnName}': Reconnect attempt ${retry}...`;
 
       return;
     }
@@ -292,6 +305,14 @@ class BaseReporter {
     const postfix = `\n${error.message}`;
 
     console.log(prefix + postfix);
+  }
+
+  private _getDefaultMessage(): string {
+    if (this && this._spinnerMessage) {
+      return this._spinnerMessage;
+    }
+
+    return `Awaiting network response...`;
   }
 
   private _parseTransactionTitle(tx: TransactionResponse, instanceName: string): string {
@@ -307,8 +328,8 @@ class BaseReporter {
   }
 
   private async _formatPendingTime(tx: TransactionResponse, startTime: number, blockStart: number): Promise<string> {
-    if (this._spinnerMessageIfActive) {
-      return this._spinnerMessageIfActive;
+    if (this._spinnerMessage) {
+      return this._spinnerMessage;
     }
 
     return `Confirmations: ${await tx.confirmations()}; Blocks: ${
