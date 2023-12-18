@@ -42,7 +42,6 @@ class StateMiddleware {
 
       await Reporter?.startSpinner("network-error");
 
-      // TODO: set timeout manually.
       Reporter!.reportNetworkError(retryCount, fn.name, e);
 
       this._isNetworkIssue = true;
