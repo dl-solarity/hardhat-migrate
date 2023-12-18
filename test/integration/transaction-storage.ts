@@ -17,7 +17,7 @@ import {
   ContractWithPayableConstructor__factory,
 } from "../fixture-projects/hardhat-project-repeats-typechain-ethers/typechain-types";
 
-describe.only("TransactionStorage", async () => {
+describe("TransactionStorage", async () => {
   useEnvironment("repeats-typechain-ethers");
 
   beforeEach(async function () {
