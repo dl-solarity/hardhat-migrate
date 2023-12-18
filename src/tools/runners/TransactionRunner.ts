@@ -51,7 +51,7 @@ class TransactionRunner {
   }
 
   protected async _showTransactionMining(tx: TransactionResponse) {
-    const { spinner, spinnerInterval } = await reporter!.startTxReporting(tx);
+    const spinner = await reporter!.startTxReporting(tx);
 
     let receipt: TransactionReceipt;
     try {
@@ -60,7 +60,7 @@ class TransactionRunner {
     } catch (e: any) {
       throw new MigrateError(`Transaction failed: ${e.message}`);
     } finally {
-      await reporter!.stopTxReporting(spinner, spinnerInterval);
+      reporter!.stopTxReporting(spinner);
     }
 
     return receipt;

@@ -85,3 +85,12 @@ export const predefinedChains: Record<number, ChainRecord> = {
     ],
   },
 };
+
+export interface CustomChainRecord {
+  network: string;
+  chainId: number;
+  urls: {
+    apiURL: string;
+    browserURL: string;
+  };
+}

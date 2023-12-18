@@ -3,18 +3,19 @@ import ora from "ora";
 
 import { Network, TransactionResponse, formatEther, formatUnits, TransactionReceipt, id } from "ethers";
 
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { networkManager } from "../network/NetworkManager";
 
 import { catchError, underline } from "../../utils";
 
 import { MigrateConfig } from "../../types/migrations";
-import { ChainRecord, predefinedChains } from "../../types/verifier";
+import { ChainRecord, CustomChainRecord, predefinedChains } from "../../types/verifier";
 import { ContractFieldsToSave, MigrationMetadata, TransactionFieldsToSave } from "../../types/tools";
-
-// TODO: parse everything that is possible from hardhat config (deployment on q devnet bad UI)
 
 @catchError
 class Reporter {
+  private _hre: HardhatRuntimeEnvironment = {} as any;
   private _config: MigrateConfig = {} as any;
   private _network: Network = {} as any;
 
@@ -26,8 +27,9 @@ class Reporter {
 
   private _warningsToPrint: Map<string, string> = new Map();
 
-  public async init(config: MigrateConfig) {
-    this._config = config;
+  public async init(hre: HardhatRuntimeEnvironment) {
+    this._hre = hre;
+    this._config = hre.config.migrate;
 
     this._network = await this._getNetwork();
     this._nativeSymbol = await this._getNativeSymbol();
@@ -60,20 +62,24 @@ class Reporter {
 
     const spinner = ora(await formatPendingTimeTask()).start();
 
-    const spinnerInterval = setInterval(
-      async () => (spinner.text = await formatPendingTimeTask()),
-      this._config.transactionStatusCheckInterval,
-    );
+    const setSpinnerText = async () => {
+      if (!this._isSpinnerActive) return;
+
+      spinner.text = await formatPendingTimeTask();
+
+      setTimeout(setSpinnerText, this._config.transactionStatusCheckInterval);
+    };
 
     this._isSpinnerActive = true;
 
-    return { spinner, spinnerInterval };
+    await setSpinnerText();
+
+    return spinner;
   }
 
-  public async stopTxReporting(spinner: ora.Ora, spinnerInterval: NodeJS.Timeout) {
-    clearInterval(spinnerInterval);
-
+  public stopTxReporting(spinner: ora.Ora) {
     this._isSpinnerActive = false;
+
     this._spinnerMessageIfActive = null;
 
     spinner.stop();
@@ -356,6 +362,12 @@ class Reporter {
       return !explorers || explorers.length === 0 ? "" : explorers[0].url;
     }
 
+    const customChain = await this._tryGetInfoFromHardhatConfig(chainId);
+
+    if (customChain) {
+      return customChain.urls.browserURL;
+    }
+
     const chain = await this._getChainMetadataById(chainId);
 
     return chain.explorers[0].url;
@@ -391,6 +403,12 @@ class Reporter {
     }
   }
 
+  private async _tryGetInfoFromHardhatConfig(chainId: number): Promise<CustomChainRecord | undefined> {
+    const customChains: CustomChainRecord[] = this._hre.config.etherscan.customChains || [];
+
+    return customChains.find((chain) => chain.chainId === chainId);
+  }
+
   private async _tryGetAllRecords(): Promise<ChainRecord[]> {
     const url = "https://chainid.network/chains.json";
     const response = await networkManager!.axios.get(url);
@@ -402,11 +420,11 @@ class Reporter {
 
 export let reporter: Reporter | null = null;
 
-export async function initReporter(config: MigrateConfig) {
+export async function initReporter(hre: HardhatRuntimeEnvironment) {
   if (reporter) {
     return;
   }
 
   reporter = new Reporter();
-  await reporter.init(config);
+  await reporter.init(hre);
 }
