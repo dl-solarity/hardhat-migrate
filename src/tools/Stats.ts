@@ -1,15 +1,17 @@
 import { MigrationStats } from "../types/tools";
 
-export class Stats {
-  private static _stats: MigrationStats = {
+class BaseStats {
+  private _stats: MigrationStats = {
     currentMigration: 0,
   };
 
-  public static get currentMigration(): number {
+  public get currentMigration(): number {
     return this._stats.currentMigration;
   }
 
-  public static set currentMigration(currentMigration: number) {
+  public set currentMigration(currentMigration: number) {
     this._stats.currentMigration = currentMigration;
   }
 }
+
+export const Stats = new BaseStats();

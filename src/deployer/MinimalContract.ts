@@ -13,8 +13,8 @@ import { MigrateConfig } from "../types/migrations";
 import { ContractDeployTxWithName, OverridesAndLibs } from "../types/deployer";
 
 import { Stats } from "../tools/Stats";
-import { reporter } from "../tools/reporters/Reporter";
-import { transactionRunner } from "../tools/runners/TransactionRunner";
+import { Reporter } from "../tools/reporters/Reporter";
+import { TransactionRunner } from "../tools/runners/TransactionRunner";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
@@ -58,11 +58,11 @@ export class MinimalContract {
 
   private async _tryLinkLibraries(parameters: OverridesAndLibs): Promise<void> {
     try {
-      if (Linker.isBytecodeNeedsLinking(this._bytecode)) {
+      if (Linker?.isBytecodeNeedsLinking(this._bytecode)) {
         return;
       }
 
-      this._bytecode = await Linker.tryLinkBytecode(this._contractName, this._bytecode, parameters.libraries || {});
+      this._bytecode = (await Linker?.tryLinkBytecode(this._contractName, this._bytecode, parameters.libraries || {}))!;
     } catch (e: any) {
       throw new MigrateError(
         `Unable to link libraries for ${this._contractName}! Try manually deploy the libraries and link them.\n Error: ${e.message}`,
@@ -83,18 +83,18 @@ export class MinimalContract {
 
   private async _recoverContractAddress(tx: ContractDeployTxWithName, args: any[]): Promise<string> {
     try {
-      const contractAddress = await TransactionProcessor.tryRestoreContractAddressByKeyFields(tx);
+      const contractAddress = await TransactionProcessor?.tryRestoreContractAddressByKeyFields(tx);
 
-      reporter!.notifyContractRecovery(tx.contractName, contractAddress);
+      Reporter!.notifyContractRecovery(tx.contractName, contractAddress!);
 
-      await this._saveContractForVerification(contractAddress, tx, args);
+      await this._saveContractForVerification(contractAddress!, tx, args);
 
-      return contractAddress;
+      return contractAddress!;
     } catch {
       /* empty */
     }
 
-    reporter!.notifyDeploymentInsteadOfRecovery(tx.contractName);
+    Reporter!.notifyDeploymentInsteadOfRecovery(tx.contractName);
 
     return this._processContractDeploymentTransaction(tx, args);
   }
@@ -104,7 +104,7 @@ export class MinimalContract {
 
     const txResponse = await signer.sendTransaction(tx);
 
-    await transactionRunner!.reportTransactionResponse(txResponse, tx.contractName);
+    await TransactionRunner!.reportTransactionResponse(txResponse, tx.contractName);
 
     const contractAddress = (await txResponse.wait(0))!.contractAddress;
 
@@ -119,7 +119,7 @@ export class MinimalContract {
       contractName: tx.contractName,
     };
 
-    TransactionProcessor.saveDeploymentTransaction(tx, tx.contractName, contractAddress, saveMetadata);
+    TransactionProcessor?.saveDeploymentTransaction(tx, tx.contractName, contractAddress, saveMetadata);
 
     return contractAddress;
   }
@@ -143,7 +143,7 @@ export class MinimalContract {
         chainId: Number(await getChainId()),
       });
     } catch {
-      reporter!.reportVerificationFailedToSave(tx.contractName);
+      Reporter!.reportVerificationFailedToSave(tx.contractName);
     }
   }
 }

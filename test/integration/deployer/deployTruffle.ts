@@ -22,7 +22,7 @@ describe("Truffle -- deployer", () => {
       resetEthersProvider();
       resetNetworkManager();
 
-      await Migrator.initialize(this.hre);
+      await Migrator.buildMigrateTaskDeps(this.hre);
 
       deployer = new Deployer(this.hre);
 

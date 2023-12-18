@@ -4,7 +4,7 @@ import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 
 import { TransactionStorage } from "./MigrateStorage";
 
-import { reporter } from "../reporters/Reporter";
+import { Reporter } from "../reporters/Reporter";
 
 import { MigrateError } from "../../errors";
 
@@ -26,16 +26,11 @@ import { ContractDeployTxWithName, TransactionReceipt } from "../../types/deploy
 import { validateKeyDeploymentFields, validateKeyTxFields } from "../../types/type-checks";
 
 @catchError
-export class TransactionProcessor {
-  protected static _config: MigrateConfig;
+export class BaseTransactionProcessor {
+  constructor(protected _config: MigrateConfig) {}
 
-  public static setConfig(config: MigrateConfig) {
-    this._config = config;
-  }
-
-  @catchError
   @validateKeyDeploymentFields
-  public static saveDeploymentTransaction(
+  public saveDeploymentTransaction(
     args: ContractDeployTransaction,
     contractName: string,
     contractAddress: string,
@@ -65,7 +60,7 @@ export class TransactionProcessor {
    * @param metadata
    */
   @validateKeyTxFields
-  public static saveTransaction(
+  public saveTransaction(
     tx: KeyTransactionFields,
     receipt: TransactionReceiptParams | TransactionReceipt,
     metadata: MigrationMetadata,
@@ -84,9 +79,8 @@ export class TransactionProcessor {
     );
   }
 
-  @catchError
   @validateKeyDeploymentFields
-  public static async tryRestoreContractAddressByKeyFields(key: ContractDeployTxWithName): Promise<string> {
+  public async tryRestoreContractAddressByKeyFields(key: ContractDeployTxWithName): Promise<string> {
     const restoredData = this._tryGetDataFromStorage(
       createKeyDeploymentFieldsHash({
         name: key.contractName,
@@ -104,8 +98,7 @@ export class TransactionProcessor {
     return restoredData.contractAddress;
   }
 
-  @catchError
-  public static async tryRestoreContractAddressByName(contractName: string): Promise<string> {
+  public async tryRestoreContractAddressByName(contractName: string): Promise<string> {
     const restoredData: ContractFieldsToSave = this._tryGetDataFromStorage(contractName);
 
     if (!isAddress(restoredData.contractAddress) || !(await isDeployedContractAddress(restoredData.contractAddress))) {
@@ -114,10 +107,8 @@ export class TransactionProcessor {
 
     return restoredData.contractAddress;
   }
-
-  @catchError
   @validateKeyTxFields
-  public static tryRestoreSavedTransaction(key: KeyTransactionFields): TransactionFieldsToSave {
+  public tryRestoreSavedTransaction(key: KeyTransactionFields): TransactionFieldsToSave {
     return this._tryGetDataFromStorage(
       createKeyTxFieldsHash({
         data: key.data,
@@ -130,8 +121,7 @@ export class TransactionProcessor {
     );
   }
 
-  @catchError
-  private static _saveTransaction(
+  private _saveTransaction(
     args: KeyTransactionFields,
     transaction: TransactionReceiptParams | TransactionReceipt,
     metadata: MigrationMetadata,
@@ -158,7 +148,7 @@ export class TransactionProcessor {
     TransactionStorage.set(dataKey, dataToSave, true);
   }
 
-  private static _saveContract(keyByArgs: string, dataToSave: ContractFieldsToSave) {
+  private _saveContract(keyByArgs: string, dataToSave: ContractFieldsToSave) {
     if (TransactionStorage.has(keyByArgs) && !this._config.continue) {
       this._processCollision(keyByArgs, dataToSave);
     }
@@ -166,7 +156,7 @@ export class TransactionProcessor {
     TransactionStorage.set(keyByArgs, dataToSave, true);
   }
 
-  private static _saveContractByName(contractName: string, dataToSave: ContractFieldsToSave) {
+  private _saveContractByName(contractName: string, dataToSave: ContractFieldsToSave) {
     if (TransactionStorage.has(contractName) && !this._config.continue) {
       this._processCollision(contractName, dataToSave);
     }
@@ -174,7 +164,7 @@ export class TransactionProcessor {
     TransactionStorage.set(contractName, dataToSave, true);
   }
 
-  private static _processCollision(dataKey: string, dataToSave: TransactionFieldsToSave | ContractFieldsToSave) {
+  private _processCollision(dataKey: string, dataToSave: TransactionFieldsToSave | ContractFieldsToSave) {
     if (this._config.continue) {
       return;
     }
@@ -186,27 +176,27 @@ export class TransactionProcessor {
     } = TransactionStorage.get(dataKey);
 
     if (oldData.contractAddress && isFullyQualifiedName(dataKey)) {
-      reporter!.notifyContractCollisionByName(oldData as ContractFieldsToSave, dataToSave as ContractFieldsToSave);
+      Reporter!.notifyContractCollisionByName(oldData as ContractFieldsToSave, dataToSave as ContractFieldsToSave);
 
       return;
     }
 
     if (oldData.contractAddress) {
-      reporter!.notifyContractCollisionByKeyFields(oldData as ContractFieldsToSave, dataToSave as ContractFieldsToSave);
+      Reporter!.notifyContractCollisionByKeyFields(oldData as ContractFieldsToSave, dataToSave as ContractFieldsToSave);
 
       return;
     }
 
     if (oldData.receipt) {
-      reporter!.notifyTransactionCollision(oldData as TransactionFieldsToSave, dataToSave as TransactionFieldsToSave);
+      Reporter!.notifyTransactionCollision(oldData as TransactionFieldsToSave, dataToSave as TransactionFieldsToSave);
 
       return;
     }
 
-    reporter!.notifyUnknownCollision(oldData.metadata, dataToSave);
+    Reporter!.notifyUnknownCollision(oldData.metadata, dataToSave);
   }
 
-  private static _tryGetDataFromStorage(key: string): any {
+  private _tryGetDataFromStorage(key: string): any {
     const value = TransactionStorage.get(key);
 
     if (!value) {
@@ -215,4 +205,14 @@ export class TransactionProcessor {
 
     return value;
   }
+}
+
+export let TransactionProcessor: BaseTransactionProcessor | null = null;
+
+export function createTransactionProcessor(config: MigrateConfig) {
+  if (TransactionProcessor) {
+    return;
+  }
+
+  TransactionProcessor = new BaseTransactionProcessor(config);
 }

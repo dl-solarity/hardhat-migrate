@@ -12,14 +12,14 @@ import { TASK_MIGRATE, TASK_MIGRATE_VERIFY } from "./constants";
 
 import { MigrateConfig, MigrateVerifyConfig } from "./types/migrations";
 
-import { DefaultStorage, MigrateStorage } from "./tools/storage/MigrateStorage";
+import { UserStorage, DefaultStorage } from "./tools/storage/MigrateStorage";
 import { VerificationProcessor } from "./tools/storage/VerificationProcessor";
 
 import { Migrator } from "./migrator/Migrator";
 import { Verifier } from "./verifier/Verifier";
 
 export { Deployer } from "./deployer/Deployer";
-export { DefaultStorage } from "./tools/storage/MigrateStorage";
+export { UserStorage } from "./tools/storage/MigrateStorage";
 export { PublicReporter as Reporter } from "./tools/reporters/PublicReporter";
 
 extendConfig(migrateConfigExtender);
@@ -33,7 +33,7 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
     force: env.config.migrate.force,
   });
 
-  await Migrator.initialize(env);
+  await Migrator.buildMigrateTaskDeps(env);
 
   await new Migrator(env).migrate();
 
@@ -45,7 +45,7 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
 const migrateVerify: ActionType<MigrateVerifyConfig> = async (taskArgs, env) => {
   const config = extendVerifyConfigs(taskArgs);
 
-  await Verifier.initialize(env);
+  await Verifier.buildVerifierTaskDeps(env);
 
   await new Verifier(env, config).verifyBatch(
     VerificationProcessor.restoreSavedVerificationFunctions(config.inputFile),
@@ -57,11 +57,11 @@ extendEnvironment((hre) => {
     return new Migrator(hre);
   });
 
-  hre.storage = lazyObject(() => DefaultStorage);
+  hre.storage = lazyObject(() => UserStorage);
 });
 
 task(TASK_CLEAN, "Clears the cache and deletes all artifacts").setAction(async (conf, hre, runSuper) => {
-  MigrateStorage.clean();
+  DefaultStorage.clean();
 
   await runSuper();
 });

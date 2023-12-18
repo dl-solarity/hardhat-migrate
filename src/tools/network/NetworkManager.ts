@@ -4,14 +4,13 @@ import type { HardhatEthersProvider as HardhatEthersProviderT } from "@nomicfoun
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { ethersProvider, initEthersProvider } from "./EthersProvider";
+import { ethersProvider, createEthersProvider } from "./EthersProvider";
 
-import { reporter } from "../reporters/Reporter";
+import { Reporter } from "../reporters/Reporter";
+import { createTransactionRunner } from "../runners/TransactionRunner";
 
 import { sleep } from "../../utils";
 import { MAX_RECONNECT_ATTEMPTS, RECONNECT_INTERVAL } from "../../constants";
-
-import { initTransactionRunner } from "../runners/TransactionRunner";
 
 class StateMiddleware {
   public static async retry<T extends (...args: any[]) => any>(
@@ -46,8 +45,18 @@ class StateMiddleware {
       return this.retry(fn, args, retryCount + 1);
     }
   }
+}
 
-  public static withRetry<T extends { [key: string]: any }>(instance: T): T {
+class NetworkManager {
+  public axios: Axios;
+  public provider: HardhatEthersProviderT;
+
+  constructor() {
+    this.axios = this.withRetry(axios);
+    this.provider = this.withRetry(ethersProvider!);
+  }
+
+  public withRetry<T extends { [key: string]: any }>(instance: T): T {
     return new Proxy(instance, {
       get(target, propKey, receiver) {
         const origMethod = target[propKey as keyof T];
@@ -64,21 +73,11 @@ class StateMiddleware {
   }
 }
 
-class NetworkManager {
-  public axios: Axios;
-  public provider: HardhatEthersProviderT;
-
-  constructor() {
-    this.axios = StateMiddleware.withRetry(axios);
-    this.provider = StateMiddleware.withRetry(ethersProvider!);
-  }
-}
-
 export let networkManager: NetworkManager | null = null;
 
-export function initNetworkManager(hre: HardhatRuntimeEnvironment) {
-  initEthersProvider(hre);
-  initTransactionRunner(hre);
+export function buildNetworkDeps(hre: HardhatRuntimeEnvironment) {
+  createEthersProvider(hre);
+  createTransactionRunner(hre);
 
   if (networkManager) {
     return;

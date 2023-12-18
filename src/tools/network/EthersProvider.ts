@@ -4,7 +4,7 @@ import type { HardhatEthersProvider as HardhatEthersProviderT } from "@nomicfoun
 
 export let ethersProvider: HardhatEthersProviderT | null = null;
 
-export function initEthersProvider(hre: HardhatRuntimeEnvironment): void {
+export function createEthersProvider(hre: HardhatRuntimeEnvironment): void {
   if (ethersProvider) {
     return;
   }

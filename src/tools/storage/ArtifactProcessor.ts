@@ -9,8 +9,8 @@ import { bytecodeHash, catchError } from "../../utils";
 import { ArtifactExtended, NeededLibrary } from "../../types/deployer";
 
 @catchError
-export class ArtifactProcessor {
-  public static async parseArtifacts(_hre: HardhatRuntimeEnvironment): Promise<void> {
+class BaseArtifactProcessor {
+  public async parseArtifacts(_hre: HardhatRuntimeEnvironment): Promise<void> {
     ArtifactStorage.clear();
 
     const names = await _hre.artifacts.getAllFullyQualifiedNames();
@@ -32,7 +32,7 @@ export class ArtifactProcessor {
     }
   }
 
-  public static tryGetArtifactByName(contractName: string): ArtifactExtended {
+  public tryGetArtifactByName(contractName: string): ArtifactExtended {
     const artifact = ArtifactStorage.get(contractName);
 
     if (!artifact) {
@@ -42,7 +42,7 @@ export class ArtifactProcessor {
     return artifact;
   }
 
-  public static tryGetArtifactByBytecode(bytecode: string): ArtifactExtended {
+  public tryGetArtifactByBytecode(bytecode: string): ArtifactExtended {
     const artifact = ArtifactStorage.get(bytecodeHash(bytecode));
 
     if (!artifact) {
@@ -52,13 +52,13 @@ export class ArtifactProcessor {
     return artifact;
   }
 
-  public static tryGetContractName(bytecode: string): string {
+  public tryGetContractName(bytecode: string): string {
     const artifact = this.tryGetArtifactByBytecode(bytecode);
 
     return `${artifact.sourceName}:${artifact.contractName}`;
   }
 
-  private static _parseLibrariesOfArtifact(artifact: Artifact): NeededLibrary[] {
+  private _parseLibrariesOfArtifact(artifact: Artifact): NeededLibrary[] {
     const libraries = artifact.linkReferences;
 
     const neededLibraries = [];
@@ -77,7 +77,9 @@ export class ArtifactProcessor {
     return neededLibraries;
   }
 
-  private static _isNotDeployableArtifact(artifact: Artifact): boolean {
+  private _isNotDeployableArtifact(artifact: Artifact): boolean {
     return artifact.deployedBytecode === "0x";
   }
 }
+
+export const ArtifactProcessor = new BaseArtifactProcessor();

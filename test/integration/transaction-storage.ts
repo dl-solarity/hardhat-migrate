@@ -17,11 +17,11 @@ import {
   ContractWithPayableConstructor__factory,
 } from "../fixture-projects/hardhat-project-repeats-typechain-ethers/typechain-types";
 
-describe("TransactionStorage", async () => {
+describe.only("TransactionStorage", async () => {
   useEnvironment("repeats-typechain-ethers");
 
   beforeEach(async function () {
-    await Migrator.initialize(this.hre);
+    await Migrator.buildMigrateTaskDeps(this.hre);
   });
 
   afterEach(async function () {
@@ -57,7 +57,7 @@ describe("TransactionStorage", async () => {
       };
 
       assert.equal(
-        await TransactionProcessor.tryRestoreContractAddressByKeyFields(keyFields),
+        await TransactionProcessor?.tryRestoreContractAddressByKeyFields(keyFields),
         await contract.getAddress(),
       );
     });
@@ -66,7 +66,7 @@ describe("TransactionStorage", async () => {
       const contract = await deployer.deploy(ContractWithConstructorArguments__factory, ["hello"]);
 
       assert.equal(
-        await TransactionProcessor.tryRestoreContractAddressByName(
+        await TransactionProcessor?.tryRestoreContractAddressByName(
           "contracts/another-contracts/Contracts.sol:ContractWithConstructorArguments",
         ),
         await contract.getAddress(),
@@ -97,7 +97,7 @@ describe("TransactionStorage", async () => {
       };
 
       assert.equal(
-        await TransactionProcessor.tryRestoreContractAddressByKeyFields(keyFields),
+        await TransactionProcessor?.tryRestoreContractAddressByKeyFields(keyFields),
         await contract.getAddress(),
       );
     });
@@ -121,8 +121,8 @@ describe("TransactionStorage", async () => {
         contractName: UNKNOWN_CONTRACT_NAME,
       };
 
-      await expect(TransactionProcessor.tryRestoreContractAddressByKeyFields(keyFields)).to.be.rejectedWith(
-        "tryRestoreContractAddressByKeyFields(): Requested data not found in storage",
+      await expect(TransactionProcessor?.tryRestoreContractAddressByKeyFields(keyFields)).to.be.rejectedWith(
+        "BaseTransactionProcessor.tryRestoreContractAddressByKeyFields(): BaseTransactionProcessor._tryGetDataFromStorage(): Requested data not found in storage",
       );
     });
 
@@ -145,8 +145,8 @@ describe("TransactionStorage", async () => {
         contractName: UNKNOWN_CONTRACT_NAME,
       };
 
-      await expect(TransactionProcessor.tryRestoreContractAddressByKeyFields(keyFields)).to.be.rejectedWith(
-        "tryRestoreContractAddressByKeyFields(): Requested data not found in storage",
+      await expect(TransactionProcessor?.tryRestoreContractAddressByKeyFields(keyFields)).to.be.rejectedWith(
+        "BaseTransactionProcessor.tryRestoreContractAddressByKeyFields(): BaseTransactionProcessor._tryGetDataFromStorage(): Requested data not found in storage",
       );
     });
 
@@ -173,7 +173,7 @@ describe("TransactionStorage", async () => {
       };
 
       assert.equal(
-        await TransactionProcessor.tryRestoreContractAddressByKeyFields(keyFields),
+        await TransactionProcessor?.tryRestoreContractAddressByKeyFields(keyFields),
         await contract.getAddress(),
       );
     });
@@ -197,8 +197,8 @@ describe("TransactionStorage", async () => {
         contractName: UNKNOWN_CONTRACT_NAME,
       };
 
-      await expect(TransactionProcessor.tryRestoreContractAddressByKeyFields(keyFields)).to.be.rejectedWith(
-        "tryRestoreContractAddressByKeyFields(): Requested data not found in storage",
+      await expect(TransactionProcessor?.tryRestoreContractAddressByKeyFields(keyFields)).to.be.rejectedWith(
+        "BaseTransactionProcessor.tryRestoreContractAddressByKeyFields(): BaseTransactionProcessor._tryGetDataFromStorage(): Requested data not found in storage",
       );
     });
   });

@@ -12,20 +12,21 @@ import { MigrateError } from "../errors";
 
 import { MigrateConfig } from "../types/migrations";
 
-import { Linker } from "../deployer/Linker";
 import { Deployer } from "../deployer/Deployer";
 import { Verifier } from "../verifier/Verifier";
 
+import { createLinker } from "../deployer/Linker";
+
 import { Stats } from "../tools/Stats";
 
-import { initReporter, reporter } from "../tools/reporters/Reporter";
-import { transactionRunner } from "../tools/runners/TransactionRunner";
+import { TransactionRunner } from "../tools/runners/TransactionRunner";
+import { createAndInitReporter, Reporter } from "../tools/reporters/Reporter";
 
-import { initNetworkManager } from "../tools/network/NetworkManager";
+import { buildNetworkDeps } from "../tools/network/NetworkManager";
 
-import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
-import { MigrateStorage } from "../tools/storage/MigrateStorage";
+import { DefaultStorage } from "../tools/storage/MigrateStorage";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
+import { createTransactionProcessor } from "../tools/storage/TransactionProcessor";
 
 export class Migrator {
   private readonly _deployer: Deployer;
@@ -47,12 +48,12 @@ export class Migrator {
   }
 
   public async migrate() {
-    reporter!.reportMigrationBegin(this._migrationFiles);
+    Reporter!.reportMigrationBegin(this._migrationFiles);
 
     for (const element of this._migrationFiles) {
       Stats.currentMigration = this._getMigrationNumber(element);
 
-      reporter!.reportMigrationFileBegin(element);
+      Reporter!.reportMigrationFileBegin(element);
 
       try {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -68,7 +69,7 @@ export class Migrator {
       }
     }
 
-    transactionRunner!.summary();
+    TransactionRunner!.summary();
   }
 
   private _getMigrationFiles() {
@@ -107,15 +108,15 @@ export class Migrator {
     return parseInt(basename(file));
   }
 
-  public static async initialize(hre: HardhatRuntimeEnvironment): Promise<void> {
-    Linker.setConfig(hre.config.migrate);
-    TransactionProcessor.setConfig(hre.config.migrate);
+  public static async buildMigrateTaskDeps(hre: HardhatRuntimeEnvironment): Promise<void> {
+    createLinker(hre.config.migrate);
+    createTransactionProcessor(hre.config.migrate);
 
-    initNetworkManager(hre);
-    await initReporter(hre.config.migrate);
+    buildNetworkDeps(hre);
+    await createAndInitReporter(hre);
 
     if (!hre.config.migrate.continue) {
-      MigrateStorage.clearAll();
+      DefaultStorage.clearAll();
     }
 
     await ArtifactProcessor.parseArtifacts(hre);

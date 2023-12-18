@@ -9,8 +9,8 @@ import { Args } from "../types/deployer";
 import { VerifyConfig } from "../types/migrations";
 import { VerifierArgs } from "../types/verifier";
 
-import { initReporter, reporter } from "../tools/reporters/Reporter";
-import { initNetworkManager } from "../tools/network/NetworkManager";
+import { createAndInitReporter, Reporter } from "../tools/reporters/Reporter";
+import { buildNetworkDeps } from "../tools/network/NetworkManager";
 
 export class Verifier {
   private readonly _etherscanConfig: EtherscanConfig;
@@ -29,11 +29,11 @@ export class Verifier {
     const toVerify = verifierBatchArgs.filter((args) => args.chainId && currentChainId == args.chainId);
 
     if (!toVerify || toVerify.length === 0) {
-      reporter!.reportNothingToVerify();
+      Reporter!.reportNothingToVerify();
       return;
     }
 
-    reporter!.reportVerificationBatchBegin();
+    Reporter!.reportVerificationBatchBegin();
 
     const parallel = this._config.parallel;
 
@@ -52,7 +52,7 @@ export class Verifier {
 
     for (let attempts = 0; attempts < this._config.attempts; attempts++) {
       if (await instance.isVerified(contractAddress)) {
-        reporter!.reportAlreadyVerified(contractAddress, contractName);
+        Reporter!.reportAlreadyVerified(contractAddress, contractName);
 
         break;
       }
@@ -80,20 +80,20 @@ export class Verifier {
     const isVerified = await instance.isVerified(contractAddress);
 
     if (isVerified) {
-      reporter!.reportSuccessfulVerification(contractAddress, contractName);
+      Reporter!.reportSuccessfulVerification(contractAddress, contractName);
       return;
     } else {
-      reporter!.reportVerificationError(contractAddress, contractName, "Verification failed");
+      Reporter!.reportVerificationError(contractAddress, contractName, "Verification failed");
     }
   }
 
   @catchError
   private _handleVerificationError(contractAddress: string, contractName: string, error: any) {
     if (error.message.toLowerCase().includes("already verified")) {
-      reporter!.reportAlreadyVerified(contractAddress, contractName);
+      Reporter!.reportAlreadyVerified(contractAddress, contractName);
       return;
     } else {
-      reporter!.reportVerificationError(contractAddress, contractName, error.message);
+      Reporter!.reportVerificationError(contractAddress, contractName, error.message);
     }
   }
 
@@ -117,8 +117,8 @@ export class Verifier {
     });
   }
 
-  public static async initialize(hre: HardhatRuntimeEnvironment): Promise<void> {
-    initNetworkManager(hre);
-    await initReporter(hre.config.migrate);
+  public static async buildVerifierTaskDeps(hre: HardhatRuntimeEnvironment): Promise<void> {
+    buildNetworkDeps(hre);
+    await createAndInitReporter(hre);
   }
 }

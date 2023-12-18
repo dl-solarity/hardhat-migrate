@@ -22,7 +22,7 @@ describe("Ehters Typechain -- Deployer", () => {
     let deployer: Deployer;
 
     beforeEach("setup", async function () {
-      await Migrator.initialize(this.hre);
+      await Migrator.buildMigrateTaskDeps(this.hre);
 
       deployer = new Deployer(this.hre);
 

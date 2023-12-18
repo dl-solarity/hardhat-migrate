@@ -20,8 +20,8 @@ import { KeyTransactionFields, MigrationMetadata } from "../types/tools";
 import { isContractFactory, isEthersContract, isBytecodeFactory, isTruffleFactory } from "../types/type-checks";
 
 import { Stats } from "../tools/Stats";
-import { reporter } from "../tools/reporters/Reporter";
-import { transactionRunner } from "../tools/runners/TransactionRunner";
+import { Reporter } from "../tools/reporters/Reporter";
+import { TransactionRunner } from "../tools/runners/TransactionRunner";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 
 @catchError
@@ -56,9 +56,9 @@ export class Deployer {
     let contractAddress;
 
     if (contractIdentifier === undefined) {
-      contractAddress = await TransactionProcessor.tryRestoreContractAddressByName(defaultContractName);
+      contractAddress = await TransactionProcessor?.tryRestoreContractAddressByName(defaultContractName);
 
-      return adapter.toInstance(contract, contractAddress, {});
+      return adapter.toInstance(contract, contractAddress!, {});
     }
 
     if (isAddress(contractIdentifier)) {
@@ -69,11 +69,12 @@ export class Deployer {
       return adapter.toInstance(contract, contractIdentifier, {});
     }
 
-    contractAddress = await TransactionProcessor.tryRestoreContractAddressByName(contractIdentifier);
+    contractAddress = await TransactionProcessor?.tryRestoreContractAddressByName(contractIdentifier);
 
-    return adapter.toInstance(contract, contractAddress, {});
+    return adapter.toInstance(contract, contractAddress!, {});
   }
 
+  // TODO: return receipt!
   public async sendNative(to: string, value: bigint, name: string = SEND_NATIVE_TX_NAME): Promise<void> {
     const signer = await getSignerHelper();
 
@@ -83,13 +84,13 @@ export class Deployer {
 
     if (this._hre.config.migrate.continue) {
       try {
-        TransactionProcessor.tryRestoreSavedTransaction(tx);
+        TransactionProcessor?.tryRestoreSavedTransaction(tx);
 
-        reporter!.notifyTransactionRecovery(methodString);
+        Reporter!.notifyTransactionRecovery(methodString);
 
         return;
       } catch {
-        reporter!.notifyTransactionSendingInsteadOfRecovery(methodString);
+        Reporter!.notifyTransactionSendingInsteadOfRecovery(methodString);
       }
     }
 
@@ -97,7 +98,7 @@ export class Deployer {
 
     const [receipt] = await Promise.all([
       txResponse.wait(this._hre.config.migrate.wait),
-      transactionRunner!.reportTransactionResponse(txResponse, methodString),
+      TransactionRunner!.reportTransactionResponse(txResponse, methodString),
     ]);
 
     const saveMetadata: MigrationMetadata = {
@@ -105,7 +106,7 @@ export class Deployer {
       methodName: methodString,
     };
 
-    TransactionProcessor.saveTransaction(tx, receipt!, saveMetadata);
+    TransactionProcessor?.saveTransaction(tx, receipt!, saveMetadata);
   }
 
   public async getSigner(from?: string): Promise<Signer> {

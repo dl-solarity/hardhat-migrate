@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { networkManager } from "../network/NetworkManager";
 
-import { transactionRunner } from "../runners/TransactionRunner";
+import { TransactionRunner } from "../runners/TransactionRunner";
 
 import { MigrateError } from "../../errors";
 
@@ -13,7 +13,7 @@ export class PublicReporter {
       throw new MigrateError("Transaction not found.");
     }
 
-    await transactionRunner!.reportTransactionResponse(tx, name || "Unknown");
+    await TransactionRunner!.reportTransactionResponse(tx, name || "Unknown");
   }
 
   public static reportContracts(...contracts: [string, string][]): void {

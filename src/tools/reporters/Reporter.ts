@@ -13,8 +13,11 @@ import { MigrateConfig } from "../../types/migrations";
 import { ChainRecord, CustomChainRecord, predefinedChains } from "../../types/verifier";
 import { ContractFieldsToSave, MigrationMetadata, TransactionFieldsToSave } from "../../types/tools";
 
+/**
+ * Global error handling for network-related issues is conducted within the NetworkManager class
+ */
 @catchError
-class Reporter {
+class BaseReporter {
   private _hre: HardhatRuntimeEnvironment = {} as any;
   private _config: MigrateConfig = {} as any;
   private _network: Network = {} as any;
@@ -48,7 +51,7 @@ class Reporter {
     console.log(`\n${underline(`Running ${file}...`)}`);
   }
 
-  public async reportTransactionResponseHeader(tx: TransactionResponse, instanceName: string) {
+  public reportTransactionResponseHeader(tx: TransactionResponse, instanceName: string) {
     console.log("\n" + underline(this._parseTransactionTitle(tx, instanceName)));
 
     console.log(`> explorer: ${this._getExplorerLink(tx.hash)}`);
@@ -418,13 +421,14 @@ class Reporter {
   }
 }
 
-export let reporter: Reporter | null = null;
+export let Reporter: BaseReporter | null = null;
 
-export async function initReporter(hre: HardhatRuntimeEnvironment) {
-  if (reporter) {
+export async function createAndInitReporter(hre: HardhatRuntimeEnvironment) {
+  if (Reporter) {
     return;
   }
 
-  reporter = new Reporter();
-  await reporter.init(hre);
+  Reporter = new BaseReporter();
+
+  await Reporter.init(hre);
 }

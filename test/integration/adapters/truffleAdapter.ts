@@ -55,7 +55,7 @@ describe("TruffleAdapter", () => {
         resetEthersProvider();
         resetNetworkManager();
 
-        await Migrator.initialize(this.hre);
+        await Migrator.buildMigrateTaskDeps(this.hre);
 
         adapter = new TruffleAdapter(this.hre);
 
@@ -81,7 +81,7 @@ describe("TruffleAdapter", () => {
       let contractWithConstructorArtifact: TruffleContract;
 
       beforeEach("setup", async function () {
-        await Migrator.initialize(this.hre);
+        await Migrator.buildMigrateTaskDeps(this.hre);
 
         adapter = new TruffleAdapter(this.hre);
 

@@ -24,8 +24,8 @@ import { EthersContract, BytecodeFactory } from "../../types/adapter";
 import { KeyTransactionFields, MigrationMetadata, TransactionFieldsToSave } from "../../types/tools";
 
 import { Stats } from "../../tools/Stats";
-import { reporter } from "../../tools/reporters/Reporter";
-import { transactionRunner } from "../../tools/runners/TransactionRunner";
+import { Reporter } from "../../tools/reporters/Reporter";
+import { TransactionRunner } from "../../tools/runners/TransactionRunner";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 
 type Factory<A, I> = EthersContract<A, I> | BytecodeFactory | ContractFactory;
@@ -148,13 +148,13 @@ export abstract class AbstractEthersAdapter extends Adapter {
     args: any[],
   ) {
     try {
-      const savedTransaction = TransactionProcessor.tryRestoreSavedTransaction(tx);
+      const savedTransaction = TransactionProcessor?.tryRestoreSavedTransaction(tx);
 
-      reporter!.notifyTransactionRecovery(methodString);
+      Reporter!.notifyTransactionRecovery(methodString);
 
-      return this._wrapTransactionFieldsToSave(savedTransaction);
+      return this._wrapTransactionFieldsToSave(savedTransaction!);
     } catch {
-      reporter!.notifyTransactionSendingInsteadOfRecovery(methodString);
+      Reporter!.notifyTransactionSendingInsteadOfRecovery(methodString);
 
       return this._sendTransaction(methodString, tx, oldMethod, args);
     }
@@ -173,9 +173,9 @@ export abstract class AbstractEthersAdapter extends Adapter {
       methodName: methodString,
     };
 
-    await transactionRunner!.reportTransactionResponse(txResponse, methodString);
+    await TransactionRunner!.reportTransactionResponse(txResponse, methodString);
 
-    TransactionProcessor.saveTransaction(tx, (await txResponse.wait())!, saveMetadata);
+    TransactionProcessor?.saveTransaction(tx, (await txResponse.wait())!, saveMetadata);
 
     return txResponse;
   }
