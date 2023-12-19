@@ -20,7 +20,7 @@ This is a fairly simple and rather straightforward Hardhat plugin:
 npm install --save-dev @solarity/hardhat-migrate
 ```
 
-And add the following statement to your `hardhat.config.js`:
+And add the following statement to your `hardhat.config.ts`:
 
 ```js
 require("@solarity/hardhat-migrate");
