@@ -40,7 +40,7 @@
     "build": "tsc --build .",
     "prepare-tests": "npm run compile --workspaces",
     "test": "mocha --recursive 'test/**/*.ts' --exit && npm run lint-fix",
-    "prepare-clean": "npm run clean --workspaces",
+    "clean-tests": "npm run clean --workspaces",
     "lint-fix": "prettier --write \"./**/*.ts\" && eslint \"src/**/*.{js,ts}\" --cache --fix",
     "publish-to-npm": "npm run build && npm run lint-fix && npm publish ./ --access public"
   },
@@ -59,6 +59,7 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.4",
     "@nomiclabs/hardhat-truffle5": "^2.0.0",
+    "@openzeppelin/contracts": "^5.0.1",
     "@typechain/ethers-v6": "^0.5.0",
     "@typechain/hardhat": "^9.1.0",
     "@typechain/truffle-v5": "^8.0.6",
