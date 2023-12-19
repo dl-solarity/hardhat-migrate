@@ -38,7 +38,9 @@
     "prepack": "pinst --disable",
     "postpack": "pinst --enable",
     "build": "tsc --build .",
+    "prepare-tests": "npm run compile --workspaces",
     "test": "mocha --recursive 'test/**/*.ts' --exit && npm run lint-fix",
+    "prepare-clean": "npm run clean --workspaces",
     "lint-fix": "prettier --write \"./**/*.ts\" && eslint \"src/**/*.{js,ts}\" --cache --fix",
     "publish-to-npm": "npm run build && npm run lint-fix && npm publish ./ --access public"
   },

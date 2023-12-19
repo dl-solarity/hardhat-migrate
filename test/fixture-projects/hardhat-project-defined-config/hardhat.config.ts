@@ -1,6 +1,11 @@
-require("../../../src");
+import { HardhatUserConfig } from "hardhat/config";
 
-module.exports = {
+import config from "../hardhat.config";
+
+import "../../../src";
+
+const defaultConfig: HardhatUserConfig = {
+  ...config,
   migrate: {
     from: 1,
     to: 5,
@@ -15,3 +20,5 @@ module.exports = {
     continue: true,
   },
 };
+
+export default defaultConfig;

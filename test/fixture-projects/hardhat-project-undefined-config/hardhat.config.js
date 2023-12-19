@@ -1,3 +1,0 @@
-require("../../../src");
-
-module.exports = {};

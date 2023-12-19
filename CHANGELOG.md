@@ -2,6 +2,7 @@
 
 ## Version 2.0.0-beta.1
 
+* Migrated test fixture projects to TypeScript with updated configurations and scripts.
 * Added `TransactionFieldsToSave` as a return value to the `sendNative` function
 * Added handling of the custom chains specified in the Hardhat config
 * Refactored the architecture and made it consistent
