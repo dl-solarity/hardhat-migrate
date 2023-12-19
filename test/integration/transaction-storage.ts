@@ -67,7 +67,7 @@ describe("TransactionStorage", async () => {
 
       assert.equal(
         await TransactionProcessor?.tryRestoreContractAddressByName(
-          "contracts/another-contracts/Contracts.sol:ContractWithConstructorArguments",
+          "contracts/another-contracts/Helper.sol:ContractWithConstructorArguments",
         ),
         await contract.getAddress(),
       );
