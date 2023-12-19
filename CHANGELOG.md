@@ -2,9 +2,10 @@
 
 ## Version 2.0.0-beta.1
 
+* Added `TransactionFieldsToSave` as a return value to the `sendNative` function
 * Added handling of the custom chains specified in the Hardhat config
 * Refactored the architecture and made it consistent
-* Used spinner instead of console.log for network errors
+* Used spinner instead of `console.log` for network errors
 
 ## Version 2.0.0-alpha.22
 

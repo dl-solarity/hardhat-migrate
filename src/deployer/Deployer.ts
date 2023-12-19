@@ -16,7 +16,7 @@ import { EthersFactoryAdapter } from "./adapters/EthersFactoryAdapter";
 
 import { OverridesAndLibs } from "../types/deployer";
 import { Instance, TypedArgs } from "../types/adapter";
-import { KeyTransactionFields, MigrationMetadata } from "../types/tools";
+import { KeyTransactionFields, MigrationMetadata, TransactionFieldsToSave } from "../types/tools";
 import { isContractFactory, isEthersContract, isBytecodeFactory, isTruffleFactory } from "../types/type-checks";
 
 import { Stats } from "../tools/Stats";
@@ -74,8 +74,11 @@ export class Deployer {
     return adapter.toInstance(contract, contractAddress!, {});
   }
 
-  // TODO: return receipt!
-  public async sendNative(to: string, value: bigint, name: string = SEND_NATIVE_TX_NAME): Promise<void> {
+  public async sendNative(
+    to: string,
+    value: bigint,
+    name: string = SEND_NATIVE_TX_NAME,
+  ): Promise<TransactionFieldsToSave> {
     const signer = await getSignerHelper();
 
     const tx = await this._buildSendTransaction(to, value, name);
@@ -84,11 +87,11 @@ export class Deployer {
 
     if (this._hre.config.migrate.continue) {
       try {
-        TransactionProcessor?.tryRestoreSavedTransaction(tx);
+        const savedTx = TransactionProcessor?.tryRestoreSavedTransaction(tx);
 
         Reporter!.notifyTransactionRecovery(methodString);
 
-        return;
+        return savedTx!;
       } catch {
         Reporter!.notifyTransactionSendingInsteadOfRecovery(methodString);
       }
@@ -106,7 +109,9 @@ export class Deployer {
       methodName: methodString,
     };
 
-    TransactionProcessor?.saveTransaction(tx, receipt!, saveMetadata);
+    const savedTx = TransactionProcessor?.saveTransaction(tx, receipt!, saveMetadata);
+
+    return savedTx!;
   }
 
   public async getSigner(from?: string): Promise<Signer> {

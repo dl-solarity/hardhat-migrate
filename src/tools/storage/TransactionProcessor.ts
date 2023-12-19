@@ -65,7 +65,7 @@ export class BaseTransactionProcessor {
     receipt: TransactionReceiptParams | TransactionReceipt,
     metadata: MigrationMetadata,
   ) {
-    this._saveTransaction(
+    return this._saveTransaction(
       {
         data: tx.data,
         from: tx.from,
@@ -146,6 +146,8 @@ export class BaseTransactionProcessor {
     }
 
     TransactionStorage.set(dataKey, dataToSave, true);
+
+    return dataToSave;
   }
 
   private _saveContract(keyByArgs: string, dataToSave: ContractFieldsToSave) {
