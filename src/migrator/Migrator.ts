@@ -13,7 +13,6 @@ import { MigrateError } from "../errors";
 import { MigrateConfig } from "../types/migrations";
 
 import { Deployer } from "../deployer/Deployer";
-import { Verifier } from "../verifier/Verifier";
 
 import { createLinker } from "../deployer/Linker";
 
@@ -30,7 +29,6 @@ import { createTransactionProcessor } from "../tools/storage/TransactionProcesso
 
 export class Migrator {
   private readonly _deployer: Deployer;
-  private readonly _verifier: Verifier;
 
   private readonly _migrationFiles: string[];
 
@@ -39,10 +37,6 @@ export class Migrator {
     private _config: MigrateConfig = _hre.config.migrate,
   ) {
     this._deployer = new Deployer(_hre);
-    this._verifier = new Verifier(_hre, {
-      parallel: this._config.verifyParallel,
-      attempts: this._config.verifyAttempts,
-    });
 
     this._migrationFiles = this._getMigrationFiles();
   }
@@ -59,7 +53,7 @@ export class Migrator {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const migration = require(resolvePathToFile(this._config.pathToMigrations, element));
 
-        await migration(this._deployer, this._verifier);
+        await migration(this._deployer);
       } catch (e: unknown) {
         if (e instanceof MigrateError) {
           throw new HardhatPluginError(pluginName, e.message, e);
