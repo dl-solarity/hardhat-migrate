@@ -232,6 +232,15 @@ Displays a list of contract names and addresses in a table format.
 
 The usage of these functionalities is demonstrated in the sample migration file above.
 
+#### Truffle native functions
+
+Most of the functions exposed by the Truffle contract, which directly impact or create the Truffle Contract Instance, are not supported.
+
+The following function is supported:
+- link
+
+For a usage example, see the deployment scripts in the fixture project created to test how plugins work with Truffle.
+
 ### Transactions
 
 We have introduced the capability to assign a specific name to each transaction, enhancing its entropy. 

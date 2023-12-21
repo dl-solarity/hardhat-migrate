@@ -52,10 +52,6 @@ export class BaseTransactionProcessor {
 
     this._saveContract(keyByArgs, dataToSave);
     this._saveContractByName(contractName, dataToSave);
-
-    if (metadata.fullyQualifiedContractName) {
-      TransactionStorage.set(metadata.fullyQualifiedContractName, dataToSave, true);
-    }
   }
 
   /**
