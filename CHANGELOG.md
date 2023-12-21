@@ -2,6 +2,8 @@
 
 ## Version 2.0.0-beta.1
 
+* Removed redundant Hardhat Runtime Extensions.
+* Removed Verifier from Migrator class.
 * Revised the test infrastructure and architecture.
 * Fixed bugs related to the recovery of contract names.
 * Fixed a bug related to contract recovery when a custom name is used.

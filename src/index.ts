@@ -1,9 +1,8 @@
 import "@nomicfoundation/hardhat-verify";
 
 import { ActionType } from "hardhat/types";
-import { lazyObject } from "hardhat/plugins";
 import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
-import { extendConfig, extendEnvironment, task, types } from "hardhat/config";
+import { extendConfig, task, types } from "hardhat/config";
 
 import "./type-extensions";
 
@@ -12,7 +11,7 @@ import { TASK_MIGRATE, TASK_MIGRATE_VERIFY } from "./constants";
 
 import { MigrateConfig, MigrateVerifyConfig } from "./types/migrations";
 
-import { UserStorage, DefaultStorage } from "./tools/storage/MigrateStorage";
+import { DefaultStorage } from "./tools/storage/MigrateStorage";
 import { VerificationProcessor } from "./tools/storage/VerificationProcessor";
 
 import { Migrator } from "./migrator/Migrator";
@@ -51,14 +50,6 @@ const migrateVerify: ActionType<MigrateVerifyConfig> = async (taskArgs, env) => 
     VerificationProcessor.restoreSavedVerificationFunctions(config.inputFile),
   );
 };
-
-extendEnvironment((hre) => {
-  hre.migrator = lazyObject(() => {
-    return new Migrator(hre);
-  });
-
-  hre.storage = lazyObject(() => UserStorage);
-});
 
 task(TASK_CLEAN, "Clears the cache and deletes all artifacts").setAction(async (conf, hre, runSuper) => {
   DefaultStorage.clean();
