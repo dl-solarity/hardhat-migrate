@@ -24,7 +24,7 @@ class LinkerHelper {
   }
 
   public async tryLinkBytecode(contractName: string, bytecode: string, libraries: Libraries): Promise<string> {
-    const artifact: ArtifactExtended = this._mustGetContractArtifact(contractName);
+    const artifact: ArtifactExtended = this._mustGetContractArtifact(contractName, bytecode);
     const neededLibraries = this._cleanNeededLibraries(bytecode, artifact, artifact.neededLibraries);
 
     let linksToApply: Map<string, Link> = new Map();
@@ -202,20 +202,50 @@ class LinkerHelper {
     }
   }
 
-  private _mustGetContractArtifact(contractName: string): ArtifactExtended {
-    try {
-      return ArtifactProcessor.tryGetArtifactByName(contractName);
-    } catch {
+  private _mustGetContractArtifact(contractName: string, contractBytecode: string): ArtifactExtended {
+    const artifact = this._getContractFromStorage(contractName, contractBytecode);
+
+    if (!artifact) {
       throw new MigrateError(`Contract artifact of ${contractName} not found. Linking cannot be performed.`);
     }
+
+    return artifact;
   }
 
   private _mustGetLibraryArtifact(libraryName: string): ArtifactExtended {
-    try {
-      return ArtifactProcessor.tryGetArtifactByName(libraryName);
-    } catch {
+    const artifact = this._getContractFromStorage(libraryName);
+
+    if (!artifact) {
       throw new MigrateError(`Library artifact of ${libraryName} not found. Linking cannot be performed.`);
     }
+
+    return artifact;
+  }
+
+  private _getContractFromStorage(contractName: string, contractBytecode?: string): ArtifactExtended | null {
+    try {
+      return ArtifactProcessor.tryGetArtifactByName(contractName);
+    } catch {
+      /* ignore */
+    }
+
+    try {
+      const txData = TransactionProcessor?.tryRestoreSavedDeployedTxByContractName(contractName);
+
+      return ArtifactProcessor.tryGetArtifactByName(txData!.metadata.fullyQualifiedContractName!);
+    } catch {
+      /* ignore */
+    }
+
+    if (contractBytecode) {
+      try {
+        return ArtifactProcessor.tryGetArtifactByBytecode(contractBytecode);
+      } catch {
+        /* ignore */
+      }
+    }
+
+    return null;
   }
 }
 

@@ -117,6 +117,7 @@ export class MinimalContract {
     const saveMetadata: MigrationMetadata = {
       migrationNumber: Stats.currentMigration,
       contractName: tx.contractName,
+      fullyQualifiedContractName: this.getFullyQualifiedName(tx) || undefined,
     };
 
     TransactionProcessor?.saveDeploymentTransaction(tx, tx.contractName, contractAddress, saveMetadata);
@@ -129,21 +130,31 @@ export class MinimalContract {
       return;
     }
 
-    try {
-      let contractName = tx.contractName;
+    const contractName = this.getFullyQualifiedName(tx);
 
-      if (!isFullyQualifiedName(contractName)) {
-        contractName = ArtifactProcessor.tryGetContractName(this._rawBytecode);
+    if (contractName === null) {
+      Reporter!.reportVerificationFailedToSave(tx.contractName);
+
+      return;
+    }
+
+    VerificationProcessor.saveVerificationFunction({
+      contractAddress,
+      contractName: contractName,
+      constructorArguments: args,
+      chainId: Number(await getChainId()),
+    });
+  }
+
+  private getFullyQualifiedName(tx: ContractDeployTxWithName): string | null {
+    try {
+      if (!isFullyQualifiedName(tx.contractName)) {
+        return ArtifactProcessor.tryGetContractName(this._rawBytecode);
       }
 
-      VerificationProcessor.saveVerificationFunction({
-        contractAddress,
-        contractName: contractName,
-        constructorArguments: args,
-        chainId: Number(await getChainId()),
-      });
+      return tx.contractName;
     } catch {
-      Reporter!.reportVerificationFailedToSave(tx.contractName);
+      return null;
     }
   }
 }

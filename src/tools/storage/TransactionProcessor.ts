@@ -52,6 +52,10 @@ export class BaseTransactionProcessor {
 
     this._saveContract(keyByArgs, dataToSave);
     this._saveContractByName(contractName, dataToSave);
+
+    if (metadata.fullyQualifiedContractName) {
+      TransactionStorage.set(metadata.fullyQualifiedContractName, dataToSave, true);
+    }
   }
 
   /**
@@ -119,6 +123,10 @@ export class BaseTransactionProcessor {
         name: key.name,
       }),
     );
+  }
+
+  public tryRestoreSavedDeployedTxByContractName(contractName: string): ContractFieldsToSave {
+    return this._tryGetDataFromStorage(contractName);
   }
 
   private _saveTransaction(
