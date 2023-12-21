@@ -1,5 +1,7 @@
 import { Artifact, HardhatRuntimeEnvironment } from "hardhat/types";
 
+import { isFullyQualifiedName } from "hardhat/utils/contract-names";
+
 import { ArtifactStorage } from "./MigrateStorage";
 
 import { MigrateError } from "../../errors";
@@ -30,6 +32,22 @@ class BaseArtifactProcessor {
       // failure in edge cases, such as with internal libraries or disabled bytecode metadata hash generation.
       ArtifactStorage.set(bytecodeHash(artifact.bytecode), contract, true);
     }
+  }
+
+  public async saveArtifactIfNotExist(
+    _hre: HardhatRuntimeEnvironment,
+    contractName: string,
+    bytecode?: string,
+  ): Promise<void> {
+    if (!isFullyQualifiedName(contractName) || (bytecode ? true : ArtifactStorage.get(bytecodeHash(bytecode!)))) {
+      return;
+    }
+
+    const artifact = await _hre.artifacts.readArtifact(contractName);
+
+    const contract: ArtifactExtended = { ...artifact, neededLibraries: this._parseLibrariesOfArtifact(artifact) };
+
+    ArtifactStorage.set(bytecode ? bytecodeHash(bytecode) : bytecodeHash(artifact.bytecode), contract, true);
   }
 
   public tryGetArtifactByName(contractName: string): ArtifactExtended {

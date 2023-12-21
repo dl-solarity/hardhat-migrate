@@ -453,3 +453,7 @@ export async function createAndInitReporter(hre: HardhatRuntimeEnvironment) {
 
   await Reporter.init(hre);
 }
+
+export function resetReporter() {
+  Reporter = null;
+}

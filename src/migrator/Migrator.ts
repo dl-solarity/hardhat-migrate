@@ -24,7 +24,7 @@ import { createAndInitReporter, Reporter } from "../tools/reporters/Reporter";
 
 import { buildNetworkDeps } from "../tools/network/NetworkManager";
 
-import { DefaultStorage } from "../tools/storage/MigrateStorage";
+import { clearAllStorage } from "../tools/storage/MigrateStorage";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { createTransactionProcessor } from "../tools/storage/TransactionProcessor";
 
@@ -109,14 +109,14 @@ export class Migrator {
   }
 
   public static async buildMigrateTaskDeps(hre: HardhatRuntimeEnvironment): Promise<void> {
-    createLinker(hre.config.migrate);
+    createLinker(hre);
     createTransactionProcessor(hre.config.migrate);
 
     buildNetworkDeps(hre);
     await createAndInitReporter(hre);
 
     if (!hre.config.migrate.continue) {
-      DefaultStorage.clearAll();
+      clearAllStorage();
     }
 
     await ArtifactProcessor.parseArtifacts(hre);

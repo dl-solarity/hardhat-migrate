@@ -135,7 +135,7 @@ export class Deployer {
 
   public static resolveAdapter<A, I>(hre: HardhatRuntimeEnvironment, contract: Instance<A, I>): Adapter {
     if (isEthersContract(contract)) {
-      return new EthersContractAdapter(hre.config.migrate);
+      return new EthersContractAdapter(hre);
     }
 
     if (isTruffleFactory(contract)) {
@@ -143,11 +143,11 @@ export class Deployer {
     }
 
     if (isBytecodeFactory(contract)) {
-      return new BytecodeAdapter(hre.config.migrate);
+      return new BytecodeAdapter(hre);
     }
 
     if (isContractFactory(contract)) {
-      return new EthersFactoryAdapter(hre.config.migrate);
+      return new EthersFactoryAdapter(hre);
     }
 
     throw new MigrateError("Unknown Contract Factory Type");

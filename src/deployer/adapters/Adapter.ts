@@ -1,16 +1,17 @@
 import { Interface } from "ethers";
 
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { MinimalContract } from "../MinimalContract";
 
 import { catchError } from "../../utils";
 
 import { Instance } from "../../types/adapter";
-import { MigrateConfig } from "../../types/migrations";
 import { OverridesAndLibs, OverridesAndName } from "../../types/deployer";
 
 @catchError
 export abstract class Adapter {
-  public constructor(protected _config: MigrateConfig) {}
+  public constructor(protected _hre: HardhatRuntimeEnvironment) {}
 
   public abstract fromInstance<A, I>(instance: Instance<A, I>, parameters: OverridesAndName): Promise<MinimalContract>;
 

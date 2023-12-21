@@ -1,5 +1,7 @@
 import { ethers, InterfaceAbi, Overrides, Signer } from "ethers";
 
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 
 import { Linker } from "./Linker";
@@ -9,7 +11,6 @@ import { catchError, fillParameters, getChainId, getInterfaceOnlyWithConstructor
 import { MigrateError } from "../errors";
 
 import { MigrationMetadata } from "../types/tools";
-import { MigrateConfig } from "../types/migrations";
 import { ContractDeployTxWithName, OverridesAndLibs } from "../types/deployer";
 
 import { Stats } from "../tools/Stats";
@@ -25,7 +26,7 @@ export class MinimalContract {
   private readonly _interface;
 
   constructor(
-    private readonly _config: MigrateConfig,
+    private readonly _hre: HardhatRuntimeEnvironment,
     private _bytecode: string,
     private readonly _abi: InterfaceAbi,
     private readonly _contractName: string = "",
@@ -49,7 +50,7 @@ export class MinimalContract {
 
     const tx = await this._createDeployTransaction(args, parameters);
 
-    if (this._config.continue) {
+    if (this._hre.config.migrate.continue) {
       return this._recoverContractAddress(tx, args);
     } else {
       return this._processContractDeploymentTransaction(tx, args);
@@ -117,7 +118,7 @@ export class MinimalContract {
     const saveMetadata: MigrationMetadata = {
       migrationNumber: Stats.currentMigration,
       contractName: tx.contractName,
-      fullyQualifiedContractName: this.getFullyQualifiedName(tx) || undefined,
+      fullyQualifiedContractName: this._getFullyQualifiedName(tx) || undefined,
     };
 
     TransactionProcessor?.saveDeploymentTransaction(tx, tx.contractName, contractAddress, saveMetadata);
@@ -130,7 +131,7 @@ export class MinimalContract {
       return;
     }
 
-    const contractName = this.getFullyQualifiedName(tx);
+    const contractName = this._getFullyQualifiedName(tx);
 
     if (contractName === null) {
       Reporter!.reportVerificationFailedToSave(tx.contractName);
@@ -144,9 +145,11 @@ export class MinimalContract {
       constructorArguments: args,
       chainId: Number(await getChainId()),
     });
+
+    await ArtifactProcessor.saveArtifactIfNotExist(this._hre, contractName, this._rawBytecode);
   }
 
-  private getFullyQualifiedName(tx: ContractDeployTxWithName): string | null {
+  private _getFullyQualifiedName(tx: ContractDeployTxWithName): string | null {
     try {
       if (!isFullyQualifiedName(tx.contractName)) {
         return ArtifactProcessor.tryGetContractName(this._rawBytecode);

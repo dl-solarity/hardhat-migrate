@@ -10,7 +10,7 @@ import { StorageNamespaces } from "../../types/tools";
 
 @catchError
 class BaseStorage {
-  private readonly _fileName = ".storage.json";
+  private readonly _fileName = ".migrate.storage.json";
 
   protected _state: Record<string, any> = lazyObject(() => this._readFullStateFromFile());
 
@@ -110,3 +110,11 @@ export const UserStorage = lazyObject(() => new MigrateStorage(StorageNamespaces
 export const TransactionStorage = lazyObject(() => new MigrateStorage(StorageNamespaces.Transactions));
 export const ArtifactStorage = lazyObject(() => new MigrateStorage(StorageNamespaces.Artifacts));
 export const VerificationStorage = lazyObject(() => new MigrateStorage(StorageNamespaces.Verification));
+
+export function clearAllStorage(): void {
+  DefaultStorage.clearAll();
+  UserStorage.clearAll();
+  TransactionStorage.clearAll();
+  ArtifactStorage.clearAll();
+  VerificationStorage.clearAll();
+}

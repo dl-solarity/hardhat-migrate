@@ -1,6 +1,6 @@
 import { isAddress, resolveAddress } from "ethers";
 
-import { Artifact, Libraries } from "hardhat/types";
+import { Artifact, HardhatRuntimeEnvironment, Libraries } from "hardhat/types";
 
 import { MinimalContract } from "./MinimalContract";
 
@@ -8,7 +8,6 @@ import { MigrateError } from "../errors";
 
 import { catchError } from "../utils";
 
-import { MigrateConfig } from "../types/migrations";
 import { ArtifactExtended, Link, NeededLibrary } from "../types/deployer";
 
 import { Reporter } from "../tools/reporters/Reporter";
@@ -17,7 +16,7 @@ import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 
 @catchError
 class LinkerHelper {
-  constructor(private _config: MigrateConfig) {}
+  constructor(private _hre: HardhatRuntimeEnvironment) {}
 
   public isBytecodeNeedsLinking(bytecode: string): boolean {
     return bytecode.indexOf("__") === -1;
@@ -194,7 +193,7 @@ class LinkerHelper {
 
       // https://github.com/ethers-io/ethers.js/issues/2431
       // https://github.com/ethers-io/ethers.js/issues/1126
-      const core = new MinimalContract(this._config, artifact.bytecode, artifact.abi, libraryName);
+      const core = new MinimalContract(this._hre, artifact.bytecode, artifact.abi, libraryName);
 
       Reporter!.notifyDeploymentOfMissingLibrary(libraryName);
 
@@ -251,10 +250,10 @@ class LinkerHelper {
 
 export let Linker: LinkerHelper | null = null;
 
-export function createLinker(config: MigrateConfig) {
+export function createLinker(hre: HardhatRuntimeEnvironment) {
   if (Linker) {
     return;
   }
 
-  Linker = new LinkerHelper(config);
+  Linker = new LinkerHelper(hre);
 }

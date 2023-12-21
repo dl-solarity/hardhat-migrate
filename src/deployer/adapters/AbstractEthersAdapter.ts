@@ -39,7 +39,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
 
   public async fromInstance<A, I>(instance: Factory<A, I>, parameters: OverridesAndName): Promise<MinimalContract> {
     return new MinimalContract(
-      this._config,
+      this._hre,
       this.getRawBytecode(instance),
       this.getRawAbi(instance),
       this.getContractName(instance, parameters),
@@ -133,7 +133,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
 
       const keyFields = this._getKeyFieldsFromTransaction(tx);
 
-      if (this._config.continue) {
+      if (this._hre.config.migrate.continue) {
         return this._recoverTransaction(methodString, keyFields, oldMethod, args);
       }
 

@@ -8,8 +8,6 @@ import {
   Interface,
 } from "ethers";
 
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-
 import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
 
 import { Adapter } from "./Adapter";
@@ -32,16 +30,12 @@ import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 
 @catchError
 export class TruffleAdapter extends Adapter {
-  constructor(private _hre: HardhatRuntimeEnvironment) {
-    super(_hre.config.migrate);
-  }
-
   public async fromInstance<A, I>(
     instance: EthersContract<A, I>,
     parameters: OverridesAndName,
   ): Promise<MinimalContract> {
     return new MinimalContract(
-      this._config,
+      this._hre,
       this.getRawBytecode(instance),
       this.getRawAbi(instance),
       this.getContractName(instance, parameters),
@@ -148,7 +142,7 @@ export class TruffleAdapter extends Adapter {
 
       const methodString = getMethodString(contractName, methodName, contractMethod.fragment, args);
 
-      if (this._config.continue) {
+      if (this._hre.config.migrate.continue) {
         return this._recoverTransaction(methodString, keyFields, contractMethod.send, args);
       }
 
