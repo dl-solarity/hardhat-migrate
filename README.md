@@ -20,7 +20,7 @@ This is a fairly simple and rather straightforward Hardhat plugin:
 npm install --save-dev @solarity/hardhat-migrate
 ```
 
-And add the following statement to your `hardhat.config.ts`:
+And add the following statement to your `hardhat.config.js`:
 
 ```js
 require("@solarity/hardhat-migrate");
@@ -62,10 +62,7 @@ npx hardhat help migrate
 
 ## Environment extensions
 
-This plugin extends the Hardhat Runtime Environment by adding the following fields:
-
-- `deployer` - The deployer object that is used to deploy contracts.
-- `verifier` - The verifier object that is used to verify contracts.
+This plugin does not extend the Hardhat Runtime Environment.
 
 ## Usage
 
@@ -136,25 +133,104 @@ The plugin includes the following packages to perform the deployment and verific
 
 The core of this plugin is migration files, you can specify the migration route that suits you best.
 
-[//]: # (You can find an example of migration files in the sample project.)
+
+### Migration Sample
+
+Below is a sample migration file:
+
+```ts 
+import { Deployer, Reporter } from "@solarity/hardhat-migrate";
+
+import { GovToken__factory } from "../typechain-types";
+
+const TOKEN_OWNER = "0x1E3953B6ee74461169A3E346060AE27bD0B5bF2B";
+
+export = async (deployer: Deployer) => {
+  const govToken = await deployer.deploy(GovToken__factory, ["Token", "TKN"]);
+  
+  const transferOwnershipTx = (await (await govToken.transferOwnership(TOKEN_OWNER)).wait())!;
+  
+  await Reporter.reportTransactionByHash(
+    transferOwnershipTx.hash,
+    "Transfer Ownership of Governance Token to Token Owner",
+  );
+  
+  Reporter.reportContracts([
+    `Governance Token ${await govToken.name()} (${await govToken.symbol()}) Address`,
+    await govToken.getAddress(),
+  ]);
+};
+```
+
+This example illustrates the basic principles of how migrations operate:
+1. The core component is the `Deployer` object, which acts as a wrapper for the [@ethers](https://www.npmjs.com/package/ethers) 
+library, facilitating the deployment and processing of contracts.
+2. The `Reporter` class, a static entity, logs intermediary information into the console.
+3. It is required to import contract factories, or, in the case of Truffle, the necessary Truffle Contract Instance that need to be deployed.
+4. Define all relevant constants as necessary.
+5. The migration file's main body grants access to the deployer object, allowing for contract deployment and supporting 
+recovery from failures in previous migration runs.
+6. Standard transaction-sending processes are used without special wrappers.
+7. The migration concludes with the `Reporter` class summarizing the migration details.
 
 ### Migration Lifecycle
 
-The migration files are sorted by the first digit in the file name and run one after the other in ascending order.
-
-Parameters: `from`, `to`, `only` and `skip` affect the selection of the migration files.
+Migration files are executed in ascending order, sorted by the first digit in the file name. 
+Parameters such as `from`, `to`, `only`, and `skip` influence the selection of migration files.
 
 ### Deployer
 
-Deployer contains the following functionality:
+The Deployer offers several functionalities:
 
-- **deploy()**
+---
 
-Under the hood, it uses `ContractFactory` from [@ethers](https://www.npmjs.com/package/ethers) to deploy the contracts.
+- **deploy(contractInstance, argsOrParameters, parameters)**:
+ 
+Utilizes `ContractFactory` from [@ethers](https://www.npmjs.com/package/ethers) to deploy contracts, inferring types and providing enhanced functionalities like transaction recovery and reporting. It also stores deployment transaction data for later contract verification.
 
-- **deployed()**
+---
 
-Returns the deployed contract instance.
+- **deployed(contractInstance, contractIdentifier)**: 
+
+Returns the deployed contract instance, inferring types and enhancing functionalities for comfortable interaction.
+
+---
+
+- **sendNative(to, value, name <- optional)**: 
+
+Facilitates sending native assets to a specified address, primarily for the recovery process.
+
+---
+
+- **getSigner(from <- optional)**: 
+
+Retrieves an ethers signer for use in migrations.
+
+---
+
+- **getChainId()**: 
+
+Identifies the current chain ID for the deployment.
+
+### Reporter
+
+The Reporter, a static class, provides functionalities like:
+
+---
+
+- **reportTransactionByHash(hash, name <- optional)**:
+
+Retrieves and displays transaction receipts with standard formatting.
+
+---
+
+- **reportContracts(...contracts: [string, string][])**: 
+
+Displays a list of contract names and addresses in a table format.
+
+---
+
+The usage of these functionalities is demonstrated in the sample migration file above.
 
 ### Transactions
 
@@ -197,3 +273,4 @@ If verification fails, the `attempts` parameter indicates how many additional re
 
 - This plugin, as well as the [Hardhat Toolbox](https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox) plugin, use the [@nomicfoundation/hardhat-verify](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify) plugin internally, so both of these plugins cannot be imported at the same time. A quick fix is to manually import the needed plugins that ToolBox imports.
 - Adding, removing, moving or renaming new contracts to the hardhat project or reorganizing the directory structure of contracts after deployment may alter the resulting bytecode in some solc versions. See this [Solidity issue](https://github.com/ethereum/solidity/issues/9573) for further information.
+- This plugin does not function properly with native Truffle methods, such as in `contract.deployed()`, unless otherwise specified above at the instance level. Instead, it is necessary to use the `deployer.deploy()` method.
