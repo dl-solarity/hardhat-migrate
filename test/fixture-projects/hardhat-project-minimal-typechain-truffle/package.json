@@ -1,8 +1,0 @@
-{
-  "name": "hardhat-project-minimal-typechain-truffle",
-  "version": "1.0.0",
-  "scripts": {
-    "compile": "hardhat compile --force",
-    "clean": "hardhat clean && rm -rf artifacts && rm -rf cache"
-  }
-}

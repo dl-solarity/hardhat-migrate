@@ -8,16 +8,17 @@ const defaultConfig: HardhatUserConfig = {
   ...config,
   migrate: {
     from: 1,
-    to: 5,
+    to: 3,
     only: 2,
-    skip: 1,
+    skip: 4,
     wait: 2,
     verify: true,
-    verifyParallel: 4,
-    verifyAttempts: 5,
-    pathToMigrations: "./deploy/",
+    verifyParallel: 12,
+    verifyAttempts: 32,
+    pathToMigrations: "./path-to-deploy",
     force: true,
     continue: true,
+    transactionStatusCheckInterval: 4000,
   },
 };
 
