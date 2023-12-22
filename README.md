@@ -52,7 +52,8 @@ It is also **mandatory** to specify the naming convention for migrations such as
 - `migrate` task, which allows you to deploy and automatically verify contracts.
 - `migrate:verify` task, which helps you verify already deployed contracts.
 
-> :warning: **Hardhat Config**: Make sure they are follow the docs from `@nomicfoundation/hardhat-verify`.
+> [!WARNING]
+> **Hardhat Config**: Make sure they are follow the docs from `@nomicfoundation/hardhat-verify`.
 
 Do not import `@solarity/hardhat-migrate` and `@nomicfoundation/hardhat-verify`, `@nomicfoundation/hardhat-ethers` together, the etherscan plugin is already included in the migrate plugin.
 
