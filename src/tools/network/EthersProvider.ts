@@ -17,6 +17,9 @@ export function createEthersProvider(hre: HardhatRuntimeEnvironment): void {
   ethersProvider = new HardhatEthersProvider(hre.network.provider, hre.network.name);
 }
 
+/**
+ * Used only in test environments to ensure test atomicity
+ */
 export function resetEthersProvider(): void {
   ethersProvider = null;
 }
