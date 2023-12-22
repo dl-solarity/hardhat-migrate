@@ -97,7 +97,7 @@ module.exports = {
 - `only` : The number of the migration that will be applied. **Overrides from and to parameters.**
 - `skip`: The number of migration to skip. **Overrides only parameter.**
 - `wait` : The number of confirmations to wait for after the transaction is mined.
-- `verify` : The flag indicating whether the contracts should be verified immediately after all migrations.
+- `verify` : The flag indicating whether the contracts have to be verified after all migrations.
 - `verifyParallel` : The size of the batch for verification.
 - `verifyAttempts` : The number of attempts to verify the contract.
 - `pathToMigrations` : The path to the folder with the specified migrations.
@@ -116,8 +116,8 @@ npx hardhat migrate --network sepolia --verify --only 2
 ```
 
 In this case, only the migration that begins with digit 2 will be applied.
-The plugin will also attempt to automatically verify the deployed contracts after all contracts are deployed 
-and the migration process is complete.
+
+The plugin will also attempt to automatically verify the deployed contracts after all migrations are complete.
 
 #### Or with from/to parameters
 
@@ -137,7 +137,6 @@ The plugin includes the following packages to perform the deployment and verific
   - [@nomicfoundation/hardhat-verify](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify)
 
 The core of this plugin is migration files, you can specify the migration route that suits you best.
-
 
 ### Migration Sample
 
@@ -288,4 +287,4 @@ If verification fails, the `attempts` parameter indicates how many additional re
 
 - This plugin, as well as the [Hardhat Toolbox](https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox) plugin, use the [@nomicfoundation/hardhat-verify](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify) plugin internally, so both of these plugins cannot be imported at the same time. A quick fix is to manually import the needed plugins that ToolBox imports.
 - Adding, removing, moving or renaming new contracts to the hardhat project or reorganizing the directory structure of contracts after deployment may alter the resulting bytecode in some solc versions. See this [Solidity issue](https://github.com/ethereum/solidity/issues/9573) for further information.
-- This plugin does not function properly with native Truffle methods, such as in `contract.deployed()`, unless otherwise specified above at the instance level. For instance, instead of using `contract.deployed()`, it is necessary to use the `deployer.deploy()` method.
+- This plugin does not function properly with native Truffle methods, such as in `contract.deployed()`, unless otherwise specified above at the instance level. For example, instead of using `contract.deployed()`, it is necessary to use the `deployer.deploy()` method.
