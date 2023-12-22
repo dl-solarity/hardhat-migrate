@@ -35,9 +35,8 @@ Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 import "@solarity/hardhat-migrate";
 ```
 
-> **Important**.
-
-See [How it works](https://github.com/dl-solarity/hardhat-migrate#how-it-works) for further information.
+> [!NOTE]
+> See [How it works](https://github.com/dl-solarity/hardhat-migrate#how-it-works) for further information.
 
 ## Naming convention
 
