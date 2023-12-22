@@ -6,13 +6,16 @@
 
 ## What
 
-This plugin helps you deploy and automatically verify the source code for your Solidity contracts on [Etherscan](https://etherscan.io)-based explorers and explorers compatible with its API like [Blockscout](https://www.blockscout.com/).
+This plugin helps you deploy and verify the source code for your Solidity contracts through the specification of migrations. With sleek UX, the plugin enables users to:
 
-This is a fairly simple and rather straightforward Hardhat plugin:
-
-- For deployment, it uses [@ethers](https://www.npmjs.com/package/ethers).
-
-- For verification, it uses [@nomicfoundation/hardhat-verify](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify).
+- Specify custom smart contracts deployment rules and configuration via [@ethers](https://www.npmjs.com/package/ethers).
+- Relax from the source code verification hassle due to seamless integration with [@nomicfoundation/hardhat-verify](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify).
+- Enjoy full Typechain support for `Ethers-v6`, `Ethers-v5`, and `Truffle`.
+- Leverage the "migration recovery mode" that automatically syncs up the deployment to the last failed transaction.
+- Observe the real-time status of transactions being executed.
+- Benefit from "reconnection spinner" if the network goes down during the deployment.
+- Simplify the `libraries` usage via auto-linking mechanics.
+- And much more.
 
 ## Installation
 
@@ -136,7 +139,7 @@ The core of this plugin is migration files, you can specify the migration route 
 
 ### Migration Sample
 
-Below is a sample migration file (1_simple.migration.ts):
+Below is a sample migration file:
 
 ```ts 
 import { Deployer, Reporter } from "@solarity/hardhat-migrate";
@@ -163,11 +166,12 @@ export = async (deployer: Deployer) => {
 ```
 
 This example illustrates the basic principles of how migrations operate:
+
 1. The core component is the `Deployer` object, which acts as a wrapper for the [@ethers](https://www.npmjs.com/package/ethers) 
 library, facilitating the deployment and processing of contracts.
 2. The `Reporter` class, a static entity, logs intermediary information into the console.
 3. It is required to import contract factories, or, in the case of Truffle, the necessary Truffle Contract Instance that need to be deployed.
-4. All relevant constants can be defined if necessary.
+4. Define all relevant constants as necessary.
 5. The migration file's main body grants access to the deployer object, allowing for contract deployment and supporting 
 recovery from failures in previous migration runs.
 6. Standard transaction-sending processes are used without special wrappers.
