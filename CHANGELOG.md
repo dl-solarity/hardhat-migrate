@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 2.0.0-beta.1
+## Version 2.0.0
 
 * Removed redundant Hardhat Runtime Extensions.
 * Removed Verifier from Migrator class.
