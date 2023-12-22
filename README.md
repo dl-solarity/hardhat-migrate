@@ -139,7 +139,7 @@ The core of this plugin is migration files, you can specify the migration route 
 
 ### Migration Sample
 
-Below is a sample migration file:
+Below is a sample migration file (1_simple.migration.ts):
 
 ```ts 
 import { Deployer, Reporter } from "@solarity/hardhat-migrate";
@@ -171,7 +171,7 @@ This example illustrates the basic principles of how migrations operate:
 library, facilitating the deployment and processing of contracts.
 2. The `Reporter` class, a static entity, logs intermediary information into the console.
 3. It is required to import contract factories, or, in the case of Truffle, the necessary Truffle Contract Instance that need to be deployed.
-4. Define all relevant constants as necessary.
+4. All relevant constants can be defined if necessary.
 5. The migration file's main body grants access to the deployer object, allowing for contract deployment and supporting 
 recovery from failures in previous migration runs.
 6. Standard transaction-sending processes are used without special wrappers.
