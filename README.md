@@ -175,7 +175,7 @@ recovery from failures in previous migration runs.
 
 ### Migration Lifecycle
 
-Migration files are executed in ascending order, sorted by the first digit in the file name. 
+Migration files are executed in ascending order, sorted by the ordinal file number (the number in the file name). 
 Parameters such as `from`, `to`, `only`, and `skip` influence the selection of migration files.
 
 ### Deployer
