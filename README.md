@@ -111,7 +111,7 @@ You can set your own migrations and deploy the contracts to the network you want
 
 #### With only parameter
 
-```console
+```bash
 npx hardhat migrate --network sepolia --verify --only 2
 ```
 
@@ -121,7 +121,7 @@ The plugin will also attempt to automatically verify the deployed contracts afte
 
 #### Or with from/to parameters
 
-```console
+```bash
 npx hardhat migrate --network sepolia --from 1 --to 2
 ```
 
@@ -254,7 +254,8 @@ This feature varies depending on the framework used.
 #### Ethers.js Usage:
 
 In Ethers.js, you can specify the transaction name using the `customData` field within the overrides. 
-A special field, `txName`, is dedicated for this purpose. 
+A special field, `txName`, is dedicated for this purpose.
+
 Here’s an example of how to set a transaction name using Ethers.js:
 
 ```javascript
