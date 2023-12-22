@@ -96,6 +96,9 @@ export function buildNetworkDeps(hre: HardhatRuntimeEnvironment) {
   networkManager = new NetworkManager();
 }
 
+/**
+ * Used only in test environments to ensure test atomicity
+ */
 export function resetNetworkManager() {
   networkManager = null;
 }

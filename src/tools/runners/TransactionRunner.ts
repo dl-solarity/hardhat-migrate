@@ -77,6 +77,9 @@ export function createTransactionRunner(hre: HardhatRuntimeEnvironment) {
   TransactionRunner = new BaseTransactionRunner(hre.config.migrate);
 }
 
+/**
+ * Used only in test environments to ensure test atomicity
+ */
 export function resetTransactionRunner() {
   TransactionRunner = null;
 }

@@ -454,6 +454,9 @@ export async function createAndInitReporter(hre: HardhatRuntimeEnvironment) {
   await Reporter.init(hre);
 }
 
+/**
+ * Used only in test environments to ensure test atomicity
+ */
 export function resetReporter() {
   Reporter = null;
 }
