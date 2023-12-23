@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.0.1
+
+* Fixed a bug where an instance of a storage object overwrote the state of another object in the file.
+
 ## Version 2.0.0
 
 * Removed redundant Hardhat Runtime Extensions.
