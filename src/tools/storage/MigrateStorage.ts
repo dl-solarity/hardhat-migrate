@@ -14,7 +14,7 @@ class BaseStorage {
 
   protected _state: Record<string, any>;
 
-  constructor(private _namespace: StorageNamespaces = StorageNamespaces.Storage) {
+  constructor(private _namespace: string = StorageNamespaces.Storage) {
     this._state = this.readFullStateFromFile()[this._namespace] || {};
   }
 
@@ -57,7 +57,7 @@ class BaseStorage {
 }
 
 @catchError
-class MigrateStorage extends BaseStorage {
+export class MigrateStorage extends BaseStorage {
   public get(key: string): any {
     return this._state[key];
   }

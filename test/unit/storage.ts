@@ -7,6 +7,7 @@ import {
   TransactionStorage,
   ArtifactStorage,
   VerificationStorage,
+  MigrateStorage,
 } from "../../src/tools/storage/MigrateStorage";
 
 describe("Migrator Storage", function () {
@@ -20,6 +21,21 @@ describe("Migrator Storage", function () {
 
     expect(UserStorage.get("test-key")).to.be.undefined;
     expect(UserStorage.has("test-key")).to.be.false;
+  });
+
+  it("should set state without file", function () {
+    const manuallyDefinedStorage = new MigrateStorage("test-storage");
+
+    manuallyDefinedStorage.set("test-key", "test-value");
+
+    expect(manuallyDefinedStorage.get("test-key")).to.equal("test-value");
+  });
+
+  it("should throw error if key already exist/not found", function () {
+    UserStorage.set("test-key", "test-value");
+
+    expect(() => UserStorage.set("test-key", "test-value")).to.throw("Key already exists");
+    expect(() => UserStorage.delete("test-key-2")).to.throw("Key not found");
   });
 
   it("should get all keys", function () {
@@ -48,6 +64,8 @@ describe("Migrator Storage", function () {
     DefaultStorage.deleteStateFile();
 
     expect(DefaultStorage.stateExistsInFile()).to.be.false;
+
+    expect(DefaultStorage.deleteStateFile()).to.not.throw;
   });
 
   it("should manage different storages", function () {
