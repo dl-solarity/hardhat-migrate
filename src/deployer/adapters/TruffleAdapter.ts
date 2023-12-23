@@ -231,7 +231,7 @@ export class TruffleAdapter extends Adapter {
 
   private _getTransactionName(contractMethod: ethers.ContractMethod<any[], any, any>, args: any[]): string {
     if (contractMethod.fragment.inputs.length + 1 === args.length) {
-      return args[args.length - 1].hardfork || UNKNOWN_TRANSACTION_NAME;
+      return args[args.length - 1].txName || UNKNOWN_TRANSACTION_NAME;
     }
 
     return UNKNOWN_TRANSACTION_NAME;

@@ -3,6 +3,7 @@
 ## Version 2.0.1
 
 * Fixed a bug where an instance of a storage object overwrote the state of another object in the file.
+* Changed the way of naming for Truffle transactions to `txName`.
 
 ## Version 2.0.0
 

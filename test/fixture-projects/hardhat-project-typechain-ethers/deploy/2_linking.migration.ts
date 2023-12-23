@@ -18,7 +18,7 @@ export = async (deployer: Deployer) => {
     },
   });
 
-  await govToken.transferOwnership(TOKEN_OWNER);
+  await govToken.transferOwnership(TOKEN_OWNER, { customData: { txName: "Transfer Ownership" } });
 
   const fundingTransaction = await deployer.sendNative(TOKEN_OWNER, 100n, "Funding Governance Token Owner #1");
   await Reporter.reportTransactionByHash(
