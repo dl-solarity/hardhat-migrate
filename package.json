@@ -1,6 +1,6 @@
 {
   "name": "@solarity/hardhat-migrate",
-  "version": "2.0.0-alpha.22",
+  "version": "2.0.0",
   "description": "Automatic deployment and verification of smart contracts",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -14,6 +14,9 @@
     "type": "git",
     "url": "git+https://github.com/dl-solarity/hardhat-migrate.git"
   },
+  "workspaces": [
+    "test/fixture-projects/*"
+  ],
   "keywords": [
     "ethereum",
     "solidity",
@@ -35,16 +38,18 @@
     "prepack": "pinst --disable",
     "postpack": "pinst --enable",
     "build": "tsc --build .",
-    "test": "mocha --recursive 'test/**/*.ts' --exit && npm run lint-fix",
+    "prepare-tests": "npm run compile --workspaces",
+    "test": "npm run prepare-tests && mocha --recursive 'test/**/*.ts' --exit",
+    "clean-tests": "npm run clean --workspaces",
     "lint-fix": "prettier --write \"./**/*.ts\" && eslint \"src/**/*.{js,ts}\" --cache --fix",
     "publish-to-npm": "npm run build && npm run lint-fix && npm publish ./ --access public"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-ethers": "3.0.4",
+    "@nomicfoundation/hardhat-ethers": "3.0.5",
     "@nomicfoundation/hardhat-verify": "1.1.1",
     "@nomiclabs/hardhat-truffle5": "2.0.7",
     "axios": "1.5.0",
-    "ethers": "6.8.0",
+    "ethers": "6.9.0",
     "ora": "5.4.1"
   },
   "peerDependencies": {
@@ -54,16 +59,17 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.4",
     "@nomiclabs/hardhat-truffle5": "^2.0.0",
+    "@openzeppelin/contracts": "^5.0.1",
     "@typechain/ethers-v6": "^0.5.0",
-    "@typechain/hardhat": "^9.0.0",
-    "@typechain/truffle-v5": "^8.0.6",
-    "@types/chai": "^4.3.4",
-    "@types/chai-as-promised": "^7.1.1",
-    "@types/mocha": "^9.1.0",
+    "@typechain/hardhat": "^9.1.0",
+    "@typechain/truffle-v5": "^8.0.7",
+    "@types/chai": "^4.3.11",
+    "@types/chai-as-promised": "^7.1.8",
+    "@types/mocha": "^10.0.6",
     "@types/ora": "^3.2.0",
     "@typescript-eslint/eslint-plugin": "^6.6.0",
     "@typescript-eslint/parser": "^6.6.0",
-    "chai": "^4.3.7",
+    "chai": "^4.3.10",
     "chai-as-promised": "^7.1.1",
     "eslint": "^8.48.0",
     "eslint-plugin-import": "^2.28.1",
@@ -71,7 +77,8 @@
     "eslint-plugin-promise": "^6.1.1",
     "ethers": "^6.8.0",
     "hardhat": "^2.17.0",
-    "mocha": "^10.0.0",
+    "hardhat-abi-exporter": "^2.10.1",
+    "mocha": "^10.2.0",
     "pinst": "^3.0.0",
     "prettier": "^3.0.3",
     "ts-node": "^8.1.0",

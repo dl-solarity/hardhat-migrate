@@ -2,7 +2,7 @@ import { TransactionResponse, TransactionReceipt } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { reporter } from "../reporters/Reporter";
+import { Reporter } from "../reporters/Reporter";
 
 import { networkManager } from "../network/NetworkManager";
 
@@ -13,7 +13,7 @@ import { MigrateError } from "../../errors";
 import { MigrateConfig } from "../../types/migrations";
 
 @catchError
-class TransactionRunner {
+class BaseTransactionRunner {
   protected _config: MigrateConfig;
 
   protected totalCost: bigint = 0n;
@@ -31,7 +31,7 @@ class TransactionRunner {
       configurable: true,
     });
 
-    await reporter!.reportTransactionResponseHeader(tx, instanceName);
+    Reporter!.reportTransactionResponseHeader(tx, instanceName);
 
     let receipt;
     if (tx.isMined()) {
@@ -40,18 +40,18 @@ class TransactionRunner {
       receipt = await this._showTransactionMining(tx);
     }
 
-    await reporter!.reportTransactionReceipt(receipt);
+    await Reporter!.reportTransactionReceipt(receipt);
 
     this.totalCost += receipt.fee + tx.value ?? 0n;
     this.totalTransactions++;
   }
 
   public summary() {
-    reporter!.summary(this.totalTransactions, this.totalCost);
+    Reporter!.summary(this.totalTransactions, this.totalCost);
   }
 
   protected async _showTransactionMining(tx: TransactionResponse) {
-    const { spinner, spinnerInterval } = await reporter!.startTxReporting(tx);
+    await Reporter!.startTxReporting(tx);
 
     let receipt: TransactionReceipt;
     try {
@@ -60,19 +60,26 @@ class TransactionRunner {
     } catch (e: any) {
       throw new MigrateError(`Transaction failed: ${e.message}`);
     } finally {
-      await reporter!.stopTxReporting(spinner, spinnerInterval);
+      Reporter!.stopSpinner();
     }
 
     return receipt;
   }
 }
 
-export let transactionRunner: TransactionRunner | null = null;
+export let TransactionRunner: BaseTransactionRunner | null = null;
 
-export function initTransactionRunner(hre: HardhatRuntimeEnvironment) {
-  if (transactionRunner) {
+export function createTransactionRunner(hre: HardhatRuntimeEnvironment) {
+  if (TransactionRunner) {
     return;
   }
 
-  transactionRunner = new TransactionRunner(hre.config.migrate);
+  TransactionRunner = new BaseTransactionRunner(hre.config.migrate);
+}
+
+/**
+ * Used only in test environments to ensure test atomicity
+ */
+export function resetTransactionRunner() {
+  TransactionRunner = null;
 }

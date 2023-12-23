@@ -19,6 +19,7 @@ import { isBytes } from "@ethersproject/bytes";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 import { MigrateError } from "./errors";
+import { UNKNOWN_CONTRACT_NAME } from "./constants";
 
 import { Bytecode } from "./types/deployer";
 import { KeyDeploymentFields, KeyTransactionFields } from "./types/tools";
@@ -137,6 +138,10 @@ export function getMethodString(
   methodFragment: FunctionFragment = {} as FunctionFragment,
   args: any[] = [],
 ): string {
+  if (contractName === UNKNOWN_CONTRACT_NAME) {
+    contractName = "Unidentified Contract";
+  }
+
   if (methodFragment.inputs === undefined) {
     return `${contractName}.${methodName}()`;
   }

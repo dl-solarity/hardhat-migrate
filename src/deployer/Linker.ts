@@ -1,6 +1,6 @@
 import { isAddress, resolveAddress } from "ethers";
 
-import { Artifact, Libraries } from "hardhat/types";
+import { Artifact, HardhatRuntimeEnvironment, Libraries } from "hardhat/types";
 
 import { MinimalContract } from "./MinimalContract";
 
@@ -8,27 +8,22 @@ import { MigrateError } from "../errors";
 
 import { catchError } from "../utils";
 
-import { MigrateConfig } from "../types/migrations";
 import { ArtifactExtended, Link, NeededLibrary } from "../types/deployer";
 
-import { reporter } from "../tools/reporters/Reporter";
+import { Reporter } from "../tools/reporters/Reporter";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 
 @catchError
-export class Linker {
-  private static _config: MigrateConfig;
+class LinkerHelper {
+  constructor(private _hre: HardhatRuntimeEnvironment) {}
 
-  public static setConfig(config: MigrateConfig): void {
-    this._config = config;
-  }
-
-  public static isBytecodeNeedsLinking(bytecode: string): boolean {
+  public isBytecodeNeedsLinking(bytecode: string): boolean {
     return bytecode.indexOf("__") === -1;
   }
 
-  public static async tryLinkBytecode(contractName: string, bytecode: string, libraries: Libraries): Promise<string> {
-    const artifact: ArtifactExtended = this._mustGetContractArtifact(contractName);
+  public async tryLinkBytecode(contractName: string, bytecode: string, libraries: Libraries): Promise<string> {
+    const artifact: ArtifactExtended = this._mustGetContractArtifact(contractName, bytecode);
     const neededLibraries = this._cleanNeededLibraries(bytecode, artifact, artifact.neededLibraries);
 
     let linksToApply: Map<string, Link> = new Map();
@@ -57,7 +52,7 @@ export class Linker {
     return this._linkBytecode(bytecode, artifact, [...linksToApply.values()]);
   }
 
-  private static _mustGetNeededLibrary(
+  private _mustGetNeededLibrary(
     neededLibraries: NeededLibrary[],
     libraryName: string,
     linksToApply: Map<string, Link>,
@@ -69,7 +64,7 @@ export class Linker {
     return this._validateMatchedNeededLibraries(neededLibraries, matchingNeededLibraries, linksToApply);
   }
 
-  private static _validateMatchedNeededLibraries(
+  private _validateMatchedNeededLibraries(
     neededLibraries: NeededLibrary[],
     matchingNeededLibraries: NeededLibrary[],
     linksToApply: Map<string, Link>,
@@ -110,7 +105,7 @@ export class Linker {
     return neededLibrary;
   }
 
-  private static async _findMissingLibraries(
+  private async _findMissingLibraries(
     missingLibraries: { sourceName: string; libName: string }[],
   ): Promise<Map<string, Link>> {
     const missingLibrariesMap: Map<string, Link> = new Map();
@@ -131,7 +126,7 @@ export class Linker {
     return missingLibrariesMap;
   }
 
-  private static _validateLibrariesToLink(linksToApply: Map<string, Link>, neededLibraries: NeededLibrary[]): void {
+  private _validateLibrariesToLink(linksToApply: Map<string, Link>, neededLibraries: NeededLibrary[]): void {
     if (linksToApply.size < neededLibraries.length) {
       const missingLibraries = neededLibraries
         .map((lib) => `${lib.sourceName}:${lib.libName}`)
@@ -143,11 +138,7 @@ export class Linker {
     }
   }
 
-  private static _cleanNeededLibraries(
-    bytecode: string,
-    artifact: Artifact,
-    libraries: NeededLibrary[],
-  ): NeededLibrary[] {
+  private _cleanNeededLibraries(bytecode: string, artifact: Artifact, libraries: NeededLibrary[]): NeededLibrary[] {
     const actuallyNeededLibs: Map<string, NeededLibrary> = new Map();
 
     for (const { sourceName, libName } of libraries) {
@@ -166,7 +157,7 @@ export class Linker {
   /**
    * The address of the linked library can be extracted like this: bytecode.slice(prefixLength + 2, suffixStart + 2)
    */
-  private static _isLinkedLibrary(bytecode: string, start: number, length: number): boolean {
+  private _isLinkedLibrary(bytecode: string, start: number, length: number): boolean {
     const prefixLength = start * 2;
     const prefix = bytecode.slice(prefixLength + 2, prefixLength + 5);
 
@@ -176,7 +167,7 @@ export class Linker {
     return `${prefix}${suffix}` !== "__$$__";
   }
 
-  private static _linkBytecode(bytecode: string, artifact: Artifact, libraries: Link[]): string {
+  private _linkBytecode(bytecode: string, artifact: Artifact, libraries: Link[]): string {
     for (const { sourceName, libraryName, address } of libraries) {
       const linkReferences = artifact.linkReferences[sourceName][libraryName];
 
@@ -194,35 +185,75 @@ export class Linker {
     return bytecode;
   }
 
-  private static async _getOrDeployLibrary(libraryName: string) {
+  private async _getOrDeployLibrary(libraryName: string) {
     try {
-      return await TransactionProcessor.tryRestoreContractAddressByName(libraryName);
+      return (await TransactionProcessor?.tryRestoreContractAddressByName(libraryName))!;
     } catch {
       const artifact = this._mustGetLibraryArtifact(libraryName);
 
       // https://github.com/ethers-io/ethers.js/issues/2431
       // https://github.com/ethers-io/ethers.js/issues/1126
-      const core = new MinimalContract(this._config, artifact.bytecode, artifact.abi, libraryName);
+      const core = new MinimalContract(this._hre, artifact.bytecode, artifact.abi, libraryName);
 
-      reporter!.notifyDeploymentOfMissingLibrary(libraryName);
+      Reporter!.notifyDeploymentOfMissingLibrary(libraryName);
 
       return core.deploy();
     }
   }
 
-  private static _mustGetContractArtifact(contractName: string): ArtifactExtended {
+  private _mustGetContractArtifact(contractName: string, contractBytecode: string): ArtifactExtended {
+    const artifact = this._getContractFromStorage(contractName, contractBytecode);
+
+    if (!artifact) {
+      throw new MigrateError(`Contract artifact of ${contractName} not found. Linking cannot be performed.`);
+    }
+
+    return artifact;
+  }
+
+  private _mustGetLibraryArtifact(libraryName: string): ArtifactExtended {
+    const artifact = this._getContractFromStorage(libraryName);
+
+    if (!artifact) {
+      throw new MigrateError(`Library artifact of ${libraryName} not found. Linking cannot be performed.`);
+    }
+
+    return artifact;
+  }
+
+  private _getContractFromStorage(contractName: string, contractBytecode?: string): ArtifactExtended | null {
     try {
       return ArtifactProcessor.tryGetArtifactByName(contractName);
     } catch {
-      throw new MigrateError(`Contract artifact of ${contractName} not found. Linking cannot be performed.`);
+      /* ignore */
     }
+
+    try {
+      const txData = TransactionProcessor?.tryRestoreSavedDeployedTxByContractName(contractName);
+
+      return ArtifactProcessor.tryGetArtifactByName(txData!.metadata.fullyQualifiedContractName!);
+    } catch {
+      /* ignore */
+    }
+
+    if (contractBytecode) {
+      try {
+        return ArtifactProcessor.tryGetArtifactByBytecode(contractBytecode);
+      } catch {
+        /* ignore */
+      }
+    }
+
+    return null;
+  }
+}
+
+export let Linker: LinkerHelper | null = null;
+
+export function createLinker(hre: HardhatRuntimeEnvironment) {
+  if (Linker) {
+    return;
   }
 
-  private static _mustGetLibraryArtifact(libraryName: string): ArtifactExtended {
-    try {
-      return ArtifactProcessor.tryGetArtifactByName(libraryName);
-    } catch {
-      throw new MigrateError(`Library artifact of ${libraryName} not found. Linking cannot be performed.`);
-    }
-  }
+  Linker = new LinkerHelper(hre);
 }

@@ -1,5 +1,19 @@
 # Changelog
 
+## Version 2.0.0
+
+* Removed redundant Hardhat Runtime Extensions.
+* Removed Verifier from Migrator class.
+* Revised the test infrastructure and architecture.
+* Fixed bugs related to the recovery of contract names.
+* Fixed a bug related to contract recovery when a custom name is used.
+* Migrated test fixture projects to TypeScript, updating configurations and scripts. 
+  Created new fixture contracts for testing and deleted auto-generated files.
+* Added `TransactionFieldsToSave` as a return value to the `sendNative` function
+* Added handling of the custom chains specified in the Hardhat config
+* Refactored the architecture and made it consistent
+* Used spinner instead of `console.log` for network errors
+
 ## Version 2.0.0-alpha.22
 
 * Enforce the overwriting in ArtifactStorage in the case of bytecodeHash as a key

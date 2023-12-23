@@ -3,31 +3,38 @@ import ora from "ora";
 
 import { Network, TransactionResponse, formatEther, formatUnits, TransactionReceipt, id } from "ethers";
 
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { networkManager } from "../network/NetworkManager";
 
 import { catchError, underline } from "../../utils";
 
 import { MigrateConfig } from "../../types/migrations";
-import { ChainRecord, predefinedChains } from "../../types/verifier";
+import { ChainRecord, CustomChainRecord, predefinedChains } from "../../types/verifier";
 import { ContractFieldsToSave, MigrationMetadata, TransactionFieldsToSave } from "../../types/tools";
 
-// TODO: parse everything that is possible from hardhat config (deployment on q devnet bad UI)
-
+/**
+ * Global error handling for network-related issues is conducted within the NetworkManager class
+ */
 @catchError
-class Reporter {
+class BaseReporter {
+  private _hre: HardhatRuntimeEnvironment = {} as any;
   private _config: MigrateConfig = {} as any;
   private _network: Network = {} as any;
 
-  private _isSpinnerActive: boolean = false;
-  private _spinnerMessageIfActive: string | null = null;
+  private _spinner: ora.Ora | null = null;
+  private _spinnerMessage: string | null = null;
+  private _spinnerInterval: NodeJS.Timeout | null = null;
+  private _spinnerState: string[] = [];
 
   private _nativeSymbol: string = "";
   private _explorerUrl: string = "";
 
   private _warningsToPrint: Map<string, string> = new Map();
 
-  public async init(config: MigrateConfig) {
-    this._config = config;
+  public async init(hre: HardhatRuntimeEnvironment) {
+    this._hre = hre;
+    this._config = hre.config.migrate;
 
     this._network = await this._getNetwork();
     this._nativeSymbol = await this._getNativeSymbol();
@@ -46,7 +53,7 @@ class Reporter {
     console.log(`\n${underline(`Running ${file}...`)}`);
   }
 
-  public async reportTransactionResponseHeader(tx: TransactionResponse, instanceName: string) {
+  public reportTransactionResponseHeader(tx: TransactionResponse, instanceName: string) {
     console.log("\n" + underline(this._parseTransactionTitle(tx, instanceName)));
 
     console.log(`> explorer: ${this._getExplorerLink(tx.hash)}`);
@@ -58,25 +65,44 @@ class Reporter {
 
     const formatPendingTimeTask = async () => this._formatPendingTime(tx, timeStart, blockStart);
 
-    const spinner = ora(await formatPendingTimeTask()).start();
-
-    const spinnerInterval = setInterval(
-      async () => (spinner.text = await formatPendingTimeTask()),
-      this._config.transactionStatusCheckInterval,
-    );
-
-    this._isSpinnerActive = true;
-
-    return { spinner, spinnerInterval };
+    return this.startSpinner("tx-report", formatPendingTimeTask);
   }
 
-  public async stopTxReporting(spinner: ora.Ora, spinnerInterval: NodeJS.Timeout) {
-    clearInterval(spinnerInterval);
+  public async startSpinner(
+    id: string,
+    getSpinnerText: (args?: any) => string | Promise<string> = this._getDefaultMessage,
+  ) {
+    if (this._spinnerState.includes(id)) return;
 
-    this._isSpinnerActive = false;
-    this._spinnerMessageIfActive = null;
+    if (this._spinnerState.length === 0) {
+      this._spinner = ora(await getSpinnerText()).start();
 
-    spinner.stop();
+      this._spinnerInterval = setInterval(async () => {
+        if (!this._spinner) {
+          clearInterval(this._spinnerInterval!);
+
+          return;
+        }
+
+        this._spinner.text = await getSpinnerText();
+      }, this._config.transactionStatusCheckInterval);
+    }
+
+    this._spinnerState.push(id);
+  }
+
+  public stopSpinner() {
+    if (!this._spinner) return;
+
+    this._spinnerMessage = null;
+    this._spinnerState.pop();
+
+    if (this._spinnerState.length === 0) {
+      clearInterval(this._spinnerInterval!);
+
+      this._spinner.stop();
+      this._spinner = null;
+    }
   }
 
   public async reportTransactionReceipt(receipt: TransactionReceipt) {
@@ -268,13 +294,9 @@ class Reporter {
     this._warningsToPrint.set(key, output);
   }
 
-  public resetSpinnerMessageIfActive() {
-    this._spinnerMessageIfActive = null;
-  }
-
   public reportNetworkError(retry: number, fnName: string, error: Error) {
-    if (this._isSpinnerActive) {
-      this._spinnerMessageIfActive = `Network error in '${fnName}': Reconnect attempt ${retry}...`;
+    if (this._spinner) {
+      this._spinnerMessage = `Network error in '${fnName}': Reconnect attempt ${retry}...`;
 
       return;
     }
@@ -283,6 +305,14 @@ class Reporter {
     const postfix = `\n${error.message}`;
 
     console.log(prefix + postfix);
+  }
+
+  private _getDefaultMessage(): string {
+    if (this && this._spinnerMessage) {
+      return this._spinnerMessage;
+    }
+
+    return `Awaiting network response...`;
   }
 
   private _parseTransactionTitle(tx: TransactionResponse, instanceName: string): string {
@@ -298,8 +328,8 @@ class Reporter {
   }
 
   private async _formatPendingTime(tx: TransactionResponse, startTime: number, blockStart: number): Promise<string> {
-    if (this._spinnerMessageIfActive) {
-      return this._spinnerMessageIfActive;
+    if (this._spinnerMessage) {
+      return this._spinnerMessage;
     }
 
     return `Confirmations: ${await tx.confirmations()}; Blocks: ${
@@ -356,6 +386,12 @@ class Reporter {
       return !explorers || explorers.length === 0 ? "" : explorers[0].url;
     }
 
+    const customChain = await this._tryGetInfoFromHardhatConfig(chainId);
+
+    if (customChain) {
+      return customChain.urls.browserURL;
+    }
+
     const chain = await this._getChainMetadataById(chainId);
 
     return chain.explorers[0].url;
@@ -391,6 +427,12 @@ class Reporter {
     }
   }
 
+  private async _tryGetInfoFromHardhatConfig(chainId: number): Promise<CustomChainRecord | undefined> {
+    const customChains: CustomChainRecord[] = this._hre.config.etherscan.customChains || [];
+
+    return customChains.find((chain) => chain.chainId === chainId);
+  }
+
   private async _tryGetAllRecords(): Promise<ChainRecord[]> {
     const url = "https://chainid.network/chains.json";
     const response = await networkManager!.axios.get(url);
@@ -400,13 +442,21 @@ class Reporter {
   }
 }
 
-export let reporter: Reporter | null = null;
+export let Reporter: BaseReporter | null = null;
 
-export async function initReporter(config: MigrateConfig) {
-  if (reporter) {
+export async function createAndInitReporter(hre: HardhatRuntimeEnvironment) {
+  if (Reporter) {
     return;
   }
 
-  reporter = new Reporter();
-  await reporter.init(config);
+  Reporter = new BaseReporter();
+
+  await Reporter.init(hre);
+}
+
+/**
+ * Used only in test environments to ensure test atomicity
+ */
+export function resetReporter() {
+  Reporter = null;
 }

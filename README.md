@@ -6,13 +6,16 @@
 
 ## What
 
-This plugin helps you deploy and automatically verify the source code for your Solidity contracts on [Etherscan](https://etherscan.io)-based explorers and explorers compatible with its API like [Blockscout](https://www.blockscout.com/).
+This plugin helps you deploy and verify the source code for your Solidity contracts through the specification of migrations. With sleek UX, the plugin enables users to:
 
-This is a fairly simple and rather straightforward Hardhat plugin:
-
-- For deployment, it uses [@ethers](https://www.npmjs.com/package/ethers).
-
-- For verification, it uses [@nomicfoundation/hardhat-verify](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify).
+- Specify custom smart contracts deployment rules and configuration via [@ethers](https://www.npmjs.com/package/ethers).
+- Relax from the source code verification hassle due to seamless integration with [@nomicfoundation/hardhat-verify](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify).
+- Enjoy full Typechain support for `Ethers-v6`, `Ethers-v5`, and `Truffle`.
+- Leverage the "migration recovery mode" that automatically syncs up the deployment to the last failed transaction.
+- Observe the real-time status of transactions being executed.
+- Benefit from "reconnection spinner" if the network goes down during the deployment.
+- Simplify the `libraries` usage via auto-linking mechanics.
+- And much more.
 
 ## Installation
 
@@ -32,9 +35,8 @@ Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 import "@solarity/hardhat-migrate";
 ```
 
-> **Important**.
-
-See [How it works](https://github.com/dl-solarity/hardhat-migrate#how-it-works) for further information.
+> [!NOTE]
+> See [How it works](https://github.com/dl-solarity/hardhat-migrate#how-it-works) for further information.
 
 ## Naming convention
 
@@ -50,7 +52,8 @@ It is also **mandatory** to specify the naming convention for migrations such as
 - `migrate` task, which allows you to deploy and automatically verify contracts.
 - `migrate:verify` task, which helps you verify already deployed contracts.
 
-> :warning: **Hardhat Config**: Make sure they are follow the docs from `@nomicfoundation/hardhat-verify`.
+> [!WARNING]
+> **Hardhat Config**: Make sure they are follow the docs from `@nomicfoundation/hardhat-verify`.
 
 Do not import `@solarity/hardhat-migrate` and `@nomicfoundation/hardhat-verify`, `@nomicfoundation/hardhat-ethers` together, the etherscan plugin is already included in the migrate plugin.
 
@@ -62,10 +65,7 @@ npx hardhat help migrate
 
 ## Environment extensions
 
-This plugin extends the Hardhat Runtime Environment by adding the following fields:
-
-- `deployer` - The deployer object that is used to deploy contracts.
-- `verifier` - The verifier object that is used to verify contracts.
+This plugin does not extend the Hardhat Runtime Environment.
 
 ## Usage
 
@@ -97,7 +97,7 @@ module.exports = {
 - `only` : The number of the migration that will be applied. **Overrides from and to parameters.**
 - `skip`: The number of migration to skip. **Overrides only parameter.**
 - `wait` : The number of confirmations to wait for after the transaction is mined.
-- `verify` : The flag indicating whether the contracts should be verified.
+- `verify` : The flag indicating whether the contracts have to be verified after all migrations.
 - `verifyParallel` : The size of the batch for verification.
 - `verifyAttempts` : The number of attempts to verify the contract.
 - `pathToMigrations` : The path to the folder with the specified migrations.
@@ -111,15 +111,17 @@ You can set your own migrations and deploy the contracts to the network you want
 
 #### With only parameter
 
-```console
+```bash
 npx hardhat migrate --network sepolia --verify --only 2
 ```
 
-In this case, only the migration that begins with digit 2 will be applied. The plugin will also try to automatically verify the deployed contracts.
+In this case, only the migration that begins with digit 2 will be applied.
+
+The plugin will also attempt to automatically verify the deployed contracts after all migrations are complete.
 
 #### Or with from/to parameters
 
-```console
+```bash
 npx hardhat migrate --network sepolia --from 1 --to 2
 ```
 
@@ -136,25 +138,113 @@ The plugin includes the following packages to perform the deployment and verific
 
 The core of this plugin is migration files, you can specify the migration route that suits you best.
 
-[//]: # (You can find an example of migration files in the sample project.)
+### Migration Sample
+
+Below is a sample migration file (1_simple.migration.ts):
+
+```ts 
+import { Deployer, Reporter } from "@solarity/hardhat-migrate";
+
+import { GovToken__factory } from "../typechain-types";
+
+const TOKEN_OWNER = "0x1E3953B6ee74461169A3E346060AE27bD0B5bF2B";
+
+export = async (deployer: Deployer) => {
+  const govToken = await deployer.deploy(GovToken__factory, ["Token", "TKN"]);
+  
+  const transferOwnershipTx = (await (await govToken.transferOwnership(TOKEN_OWNER)).wait())!;
+  
+  await Reporter.reportTransactionByHash(
+    transferOwnershipTx.hash,
+    "Transfer Ownership of Governance Token to Token Owner",
+  );
+  
+  Reporter.reportContracts([
+    `Governance Token ${await govToken.name()} (${await govToken.symbol()}) Address`,
+    await govToken.getAddress(),
+  ]);
+};
+```
+
+This example illustrates the basic principles of how migrations operate:
+
+1. The core component is the `Deployer` object, which acts as a wrapper for the [@ethers](https://www.npmjs.com/package/ethers) 
+library, facilitating the deployment and processing of contracts.
+2. The `Reporter` class, a static entity, logs intermediary information into the console.
+3. It is required to import contract factories, or, in the case of Truffle, the necessary Truffle Contract Instance that need to be deployed.
+4. All relevant constants can be defined if necessary.
+5. The migration file's main body grants access to the deployer object, allowing for contract deployment and supporting 
+recovery from failures in previous migration runs.
+6. Standard transaction-sending processes are used without special wrappers.
+7. The migration concludes with the `Reporter` class summarizing the migration details.
 
 ### Migration Lifecycle
 
-The migration files are sorted by the first digit in the file name and run one after the other in ascending order.
-
-Parameters: `from`, `to`, `only` and `skip` affect the selection of the migration files.
+Migration files are executed in ascending order, sorted by the ordinal file number (the number in the file name). 
+Parameters such as `from`, `to`, `only`, and `skip` influence the selection of migration files.
 
 ### Deployer
 
-Deployer contains the following functionality:
+The Deployer offers several functionalities:
 
-- **deploy()**
+---
 
-Under the hood, it uses `ContractFactory` from [@ethers](https://www.npmjs.com/package/ethers) to deploy the contracts.
+- **deploy(contractInstance, argsOrParameters, parameters)**:
+ 
+Utilizes `ContractFactory` from [@ethers](https://www.npmjs.com/package/ethers) to deploy contracts, inferring types and providing enhanced functionalities like transaction recovery and reporting. It also stores deployment transaction data for later contract verification.
 
-- **deployed()**
+---
 
-Returns the deployed contract instance.
+- **deployed(contractInstance, contractIdentifier)**: 
+
+Returns the deployed contract instance, inferring types and enhancing functionalities for comfortable interaction.
+
+---
+
+- **sendNative(to, value, name <- optional)**: 
+
+Facilitates sending native assets to a specified address, primarily for the recovery process.
+
+---
+
+- **getSigner(from <- optional)**: 
+
+Retrieves an ethers signer for use in migrations.
+
+---
+
+- **getChainId()**: 
+
+Identifies the current chain ID for the deployment.
+
+### Reporter
+
+The Reporter, a static class, provides functionalities like:
+
+---
+
+- **reportTransactionByHash(hash, name <- optional)**:
+
+Retrieves and displays transaction receipts with standard formatting.
+
+---
+
+- **reportContracts(...contracts: [string, string][])**: 
+
+Displays a list of contract names and addresses in a table format.
+
+---
+
+The usage of these functionalities is demonstrated in the sample migration file above.
+
+#### Truffle native functions
+
+Most of the functions exposed by the Truffle contract, which directly impact or create the Truffle Contract Instance, are not supported.
+
+The following function is supported:
+- link
+
+For a usage example, see the deployment scripts in the fixture project created to test how plugins work with Truffle.
 
 ### Transactions
 
@@ -164,7 +254,8 @@ This feature varies depending on the framework used.
 #### Ethers.js Usage:
 
 In Ethers.js, you can specify the transaction name using the `customData` field within the overrides. 
-A special field, `txName`, is dedicated for this purpose. 
+A special field, `txName`, is dedicated for this purpose.
+
 Here’s an example of how to set a transaction name using Ethers.js:
 
 ```javascript
@@ -197,3 +288,4 @@ If verification fails, the `attempts` parameter indicates how many additional re
 
 - This plugin, as well as the [Hardhat Toolbox](https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox) plugin, use the [@nomicfoundation/hardhat-verify](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify) plugin internally, so both of these plugins cannot be imported at the same time. A quick fix is to manually import the needed plugins that ToolBox imports.
 - Adding, removing, moving or renaming new contracts to the hardhat project or reorganizing the directory structure of contracts after deployment may alter the resulting bytecode in some solc versions. See this [Solidity issue](https://github.com/ethereum/solidity/issues/9573) for further information.
+- This plugin does not function properly with native Truffle methods, such as in `contract.deployed()`, unless otherwise specified above at the instance level. For example, instead of using `contract.deployed()`, it is necessary to use the `deployer.deploy()` method.

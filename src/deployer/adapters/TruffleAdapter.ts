@@ -8,8 +8,6 @@ import {
   Interface,
 } from "ethers";
 
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-
 import { TruffleContract } from "@nomiclabs/hardhat-truffle5/dist/src/types";
 
 import { Adapter } from "./Adapter";
@@ -20,28 +18,24 @@ import { bytecodeToString, catchError, fillParameters, getMethodString, getSigne
 
 import { UNKNOWN_CONTRACT_NAME, UNKNOWN_TRANSACTION_NAME } from "../../constants";
 
+import { KeyTransactionFields, MigrationMetadata } from "../../types/tools";
 import { EthersContract, Instance, TruffleFactory } from "../../types/adapter";
 import { OverridesAndName, TruffleTransactionResponse } from "../../types/deployer";
-import { KeyTransactionFields, MigrationMetadata } from "../../types/tools";
 
 import { Stats } from "../../tools/Stats";
-import { reporter } from "../../tools/reporters/Reporter";
-import { transactionRunner } from "../../tools/runners/TransactionRunner";
+import { Reporter } from "../../tools/reporters/Reporter";
+import { TransactionRunner } from "../../tools/runners/TransactionRunner";
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 
 @catchError
 export class TruffleAdapter extends Adapter {
-  constructor(private _hre: HardhatRuntimeEnvironment) {
-    super(_hre.config.migrate);
-  }
-
   public async fromInstance<A, I>(
     instance: EthersContract<A, I>,
     parameters: OverridesAndName,
   ): Promise<MinimalContract> {
     return new MinimalContract(
-      this._config,
+      this._hre,
       this.getRawBytecode(instance),
       this.getRawAbi(instance),
       this.getContractName(instance, parameters),
@@ -148,7 +142,7 @@ export class TruffleAdapter extends Adapter {
 
       const methodString = getMethodString(contractName, methodName, contractMethod.fragment, args);
 
-      if (this._config.continue) {
+      if (this._hre.config.migrate.continue) {
         return this._recoverTransaction(methodString, keyFields, contractMethod.send, args);
       }
 
@@ -163,13 +157,13 @@ export class TruffleAdapter extends Adapter {
     args: any[],
   ): Promise<TruffleTransactionResponse> {
     try {
-      const txResponse = TransactionProcessor.tryRestoreSavedTransaction(tx);
+      const txResponse = TransactionProcessor?.tryRestoreSavedTransaction(tx);
 
-      reporter!.notifyTransactionRecovery(methodString);
+      Reporter!.notifyTransactionRecovery(methodString);
 
       return txResponse as unknown as TruffleTransactionResponse;
     } catch {
-      reporter!.notifyTransactionSendingInsteadOfRecovery(methodString);
+      Reporter!.notifyTransactionSendingInsteadOfRecovery(methodString);
 
       return this._sendTransaction(methodString, tx, oldMethod, args);
     }
@@ -188,10 +182,10 @@ export class TruffleAdapter extends Adapter {
       methodName: methodString,
     };
 
-    await transactionRunner!.reportTransactionResponse(txResponse, methodString);
+    await TransactionRunner!.reportTransactionResponse(txResponse, methodString);
 
     const response = this._toTruffleTransactionResponse((await txResponse.wait())!);
-    TransactionProcessor.saveTransaction(tx, response.receipt, saveMetadata);
+    TransactionProcessor?.saveTransaction(tx, response.receipt, saveMetadata);
 
     return response;
   }

@@ -30,6 +30,7 @@ export interface ContractFieldsToSave {
 
 export interface MigrationMetadata {
   migrationNumber: number;
+  fullyQualifiedContractName?: string;
   contractName?: string;
   methodName?: string;
 }
