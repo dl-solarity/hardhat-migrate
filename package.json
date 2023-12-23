@@ -40,9 +40,13 @@
     "build": "tsc --build .",
     "prepare-tests": "npm run compile --workspaces",
     "test": "npm run prepare-tests && mocha --recursive 'test/**/*.ts' --exit",
+    "coverage": "npm run prepare-tests && nyc mocha --recursive 'test/**/*.ts' --exit",
     "clean-tests": "npm run clean --workspaces",
     "lint-fix": "prettier --write \"./**/*.ts\" && eslint \"src/**/*.{js,ts}\" --cache --fix",
     "publish-to-npm": "npm run build && npm run lint-fix && npm publish ./ --access public"
+  },
+  "nyc": {
+    "reporter": ["html", "text"]
   },
   "dependencies": {
     "@nomicfoundation/hardhat-ethers": "3.0.5",
@@ -79,6 +83,7 @@
     "hardhat": "^2.17.0",
     "hardhat-abi-exporter": "^2.10.1",
     "mocha": "^10.2.0",
+    "nyc": "^15.1.0",
     "pinst": "^3.0.0",
     "prettier": "^3.0.3",
     "ts-node": "^8.1.0",
