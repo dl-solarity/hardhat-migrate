@@ -12,66 +12,58 @@ import { StorageNamespaces } from "../../types/tools";
 class BaseStorage {
   private readonly _fileName = ".migrate.storage.json";
 
-  protected _state: Record<string, any> = lazyObject(() => this._readFullStateFromFile());
+  protected _state: Record<string, any>;
 
-  public clearAll(): void {
-    for (const namespace of Object.values(StorageNamespaces)) {
-      this._state[namespace] = {};
-    }
-
-    this._saveStateToFile();
+  constructor(private _namespace: string = StorageNamespaces.Storage) {
+    this._state = this.readFullStateFromFile()[this._namespace] || {};
   }
 
-  public clean(): void {
-    if (this._stateExistsInFile()) {
-      rmSync(this._filePath(), { force: true });
+  public deleteStateFile(): void {
+    if (this.stateExistsInFile()) {
+      rmSync(this.filePath(), { force: true });
     }
   }
 
-  protected _saveStateToFile() {
-    writeFileSync(this._filePath(), toJSON(this._state), {
-      flag: "w",
-      encoding: "utf8",
-    });
-  }
-
-  private _stateExistsInFile(): boolean {
-    return existsSync(this._filePath());
-  }
-
-  private _readFullStateFromFile(): Record<string, Record<string, any>> {
-    if (!this._stateExistsInFile()) {
+  public readFullStateFromFile(): Record<string, Record<string, any>> {
+    if (!this.stateExistsInFile()) {
       return {};
     }
 
-    const fileContent = readFileSync(this._filePath(), {
+    const fileContent = readFileSync(this.filePath(), {
       encoding: "utf8",
     });
 
     return JSON.parse(fileContent);
   }
 
-  private _filePath(): string {
+  public stateExistsInFile(): boolean {
+    return existsSync(this.filePath());
+  }
+
+  public filePath(): string {
     return resolvePathToFile("cache", this._fileName);
+  }
+
+  protected _saveStateToFile() {
+    const fileSate = this.readFullStateFromFile();
+
+    fileSate[this._namespace] = this._state;
+
+    writeFileSync(this.filePath(), toJSON(fileSate), {
+      flag: "w",
+      encoding: "utf8",
+    });
   }
 }
 
 @catchError
 export class MigrateStorage extends BaseStorage {
-  constructor(private _namespace: StorageNamespaces = StorageNamespaces.Storage) {
-    super();
-
-    if (!this._state[this._namespace]) {
-      this._state[this._namespace] = {};
-    }
-  }
-
   public get(key: string): any {
-    return this._state[this._namespace][key];
+    return this._state[key];
   }
 
   public getAll(): Record<string, any> {
-    return this._state[this._namespace];
+    return this._state;
   }
 
   public set(key: string, value: any, force = false): void {
@@ -79,7 +71,7 @@ export class MigrateStorage extends BaseStorage {
       throw new MigrateError(`Key already exists`);
     }
 
-    this._state[this._namespace][key] = value;
+    this._state[key] = value;
 
     this._saveStateToFile();
   }
@@ -89,17 +81,17 @@ export class MigrateStorage extends BaseStorage {
       throw new MigrateError(`Key not found`);
     }
 
-    delete this._state[this._namespace][key];
+    delete this._state[key];
 
     this._saveStateToFile();
   }
 
   public has(key: string): boolean {
-    return this._state[this._namespace][key] !== undefined;
+    return this._state[key] !== undefined;
   }
 
   public clear(): void {
-    this._state[this._namespace] = {};
+    this._state = {};
 
     this._saveStateToFile();
   }
@@ -112,9 +104,8 @@ export const ArtifactStorage = lazyObject(() => new MigrateStorage(StorageNamesp
 export const VerificationStorage = lazyObject(() => new MigrateStorage(StorageNamespaces.Verification));
 
 export function clearAllStorage(): void {
-  DefaultStorage.clearAll();
-  UserStorage.clearAll();
-  TransactionStorage.clearAll();
-  ArtifactStorage.clearAll();
-  VerificationStorage.clearAll();
+  UserStorage.clear();
+  TransactionStorage.clear();
+  ArtifactStorage.clear();
+  VerificationStorage.clear();
 }

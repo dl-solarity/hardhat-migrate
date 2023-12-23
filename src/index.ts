@@ -52,7 +52,7 @@ const migrateVerify: ActionType<MigrateVerifyConfig> = async (taskArgs, env) => 
 };
 
 task(TASK_CLEAN, "Clears the cache and deletes all artifacts").setAction(async (conf, hre, runSuper) => {
-  DefaultStorage.clean();
+  DefaultStorage.deleteStateFile();
 
   await runSuper();
 });

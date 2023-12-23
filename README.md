@@ -259,17 +259,17 @@ A special field, `txName`, is dedicated for this purpose.
 Here’s an example of how to set a transaction name using Ethers.js:
 
 ```javascript
-await contract.runner.sendTransaction({ customData: { txName: "Funding Transaction" }});
+await govToken.transferOwnership(TOKEN_OWNER, { customData: { txName: "Transfer Ownership" }});
 ```
 
 This method helps avoid potential collisions and ensures a smoother recovery process.
 
 #### Truffle Usage:
 
-For those using Truffle, the transaction name can be specified using the `hardfork` field. Here's how you can do it:
+For those using Truffle, the transaction name can be specified using the `txName` field. Here's how you can do it:
 
 ``` javascript
-await contract.send(1, { hardfork: "Funding Transaction" });
+await govToken.transferOwnership(TOKEN_OWNER, { txName: "Transfer Ownership" });
 ```
 
 #### Purpose
