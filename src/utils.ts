@@ -142,6 +142,10 @@ export function getMethodString(
     contractName = "Unidentified Contract";
   }
 
+  if (methodFragment.inputs.length + 1 === args.length) {
+    args.pop();
+  }
+
   if (methodFragment.inputs === undefined) {
     return `${contractName}.${methodName}()`;
   }
