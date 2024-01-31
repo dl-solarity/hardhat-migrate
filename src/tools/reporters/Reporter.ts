@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import ora from "ora";
+import ora, { Ora } from "ora";
 
 import { Network, TransactionResponse, formatEther, formatUnits, TransactionReceipt, id } from "ethers";
 
@@ -22,7 +22,7 @@ class BaseReporter {
   private _config: MigrateConfig = {} as any;
   private _network: Network = {} as any;
 
-  private _spinner: ora.Ora | null = null;
+  private _spinner: Ora | null = null;
   private _spinnerMessage: string | null = null;
   private _spinnerInterval: NodeJS.Timeout | null = null;
   private _spinnerState: string[] = [];
