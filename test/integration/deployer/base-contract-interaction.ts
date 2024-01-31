@@ -1,7 +1,4 @@
-import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
-
-chai.use(chaiAsPromised);
+import { expect } from "chai";
 
 import { useEnvironment } from "../../helpers";
 
@@ -15,9 +12,6 @@ import { Migrator } from "../../../src/migrator/Migrator";
 
 import { ethersProvider } from "../../../src/tools/network/EthersProvider";
 import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
-
-import { resetTransactionRunner } from "../../../src/tools/runners/TransactionRunner";
-import { resetReporter } from "../../../src/tools/reporters/Reporter";
 
 describe("deployer", () => {
   let deployer: Deployer;

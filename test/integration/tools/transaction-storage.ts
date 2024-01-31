@@ -1,7 +1,4 @@
-import chai, { assert, expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
-
-chai.use(chaiAsPromised);
+import { assert, expect } from "chai";
 
 import { ContractFactory, ZeroAddress } from "ethers";
 
@@ -20,8 +17,6 @@ import { ContractDeployTxWithName } from "../../../src/types/deployer";
 
 import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
 import { TransactionProcessor } from "../../../src/tools/storage/TransactionProcessor";
-import { resetReporter } from "../../../src/tools/reporters/Reporter";
-import { resetTransactionRunner } from "../../../src/tools/runners/TransactionRunner";
 
 describe("TransactionStorage", async () => {
   useEnvironment("typechain-ethers");

@@ -74,7 +74,7 @@ export class Deployer {
     return adapter.toInstance(contract, contractAddress!, {});
   }
 
-  public async saveContract<T, A = T, I = any>(
+  public async save<T, A = T, I = any>(
     contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never) | string,
     contractAddress: string,
   ) {
