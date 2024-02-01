@@ -195,6 +195,12 @@ Utilizes `ContractFactory` from [@ethers](https://www.npmjs.com/package/ethers) 
 
 ---
 
+- **save(contractInstance | name, address)**:
+ 
+Saves the contract to storage under the given `address` without deployment.
+
+---
+
 - **deployed(contractInstance, contractIdentifier)**: 
 
 Returns the deployed contract instance, inferring types and enhancing functionalities for comfortable interaction.
