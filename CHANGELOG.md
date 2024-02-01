@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 2.1.0
+
+* Updated packages to their latest versions (updated `@nomicfoundation/hardhat-verify` to version `2.0.4`)
+* Added a `save` function to the Deployer class to enable saving the contract to storage without deploying it
+
 ## Version 2.0.1
 
 * Fixed a bug where an instance of a storage object overwrote the state of another object in the file.

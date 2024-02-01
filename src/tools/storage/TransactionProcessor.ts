@@ -79,6 +79,15 @@ export class BaseTransactionProcessor {
     );
   }
 
+  public saveContractAddress(contractName: string, contractAddress: string, metadata: MigrationMetadata) {
+    const dataToSave: ContractFieldsToSave = {
+      contractAddress,
+      metadata,
+    };
+
+    this._saveContractByName(contractName, dataToSave);
+  }
+
   @validateKeyDeploymentFields
   public async tryRestoreContractAddressByKeyFields(key: ContractDeployTxWithName): Promise<string> {
     const restoredData = this._tryGetDataFromStorage(

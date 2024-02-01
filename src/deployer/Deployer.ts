@@ -74,6 +74,30 @@ export class Deployer {
     return adapter.toInstance(contract, contractAddress!, {});
   }
 
+  public async save<T, A = T, I = any>(
+    contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never) | string,
+    contractAddress: string,
+  ) {
+    if (!(await isDeployedContractAddress(contractAddress))) {
+      throw new MigrateError(`Contract with address '${contractAddress}' is not deployed`);
+    }
+
+    const saveMetadata: MigrationMetadata = {
+      migrationNumber: Stats.currentMigration,
+    };
+
+    if (typeof contract === "string") {
+      TransactionProcessor?.saveContractAddress(contract, contractAddress, saveMetadata);
+
+      return;
+    }
+
+    const adapter = Deployer.resolveAdapter(this._hre, contract);
+    const defaultContractName = adapter.getContractName(contract, {});
+
+    TransactionProcessor?.saveContractAddress(defaultContractName, contractAddress, saveMetadata);
+  }
+
   public async sendNative(
     to: string,
     value: bigint,

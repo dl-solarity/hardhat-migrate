@@ -3,9 +3,6 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { runWithContinue, runWithoutContinue } from "./helper";
 
 import { useEnvironment } from "../../helpers";
-import { resetReporter } from "../../../src/tools/reporters/Reporter";
-import { resetTransactionRunner } from "../../../src/tools/runners/TransactionRunner";
-import { resetNetworkManager } from "../../../src/tools/network/NetworkManager";
 
 describe("typechain-truffle", () => {
   useEnvironment("typechain-truffle");
