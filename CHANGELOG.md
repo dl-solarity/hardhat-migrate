@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.1.1
+
+* Fixed a bug related to the shallow copying and mutation of arguments within the `getMethodString` function
+
 ## Version 2.1.0
 
 * Updated packages to their latest versions (updated `@nomicfoundation/hardhat-verify` to version `2.0.4`)
