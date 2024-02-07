@@ -14,9 +14,16 @@ import { Adapter } from "./Adapter";
 
 import { MinimalContract } from "../MinimalContract";
 
-import { bytecodeToString, catchError, fillParameters, getMethodString, getSignerHelper } from "../../utils";
+import {
+  bytecodeToString,
+  catchError,
+  fillParameters,
+  getInstanceNameFromClass,
+  getMethodString,
+  getSignerHelper,
+} from "../../utils";
 
-import { UNKNOWN_CONTRACT_NAME, UNKNOWN_TRANSACTION_NAME } from "../../constants";
+import { UNKNOWN_TRANSACTION_NAME } from "../../constants";
 
 import { KeyTransactionFields, MigrationMetadata } from "../../types/tools";
 import { EthersContract, Instance, TruffleFactory } from "../../types/adapter";
@@ -82,7 +89,7 @@ export class TruffleAdapter extends Adapter {
         return this._getFullyQualifiedName(instance as any) || (instance as any).contractName;
       }
 
-      return UNKNOWN_CONTRACT_NAME;
+      return getInstanceNameFromClass(instance);
     }
   }
 
