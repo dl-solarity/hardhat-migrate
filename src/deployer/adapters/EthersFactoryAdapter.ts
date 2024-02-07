@@ -4,9 +4,7 @@ import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
 
 import { OverridesAndName } from "../../types/deployer";
 
-import { catchError } from "../../utils";
-
-import { UNKNOWN_CONTRACT_NAME } from "../../constants";
+import { catchError, getInstanceNameFromClass } from "../../utils";
 
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 
@@ -32,7 +30,7 @@ export class EthersFactoryAdapter extends AbstractEthersAdapter {
         return (instance as any).contractName;
       }
 
-      return UNKNOWN_CONTRACT_NAME;
+      return getInstanceNameFromClass(instance);
     }
   }
 

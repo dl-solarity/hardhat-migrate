@@ -1,9 +1,14 @@
 # Changelog
 
+## Version 2.1.1
+
+* Fixed a bug related to the shallow copying and mutation of arguments within the `getMethodString` function.
+* Added ability to retrieve the class name from the contract instance.
+
 ## Version 2.1.0
 
-* Updated packages to their latest versions (updated `@nomicfoundation/hardhat-verify` to version `2.0.4`)
-* Added a `save` function to the Deployer class to enable saving the contract to storage without deploying it
+* Updated packages to their latest versions (updated `@nomicfoundation/hardhat-verify` to version `2.0.4`).
+* Added a `save` function to the Deployer class to enable saving the contract to storage without deploying it.
 
 ## Version 2.0.1
 

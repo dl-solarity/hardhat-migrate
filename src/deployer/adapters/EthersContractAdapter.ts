@@ -2,9 +2,7 @@ import { BaseContract, ContractRunner, Interface } from "ethers";
 
 import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
 
-import { catchError, getSignerHelper } from "../../utils";
-
-import { UNKNOWN_CONTRACT_NAME } from "../../constants";
+import { catchError, getInstanceNameFromClass, getSignerHelper } from "../../utils";
 
 import { EthersContract } from "../../types/adapter";
 import { OverridesAndName } from "../../types/deployer";
@@ -33,7 +31,7 @@ export class EthersContractAdapter extends AbstractEthersAdapter {
         return (instance as any).contractName;
       }
 
-      return UNKNOWN_CONTRACT_NAME;
+      return getInstanceNameFromClass(instance);
     }
   }
 
