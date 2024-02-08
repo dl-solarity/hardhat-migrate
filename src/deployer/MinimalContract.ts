@@ -74,12 +74,6 @@ export class MinimalContract {
   private async _createDeployTransaction(args: any[], txOverrides: Overrides): Promise<ContractDeployTxWithName> {
     const factory = new ethers.ContractFactory(this._interface, this._bytecode);
 
-    const coder = new ethers.AbiCoder();
-    // Try to encode the arguments before sending the deployment transaction
-    factory.interface.deploy.inputs.forEach((input, idx) => {
-      coder.encode([input], [args[idx]]);
-    });
-
     return {
       contractName: this._contractName,
       chainId: await getChainId(),
@@ -144,6 +138,14 @@ export class MinimalContract {
 
       return;
     }
+
+    const factory = new ethers.ContractFactory(this._interface, this._bytecode);
+
+    const coder = new ethers.AbiCoder();
+    // Try to encode the arguments before sending the deployment transaction
+    factory.interface.deploy.inputs.forEach((input, idx) => {
+      coder.encode([input], [args[idx]]);
+    });
 
     VerificationProcessor.saveVerificationFunction({
       contractAddress,
