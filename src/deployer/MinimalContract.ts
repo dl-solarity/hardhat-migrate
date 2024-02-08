@@ -6,7 +6,14 @@ import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 
 import { Linker } from "./Linker";
 
-import { catchError, fillParameters, getChainId, getInterfaceOnlyWithConstructor, getSignerHelper } from "../utils";
+import {
+  catchError,
+  checkType,
+  fillParameters,
+  getChainId,
+  getInterfaceOnlyWithConstructor,
+  getSignerHelper,
+} from "../utils";
 
 import { MigrateError } from "../errors";
 
@@ -73,6 +80,10 @@ export class MinimalContract {
 
   private async _createDeployTransaction(args: any[], txOverrides: Overrides): Promise<ContractDeployTxWithName> {
     const factory = new ethers.ContractFactory(this._interface, this._bytecode);
+
+    factory.interface.deploy.inputs.forEach((input, idx) => {
+      checkType(args[idx], input.type, input.name);
+    });
 
     return {
       contractName: this._contractName,

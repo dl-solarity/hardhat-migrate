@@ -4,6 +4,7 @@
 
 * Fixed a bug related to the shallow copying and mutation of arguments within the `getMethodString` function.
 * Added ability to retrieve the class name from the contract instance.
+* Added deployment arguments validation before the contract deployment.
 
 ## Version 2.1.0
 
