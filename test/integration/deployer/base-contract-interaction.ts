@@ -46,7 +46,7 @@ describe("deployer", () => {
       const signer = (await deployer.getSigner()) as any;
 
       await expect(deployer.deploy(ConstructorWithArguments__factory, [signer], {})).to.be.rejectedWith(
-        `Deployer.deploy(): MinimalContract.deploy(): MinimalContract._createDeployTransaction(): Invalid value for "_value". Expected type: uint256. Received value: [object Object] of type object.`,
+        `Deployer.deploy(): MinimalContract.deploy(): MinimalContract._createDeployTransaction(): invalid BigNumberish value (argument="value", value="<SignerWithAddress 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266>", code=INVALID_ARGUMENT, version=6.10.0)`,
       );
     });
 
