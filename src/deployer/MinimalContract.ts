@@ -75,8 +75,8 @@ export class MinimalContract {
     const factory = new ethers.ContractFactory(this._interface, this._bytecode);
 
     const coder = new ethers.AbiCoder();
+    // Try to encode the arguments before sending the deployment transaction
     factory.interface.deploy.inputs.forEach((input, idx) => {
-      // Try to encode the arguments before sending the deployment transaction
       coder.encode([input], [args[idx]]);
     });
 
