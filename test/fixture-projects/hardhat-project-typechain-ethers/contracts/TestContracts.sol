@@ -19,4 +19,8 @@ contract PayableReceive {
     receive() external payable {
         emit Received(msg.sender, msg.value);
     }
+
+    function pay() external payable {
+        emit Received(msg.sender, msg.value);
+    }
 }

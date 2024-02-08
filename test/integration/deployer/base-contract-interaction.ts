@@ -5,6 +5,7 @@ import { useEnvironment } from "../../helpers";
 import {
   ConstructorWithArguments__factory,
   PayableConstructor__factory,
+  PayableReceive__factory,
 } from "../../fixture-projects/hardhat-project-typechain-ethers/typechain-types";
 
 import { Deployer } from "../../../src/deployer/Deployer";
@@ -41,10 +42,28 @@ describe("deployer", () => {
       expect(await ethersProvider!.provider.getBalance(contract.getAddress())).to.equal(toPay);
     });
 
+    it("should not deploy contract with invalid constructor arguments", async function () {
+      const signer = (await deployer.getSigner()) as any;
+
+      await expect(deployer.deploy(ConstructorWithArguments__factory, [signer], {})).to.be.rejectedWith(
+        `Deployer.deploy(): MinimalContract.deploy(): MinimalContract._createDeployTransaction(): Invalid value for "_value". Expected type: uint256. Received value: [object Object] of type object.`,
+      );
+    });
+
     it("should revert if artifact is not a contract", async function () {
       await expect(deployer.deploy({} as any, [], {})).to.be.rejectedWith(
         "Deployer.deploy(): Unknown Contract Factory Type",
       );
+    });
+
+    it("should be able to customize overrides for function calls", async function () {
+      const contract = await deployer.deploy(PayableReceive__factory);
+
+      const toPay = 100n;
+
+      await contract.pay({ value: toPay.toString() });
+
+      expect(await ethersProvider!.provider.getBalance(contract.getAddress())).to.equal(toPay);
     });
   });
 });
