@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.1.2
+
+* Updated the ethers version to `6.1.1` to address issue: [4583](https://github.com/ethers-io/ethers.js/issues/4583).
+
 ## Version 2.1.1
 
 * Fixed a bug related to the shallow copying and mutation of arguments within the `getMethodString` function.
