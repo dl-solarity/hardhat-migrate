@@ -39,7 +39,7 @@ export class Verifier {
 
     const verificationDelay = this._hre.config.migrate.verificationDelay;
     if (verificationDelay > 0 && !this._standalone) {
-      await Reporter!.startSpinner("verification-delay", () => "Waiting for verification delay");
+      await Reporter!.startSpinner("verification-delay", () => "Waiting for the explorer to sync up");
 
       await sleep(verificationDelay);
 
