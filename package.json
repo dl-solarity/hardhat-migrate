@@ -95,6 +95,6 @@
     "typescript": "5.3.3"
   },
   "optionalDependencies": {
-    "@nomicfoundation/edr-linux-x64-gnu": "*"
+    "@nomicfoundation/edr-linux-x64-gnu": "^0.2.1"
   }
 }
