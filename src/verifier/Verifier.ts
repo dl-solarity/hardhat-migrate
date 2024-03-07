@@ -3,14 +3,17 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
 import { EtherscanConfig } from "@nomicfoundation/hardhat-verify/types";
 
+import { MigrateError } from "../errors";
+
 import { catchError, getChainId, sleep, suppressLogs } from "../utils";
 
 import { Args } from "../types/deployer";
 import { VerifyConfig } from "../types/migrations";
 import { VerifierArgs } from "../types/verifier";
 
-import { createAndInitReporter, Reporter } from "../tools/reporters/Reporter";
+import { sendGetRequest } from "../tools/network/requests";
 import { buildNetworkDeps } from "../tools/network/NetworkManager";
+import { createAndInitReporter, Reporter } from "../tools/reporters/Reporter";
 
 export class Verifier {
   private readonly _etherscanConfig: EtherscanConfig;
@@ -59,6 +62,8 @@ export class Verifier {
     const { contractAddress, contractName, constructorArguments } = verifierArgs;
 
     const instance = await this._getEtherscanInstance(this._hre);
+
+    await this._validateExplorerConfiguration(instance, contractAddress);
 
     for (let attempts = 0; attempts < this._config.attempts; attempts++) {
       if (await instance.isVerified(contractAddress)) {
@@ -125,6 +130,26 @@ export class Verifier {
       constructorArguments: args,
       contract: contractName,
     });
+  }
+
+  private async _validateExplorerConfiguration(instance: Etherscan, contractAddress: string) {
+    const parameters = new URLSearchParams({
+      apikey: instance.apiKey,
+      module: "contract",
+      action: "getsourcecode",
+      address: contractAddress,
+    });
+
+    const url = new URL(instance.apiUrl);
+    url.search = parameters.toString();
+
+    const response = await sendGetRequest(url.toString());
+
+    if (response.status !== 200) {
+      throw new MigrateError(
+        `The explorer responded with a status code of ${response.status} for the URL "${url.toString().split("?")[0]}".`,
+      );
+    }
   }
 
   public static async buildVerifierTaskDeps(hre: HardhatRuntimeEnvironment): Promise<void> {

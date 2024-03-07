@@ -3,6 +3,7 @@
 ## Version 2.1.3
 
 * Added the `verificationDelay` parameter, which defines the time in milliseconds that must pass before the verification process starts.
+* Added health check for the explorer links before the verification process starts
 
 ## Version 2.1.2
 
