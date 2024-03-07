@@ -4,6 +4,7 @@
 
 * Added the `verificationDelay` parameter, which defines the time in milliseconds that must pass before the verification process starts.
 * Added health check for the explorer links before the verification process starts
+* Added `BigInt.prototype.toJSON` to the `BigInt` type to fix the issue with the `BigInt` type in the `JSON.stringify` function.
 
 ## Version 2.1.2
 
