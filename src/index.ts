@@ -72,6 +72,12 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
   )
   .addOptionalParam("skip", "The number of migration to skip. Overrides only parameter.", undefined, types.int)
   .addOptionalParam("wait", "The number of blocks to wait for the transaction to be mined.", undefined, types.int)
+  .addOptionalParam(
+    "verificationDelay",
+    "The time in milliseconds to wait before the verification process starts.",
+    undefined,
+    types.int,
+  )
   .addFlag("verify", "The flag indicating whether the contracts should be verified.")
   .addOptionalParam("verifyParallel", "The size of the batch for verification.", undefined, types.int)
   .addOptionalParam("verifyAttempts", "The number of attempts to verify the contract.", undefined, types.int)
