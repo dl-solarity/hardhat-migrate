@@ -3,7 +3,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
 import { EtherscanConfig } from "@nomicfoundation/hardhat-verify/types";
 
-import { catchError, getChainId, suppressLogs } from "../utils";
+import { catchError, getChainId, sleep, suppressLogs } from "../utils";
 
 import { Args } from "../types/deployer";
 import { VerifyConfig } from "../types/migrations";
@@ -18,6 +18,7 @@ export class Verifier {
   constructor(
     private _hre: HardhatRuntimeEnvironment,
     private _config: VerifyConfig,
+    private _standalone = false,
   ) {
     this._etherscanConfig = (_hre.config as any).etherscan;
   }
@@ -31,6 +32,15 @@ export class Verifier {
     if (!toVerify || toVerify.length === 0) {
       Reporter!.reportNothingToVerify();
       return;
+    }
+
+    const verificationDelay = this._hre.config.migrate.verificationDelay;
+    if (verificationDelay > 0 && !this._standalone) {
+      await Reporter!.startSpinner("verification-delay", () => "Waiting for verification delay");
+
+      await sleep(verificationDelay);
+
+      Reporter!.stopSpinner();
     }
 
     Reporter!.reportVerificationBatchBegin();
@@ -64,7 +74,7 @@ export class Verifier {
         this._handleVerificationError(contractAddress, contractName, e);
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 2500));
+      await sleep(2500);
     }
   }
 

@@ -28,6 +28,11 @@ export interface MigrateConfig {
   wait: number;
 
   /*
+   * The time in milliseconds to wait before the verification process starts.
+   */
+  verificationDelay: number;
+
+  /*
    * The flag indicating whether the contract should be verified.
    */
   verify: boolean;

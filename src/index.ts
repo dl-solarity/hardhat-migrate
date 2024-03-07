@@ -1,6 +1,6 @@
 import "@nomicfoundation/hardhat-verify";
 
-import { ActionType } from "hardhat/types";
+import { ActionType, HardhatRuntimeEnvironment } from "hardhat/types";
 import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { extendConfig, task, types } from "hardhat/config";
 
@@ -37,19 +37,23 @@ const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
   await new Migrator(env).migrate();
 
   if (env.config.migrate.verify) {
-    await env.run(TASK_MIGRATE_VERIFY);
+    await runMigrateVerify(env, {} as any);
   }
 };
 
 const migrateVerify: ActionType<MigrateVerifyConfig> = async (taskArgs, env) => {
+  await runMigrateVerify(env, taskArgs, true);
+};
+
+async function runMigrateVerify(env: HardhatRuntimeEnvironment, taskArgs: MigrateVerifyConfig, standalone = false) {
   const config = extendVerifyConfigs(taskArgs);
 
   await Verifier.buildVerifierTaskDeps(env);
 
-  await new Verifier(env, config).verifyBatch(
+  await new Verifier(env, config, standalone).verifyBatch(
     VerificationProcessor.restoreSavedVerificationFunctions(config.inputFile),
   );
-};
+}
 
 task(TASK_CLEAN, "Clears the cache and deletes all artifacts").setAction(async (conf, hre, runSuper) => {
   DefaultStorage.deleteStateFile();
