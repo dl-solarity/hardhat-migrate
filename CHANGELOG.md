@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 2.1.3
+
+* Added the `verificationDelay` parameter, which defines the time in milliseconds that must pass before the verification process starts.
+* Added health check for the explorer links before the verification process starts
+* Added `BigInt.prototype.toJSON` to the `BigInt` type to fix the issue with the `BigInt` type in the `JSON.stringify` function.
+
 ## Version 2.1.2
 
 * Updated the ethers version to `6.1.1` to address issue: [4583](https://github.com/ethers-io/ethers.js/issues/4583).

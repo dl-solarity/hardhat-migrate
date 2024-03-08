@@ -3,14 +3,17 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
 import { EtherscanConfig } from "@nomicfoundation/hardhat-verify/types";
 
-import { catchError, getChainId, suppressLogs } from "../utils";
+import { MigrateError } from "../errors";
+
+import { catchError, getChainId, sleep, suppressLogs } from "../utils";
 
 import { Args } from "../types/deployer";
 import { VerifyConfig } from "../types/migrations";
 import { VerifierArgs } from "../types/verifier";
 
-import { createAndInitReporter, Reporter } from "../tools/reporters/Reporter";
+import { sendGetRequest } from "../tools/network/requests";
 import { buildNetworkDeps } from "../tools/network/NetworkManager";
+import { createAndInitReporter, Reporter } from "../tools/reporters/Reporter";
 
 export class Verifier {
   private readonly _etherscanConfig: EtherscanConfig;
@@ -18,6 +21,7 @@ export class Verifier {
   constructor(
     private _hre: HardhatRuntimeEnvironment,
     private _config: VerifyConfig,
+    private _standalone = false,
   ) {
     this._etherscanConfig = (_hre.config as any).etherscan;
   }
@@ -31,6 +35,15 @@ export class Verifier {
     if (!toVerify || toVerify.length === 0) {
       Reporter!.reportNothingToVerify();
       return;
+    }
+
+    const verificationDelay = this._hre.config.migrate.verificationDelay;
+    if (verificationDelay > 0 && !this._standalone) {
+      await Reporter!.startSpinner("verification-delay", () => "Waiting for the explorer to sync up");
+
+      await sleep(verificationDelay);
+
+      Reporter!.stopSpinner();
     }
 
     Reporter!.reportVerificationBatchBegin();
@@ -50,6 +63,8 @@ export class Verifier {
 
     const instance = await this._getEtherscanInstance(this._hre);
 
+    await this._validateExplorerConfiguration(instance, contractAddress);
+
     for (let attempts = 0; attempts < this._config.attempts; attempts++) {
       if (await instance.isVerified(contractAddress)) {
         Reporter!.reportAlreadyVerified(contractAddress, contractName);
@@ -64,7 +79,7 @@ export class Verifier {
         this._handleVerificationError(contractAddress, contractName, e);
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 2500));
+      await sleep(2500);
     }
   }
 
@@ -115,6 +130,26 @@ export class Verifier {
       constructorArguments: args,
       contract: contractName,
     });
+  }
+
+  private async _validateExplorerConfiguration(instance: Etherscan, contractAddress: string) {
+    const parameters = new URLSearchParams({
+      apikey: instance.apiKey,
+      module: "contract",
+      action: "getsourcecode",
+      address: contractAddress,
+    });
+
+    const url = new URL(instance.apiUrl);
+    url.search = parameters.toString();
+
+    const response = await sendGetRequest(url.toString());
+
+    if (response.status !== 200) {
+      throw new MigrateError(
+        `The explorer responded with a status code of ${response.status} for the URL "${url.toString().split("?")[0]}".`,
+      );
+    }
   }
 
   public static async buildVerifierTaskDeps(hre: HardhatRuntimeEnvironment): Promise<void> {

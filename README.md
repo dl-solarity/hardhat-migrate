@@ -79,6 +79,7 @@ module.exports = {
     only: -1,
     skip: -1,
     wait: 1,
+    verificationDelay: 5000,
     verify: false,
     verifyParallel: 1,
     verifyAttempts: 3,
@@ -97,6 +98,7 @@ module.exports = {
 - `only` : The number of the migration that will be applied. **Overrides from and to parameters.**
 - `skip`: The number of migration to skip. **Overrides only parameter.**
 - `wait` : The number of confirmations to wait for after the transaction is mined.
+- `verificationDelay` : The delay in milliseconds between the deployment and verification of the contract.
 - `verify` : The flag indicating whether the contracts have to be verified after all migrations.
 - `verifyParallel` : The size of the batch for verification.
 - `verifyAttempts` : The number of attempts to verify the contract.

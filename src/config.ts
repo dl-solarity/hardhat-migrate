@@ -13,6 +13,7 @@ const defaultConfig: MigrateConfig = {
   only: -1,
   skip: -1,
   wait: 1,
+  verificationDelay: 5000,
   verify: false,
   verifyParallel: 1,
   verifyAttempts: 3,
