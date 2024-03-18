@@ -1,4 +1,4 @@
-import { Addressable, ContractFactory, Interface } from "ethers";
+import { ContractFactory, Interface } from "ethers";
 
 import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
 
@@ -32,15 +32,5 @@ export class EthersFactoryAdapter extends AbstractEthersAdapter {
 
       return getInstanceNameFromClass(instance);
     }
-  }
-
-  protected async _overrideConnectMethod(instance: ContractFactory, contractName: string) {
-    const attachMethod = instance.attach;
-
-    instance.attach = (target: string | Addressable): any => {
-      const contract = attachMethod(target);
-
-      return this._insertHandlers(contract, contractName);
-    };
   }
 }

@@ -53,10 +53,10 @@ export class TruffleAdapter extends Adapter {
   public async toInstance<I>(instance: TruffleFactory<I>, address: string, _: OverridesAndName): Promise<I> {
     const contract = this._hre.artifacts.require(instance.contractName!);
 
-    await this._overrideConnectMethod(contract);
-
     const contractInstance = await contract.at(address);
     (instance as any).setAsDeployed(contractInstance);
+
+    this._insertHandlers(instance, contractInstance, address);
 
     return contractInstance;
   }
@@ -91,16 +91,6 @@ export class TruffleAdapter extends Adapter {
 
       return getInstanceNameFromClass(instance);
     }
-  }
-
-  protected async _overrideConnectMethod<I>(instance: TruffleFactory<I>) {
-    const atMethod = instance.at;
-
-    instance.at = async (address: string): Promise<I> => {
-      const contract = await atMethod(address);
-
-      return this._insertHandlers(instance, contract, address);
-    };
   }
 
   protected _insertHandlers<I>(instance: TruffleFactory<I>, contract: I, address: string): I {
