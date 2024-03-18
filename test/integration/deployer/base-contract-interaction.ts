@@ -1,3 +1,5 @@
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { expect } from "chai";
 
 import { useEnvironment } from "../../helpers";
@@ -17,13 +19,17 @@ import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
 describe("deployer", () => {
   let deployer: Deployer;
 
-  describe("default interaction with contracts", () => {
+  describe("default interaction with contracts (Ethers)", () => {
     useEnvironment("typechain-ethers");
+
+    let hre: HardhatRuntimeEnvironment;
 
     beforeEach("setup", async function () {
       await Migrator.buildMigrateTaskDeps(this.hre);
 
       deployer = new Deployer(this.hre);
+
+      hre = this.hre;
 
       TransactionStorage.clear();
     });
@@ -64,6 +70,22 @@ describe("deployer", () => {
       await contract.pay({ value: toPay.toString() });
 
       expect(await ethersProvider!.provider.getBalance(contract.getAddress())).to.equal(toPay);
+    });
+
+    it("should connect to different signer and send transaction", async function () {
+      const [signer1, signer2] = await hre.ethers.getSigners();
+
+      const contract = await deployer.deploy(PayableReceive__factory);
+
+      let tx = await contract.pay({ value: 100n });
+      let receipt = await tx.wait();
+
+      expect(receipt!.from).to.equal(signer1.address);
+
+      tx = await contract.connect(signer2).pay({ value: 110n });
+      receipt = await tx.wait();
+
+      expect(receipt!.from).to.equal(signer2.address);
     });
   });
 });

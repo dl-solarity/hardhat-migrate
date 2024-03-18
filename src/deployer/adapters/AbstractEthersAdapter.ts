@@ -2,6 +2,7 @@ import {
   BaseContract,
   BaseContractMethod,
   ContractFactory,
+  ContractRunner,
   ContractTransaction,
   ContractTransactionReceipt,
   ContractTransactionResponse,
@@ -31,8 +32,6 @@ import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 type Factory<A, I> = EthersContract<A, I> | BytecodeFactory | ContractFactory;
 
 export abstract class AbstractEthersAdapter extends Adapter {
-  private static _processedClasses = new Set<string>();
-
   public getRawBytecode<A, I>(instance: Factory<A, I>): string {
     return bytecodeToString(instance.bytecode);
   }
@@ -48,18 +47,14 @@ export abstract class AbstractEthersAdapter extends Adapter {
 
   public async toInstance<A, I>(instance: Factory<A, I>, address: string, parameters: OverridesAndLibs): Promise<I> {
     const signer = await getSignerHelper(parameters.from);
-
-    const contract = new BaseContract(address, this.getInterface(instance), signer);
-
     const contractName = this.getContractName(instance, parameters);
 
-    if (!AbstractEthersAdapter._processedClasses.has(contractName)) {
-      AbstractEthersAdapter._processedClasses.add(contractName);
-
-      await this._overrideConnectMethod(instance, contractName);
-    }
+    let contract = new BaseContract(address, this.getInterface(instance), signer);
 
     this._insertAddressGetter(contract, address);
+
+    contract = await this._overrideConnectMethod(contract, this.getInterface(instance), contractName);
+
     return this._insertHandlers(contract, contractName) as unknown as I;
   }
 
@@ -103,7 +98,21 @@ export abstract class AbstractEthersAdapter extends Adapter {
     return contract;
   }
 
-  protected abstract _overrideConnectMethod<A, I>(instance: Factory<A, I>, contractName: string): Promise<void>;
+  protected async _overrideConnectMethod(
+    contract: BaseContract,
+    contractInterface: Interface,
+    contractName: string,
+  ): Promise<BaseContract> {
+    const defaultRunner = await getSignerHelper();
+
+    contract.connect = (runner: ContractRunner | null): BaseContract => {
+      const newContract = new BaseContract(contract.target, contractInterface, runner ?? defaultRunner);
+
+      return this._insertHandlers(newContract, contractName) as any;
+    };
+
+    return contract;
+  }
 
   private _insertAddressGetter(contract: BaseContract, contractAddress: string): void {
     (contract as any).address = contractAddress;

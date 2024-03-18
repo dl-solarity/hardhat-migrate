@@ -1,8 +1,8 @@
-import { BaseContract, ContractRunner, Interface } from "ethers";
+import { Interface } from "ethers";
 
 import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
 
-import { catchError, getInstanceNameFromClass, getSignerHelper } from "../../utils";
+import { catchError, getInstanceNameFromClass } from "../../utils";
 
 import { EthersContract } from "../../types/adapter";
 import { OverridesAndName } from "../../types/deployer";
@@ -33,17 +33,5 @@ export class EthersContractAdapter extends AbstractEthersAdapter {
 
       return getInstanceNameFromClass(instance);
     }
-  }
-
-  protected async _overrideConnectMethod<A, I>(instance: EthersContract<A, I>, contractName: string) {
-    const connectMethod = instance.connect;
-
-    const defaultRunner = await getSignerHelper();
-
-    instance.connect = (address: string, runner?: ContractRunner): I => {
-      const contract = connectMethod(address, runner ?? defaultRunner) as BaseContract;
-
-      return this._insertHandlers(contract, contractName) as unknown as I;
-    };
   }
 }
