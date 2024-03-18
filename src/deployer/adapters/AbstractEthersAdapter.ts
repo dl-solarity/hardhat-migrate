@@ -51,8 +51,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
 
     let contract = new BaseContract(address, this.getInterface(instance), signer);
 
-    this._insertAddressGetter(contract, address);
-
+    contract = this._insertAddressGetter(contract, address);
     contract = await this._overrideConnectMethod(contract, this.getInterface(instance), contractName);
 
     return this._insertHandlers(contract, contractName) as unknown as I;
@@ -114,8 +113,10 @@ export abstract class AbstractEthersAdapter extends Adapter {
     return contract;
   }
 
-  private _insertAddressGetter(contract: BaseContract, contractAddress: string): void {
+  private _insertAddressGetter(contract: BaseContract, contractAddress: string): BaseContract {
     (contract as any).address = contractAddress;
+
+    return contract;
   }
 
   private _getContractFunctionFragments(contractInterface: Interface): FunctionFragment[] {
