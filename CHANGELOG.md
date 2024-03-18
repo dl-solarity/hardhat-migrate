@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 2.1.5
+
+* Fixed behaviour of connect method in Ethers Adapter. 
+
+## Version 2.1.4
+
+* Deleted `pinst` package.
+
 ## Version 2.1.3
 
 * Added the `verificationDelay` parameter, which defines the time in milliseconds that must pass before the verification process starts.
