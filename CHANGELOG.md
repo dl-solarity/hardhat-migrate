@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.1.6
+
+* Fixed a bug when the default signer was used instead of the actual signer
+
 ## Version 2.1.5
 
 * Fixed behaviour of connect method in Ethers Adapter. 
