@@ -1,8 +1,12 @@
 # Changelog
 
+## Version 2.1.7
+
+* Fixed a visual bug that sometimes `total cost` was displayed incorrectly.
+
 ## Version 2.1.6
 
-* Fixed a bug when the default signer was used instead of the actual signer
+* Fixed a bug when the default signer was used instead of the actual signer.
 
 ## Version 2.1.5
 

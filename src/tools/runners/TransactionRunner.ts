@@ -42,7 +42,7 @@ class BaseTransactionRunner {
 
     await Reporter!.reportTransactionReceipt(receipt);
 
-    this.totalCost += receipt.fee + tx.value ?? 0n;
+    this.totalCost += BigInt(receipt.fee) + BigInt(tx.value) ?? 0n;
     this.totalTransactions++;
   }
 
