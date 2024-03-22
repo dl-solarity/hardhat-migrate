@@ -13,6 +13,7 @@ import {
 import { Deployer } from "../../../src/deployer/Deployer";
 import { Migrator } from "../../../src/migrator/Migrator";
 
+import { Reporter } from "../../../src/tools/reporters/Reporter";
 import { ethersProvider } from "../../../src/tools/network/EthersProvider";
 import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
 
@@ -82,10 +83,11 @@ describe("deployer", () => {
 
       expect(receipt!.from).to.equal(signer1.address);
 
-      tx = await contract.connect(signer2).pay({ value: 110n });
+      tx = await contract.connect(signer2).pay({ value: 100n });
       receipt = await tx.wait();
 
       expect(receipt!.from).to.equal(signer2.address);
+      expect(Reporter?.getWarningsCount()).to.be.equal(0);
     });
   });
 });

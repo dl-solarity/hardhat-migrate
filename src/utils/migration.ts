@@ -17,16 +17,10 @@ import { deepCopy, toJSON } from "./common";
 import { MigrateError } from "../errors";
 import { UNKNOWN_CONTRACT_NAME } from "../constants";
 
-import { networkManager } from "../tools/network/NetworkManager";
-
 import { Bytecode } from "../types/deployer";
 import { KeyDeploymentFields, KeyTransactionFields } from "../types/tools";
 
 export async function fillParameters(parameters: Overrides): Promise<Overrides> {
-  if (parameters.from === undefined) {
-    parameters.from = await (await networkManager!.provider.getSigner()).getAddress();
-  }
-
   if (parameters.chainId === undefined) {
     parameters.chainId = await getChainId();
   }

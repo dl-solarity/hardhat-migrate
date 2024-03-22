@@ -258,7 +258,7 @@ class BaseReporter {
   }
 
   public reportWarnings() {
-    if (this._warningsToPrint.size === 0) {
+    if (this.getWarningsCount() === 0) {
       return;
     }
 
@@ -274,6 +274,10 @@ class BaseReporter {
     );
 
     console.log("");
+  }
+
+  public getWarningsCount(): number {
+    return this._warningsToPrint.size;
   }
 
   private _printContractCollision(output: string, oldData: ContractFieldsToSave, dataToSave: ContractFieldsToSave) {

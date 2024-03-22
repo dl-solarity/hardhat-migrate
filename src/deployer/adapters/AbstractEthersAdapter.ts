@@ -70,7 +70,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
 
       const oldMethod: BaseContractMethod = (contract as any)[methodName];
 
-      const newMethod = this._wrapOldMethod(contractName, methodName, methodFragments, oldMethod);
+      const newMethod = this._wrapOldMethod(contractName, methodName, methodFragments, oldMethod, contract.runner!);
 
       defineProperties<any>(newMethod, {
         name: oldMethod.name,
@@ -134,9 +134,12 @@ export abstract class AbstractEthersAdapter extends Adapter {
     methodName: string,
     methodFragments: FunctionFragment,
     oldMethod: BaseContractMethod,
+    runner: ContractRunner,
   ): (...args: any[]) => Promise<ContractTransactionResponse> {
     return async (...args: any[]): Promise<ContractTransactionResponse> => {
       const tx = await oldMethod.populateTransaction(...args);
+      tx.from = (runner as any).address;
+
       await fillParameters(tx);
 
       const methodString = getMethodString(contractName, methodName, methodFragments, args);
@@ -199,7 +202,6 @@ export abstract class AbstractEthersAdapter extends Adapter {
     } as unknown as ContractTransactionResponse;
   }
 
-  // TODO: run normal migrations in tests.
   private _getKeyFieldsFromTransaction(tx: ContractTransaction): KeyTransactionFields {
     return {
       name: this._getTransactionName(tx),

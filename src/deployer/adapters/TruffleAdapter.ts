@@ -129,7 +129,12 @@ export class TruffleAdapter extends Adapter {
       let contractMethod = ethersBaseContract.getFunction(methodName);
 
       // Build transaction. Under the hood, ethers handle overrides.
+      // In Truffle to specify different signer the particular `{ from: 0x... }` override should be used.
       const tx = await contractMethod.populateTransaction(...args);
+
+      // In case if the `from` field is not specified, it should be filled with the default signer.
+      tx.from = tx.from ?? (await getSignerHelper()).address;
+
       await fillParameters(tx);
 
       const keyFields = this._getKeyFieldsFromTransaction(tx, contractMethod, args);
