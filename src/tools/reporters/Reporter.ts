@@ -390,6 +390,12 @@ class BaseReporter {
       return !explorers || explorers.length === 0 ? "" : explorers[0].url;
     }
 
+    const customChain = this._getInfoFromHardhatConfig(chainId);
+
+    if (customChain) {
+      return customChain.urls.browserURL;
+    }
+
     const chain = await this._getChainMetadataById(chainId);
 
     return chain.explorers[0].url;
@@ -408,26 +414,23 @@ class BaseReporter {
   }
 
   private async _getChainMetadataById(chainId: number): Promise<ChainRecord> {
+    let chain: ChainRecord;
+
     try {
       const chains = await this._tryGetAllRecords();
 
-      const chain = chains.find((chain) => chain.chainId === chainId);
-
-      if (chain) {
-        return await this._cacheAndReturnChainMetadata(chainId, chain);
-      }
-
-      return predefinedChains[1337];
+      chain = chains.find((chain) => chain.chainId === chainId) ?? predefinedChains[1337];
     } catch {
-      return predefinedChains[1337];
+      chain = predefinedChains[1337];
     }
-  }
 
-  private async _cacheAndReturnChainMetadata(chainId: number, chain: ChainRecord) {
-    const hardhatChainInfo = await this._tryGetInfoFromHardhatConfig(chainId);
+    const hardhatChainInfo = this._getInfoFromHardhatConfig(chainId);
 
-    if (hardhatChainInfo) {
+    if (hardhatChainInfo && hardhatChainInfo.urls.browserURL !== chain.explorers[0].url) {
       chain.explorers[0].url = hardhatChainInfo.urls.browserURL;
+
+      // Also we reset the Native Currency symbol as it may be different
+      chain.nativeCurrency.symbol = predefinedChains[1337].nativeCurrency.symbol;
     }
 
     predefinedChains[chainId] = chain;
@@ -435,7 +438,7 @@ class BaseReporter {
     return chain;
   }
 
-  private async _tryGetInfoFromHardhatConfig(chainId: number): Promise<CustomChainRecord | undefined> {
+  private _getInfoFromHardhatConfig(chainId: number): CustomChainRecord | undefined {
     const customChains: CustomChainRecord[] = this._hre.config.etherscan.customChains || [];
 
     return customChains.find((chain) => chain.chainId === chainId);
