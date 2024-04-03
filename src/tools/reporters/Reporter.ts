@@ -390,12 +390,6 @@ class BaseReporter {
       return !explorers || explorers.length === 0 ? "" : explorers[0].url;
     }
 
-    const customChain = await this._tryGetInfoFromHardhatConfig(chainId);
-
-    if (customChain) {
-      return customChain.urls.browserURL;
-    }
-
     const chain = await this._getChainMetadataById(chainId);
 
     return chain.explorers[0].url;
@@ -420,15 +414,25 @@ class BaseReporter {
       const chain = chains.find((chain) => chain.chainId === chainId);
 
       if (chain) {
-        predefinedChains[chainId] = chain;
-
-        return chain;
+        return await this._cacheAndReturnChainMetadata(chainId, chain);
       }
 
       return predefinedChains[1337];
     } catch {
       return predefinedChains[1337];
     }
+  }
+
+  private async _cacheAndReturnChainMetadata(chainId: number, chain: ChainRecord) {
+    const hardhatChainInfo = await this._tryGetInfoFromHardhatConfig(chainId);
+
+    if (hardhatChainInfo) {
+      chain.explorers[0].url = hardhatChainInfo.urls.browserURL;
+    }
+
+    predefinedChains[chainId] = chain;
+
+    return chain;
   }
 
   private async _tryGetInfoFromHardhatConfig(chainId: number): Promise<CustomChainRecord | undefined> {

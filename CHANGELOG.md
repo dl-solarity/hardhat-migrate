@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.1.8
+
+* Fixed a bug where remote chain metadata overwrote the local one.
+
 ## Version 2.1.7
 
 * Fixed a visual bug that sometimes `total cost` was displayed incorrectly.
