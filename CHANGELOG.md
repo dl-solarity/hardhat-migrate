@@ -4,6 +4,7 @@
 
 * Updated dependencies
 * Fixed a bug when the cache was not saved if the `cache` directory did not exist
+* Exported `TransactionStorage`, `VerificationStorage`, and `ArtifactStorage` for convenience
 
 ## Version 2.1.8
 
