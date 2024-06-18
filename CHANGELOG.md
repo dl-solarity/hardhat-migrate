@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.1.9
+
+* Updated dependencies
+
 ## Version 2.1.8
 
 * Fixed a bug where remote chain metadata overwrote the local one.
