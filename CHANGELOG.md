@@ -3,6 +3,7 @@
 ## Version 2.1.9
 
 * Updated dependencies
+* Fixed a bug when the cache was not saved if the `cache` directory did not exist
 
 ## Version 2.1.8
 
