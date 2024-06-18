@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync, rmSync } from "fs";
+import { existsSync, readFileSync, writeFileSync, rmSync, mkdirSync } from "fs";
 
 import { lazyObject } from "hardhat/plugins";
 
@@ -10,12 +10,17 @@ import { StorageNamespaces } from "../../types/tools";
 
 @catchError
 class BaseStorage {
+  private readonly _directory = "cache";
   private readonly _fileName = ".migrate.storage.json";
 
   protected _state: Record<string, any>;
 
   constructor(private _namespace: string = StorageNamespaces.Storage) {
     this._state = this.readFullStateFromFile()[this._namespace] || {};
+
+    if (!existsSync(this.filePath())) {
+      this._saveStateToFile();
+    }
   }
 
   public deleteStateFile(): void {
@@ -48,6 +53,10 @@ class BaseStorage {
     const fileSate = this.readFullStateFromFile();
 
     fileSate[this._namespace] = this._state;
+
+    if (!existsSync(this._directory)) {
+      mkdirSync(this._directory, { recursive: true });
+    }
 
     writeFileSync(this.filePath(), toJSON(fileSate), {
       flag: "w",

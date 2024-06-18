@@ -18,8 +18,8 @@ import { Migrator } from "./migrator/Migrator";
 import { Verifier } from "./verifier/Verifier";
 
 export { Deployer } from "./deployer/Deployer";
-export { UserStorage } from "./tools/storage/MigrateStorage";
 export { PublicReporter as Reporter } from "./tools/reporters/PublicReporter";
+export { UserStorage, TransactionStorage, VerificationStorage, ArtifactStorage } from "./tools/storage/MigrateStorage";
 
 extendConfig(migrateConfigExtender);
 
