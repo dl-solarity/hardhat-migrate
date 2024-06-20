@@ -215,6 +215,14 @@ Facilitates sending native assets to a specified address, primarily for the reco
 
 ---
 
+- **setSigner(from <- optional)**:
+
+Sets the signer for the following transactions and deployments.
+
+If the `from` parameter is not specified, the signer is reset to the default.
+
+---
+
 - **getSigner(from <- optional)**: 
 
 Retrieves an ethers signer for use in migrations.
