@@ -6,7 +6,7 @@ import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 
 import { Linker } from "./Linker";
 
-import { catchError, fillParameters, getChainId, getInterfaceOnlyWithConstructor, getSignerHelper } from "../utils";
+import { catchError, fillParameters, getChainId, getInterfaceOnlyWithConstructor } from "../utils";
 
 import { MigrateError } from "../errors";
 
@@ -15,6 +15,7 @@ import { ContractDeployTxWithName, OverridesAndLibs } from "../types/deployer";
 
 import { Stats } from "../tools/Stats";
 import { Reporter } from "../tools/reporters/Reporter";
+import { networkManager } from "../tools/network/NetworkManager";
 import { TransactionRunner } from "../tools/runners/TransactionRunner";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
@@ -77,7 +78,7 @@ export class MinimalContract {
     return {
       contractName: this._contractName,
       chainId: await getChainId(),
-      from: (await getSignerHelper(txOverrides.from)).address,
+      from: (await networkManager!.getSigner(txOverrides.from)).address,
       ...(await factory.getDeployTransaction(...args, txOverrides)),
     };
   }
@@ -101,7 +102,7 @@ export class MinimalContract {
   }
 
   private async _processContractDeploymentTransaction(tx: ContractDeployTxWithName, args: any[]): Promise<string> {
-    const signer: Signer = await getSignerHelper(tx.from);
+    const signer: Signer = await networkManager!.getSigner(tx.from);
 
     const txResponse = await signer.sendTransaction(tx);
 

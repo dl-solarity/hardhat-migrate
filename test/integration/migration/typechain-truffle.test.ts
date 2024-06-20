@@ -42,4 +42,14 @@ describe("typechain-truffle", () => {
       await runWithContinue(hre, 3);
     });
   });
+
+  describe("migration flow for different signers", () => {
+    it("should run migration successfully", async function () {
+      await runWithoutContinue(hre, 4);
+    });
+
+    it("should recover migration successfully", async function () {
+      await runWithContinue(hre, 4);
+    });
+  });
 });

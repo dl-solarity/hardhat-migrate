@@ -2,7 +2,7 @@ import { isAddress, Signer } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { catchError, getChainId, getSignerHelper, isDeployedContractAddress } from "../utils";
+import { catchError, getChainId, isDeployedContractAddress } from "../utils";
 
 import { MigrateError } from "../errors";
 
@@ -21,6 +21,7 @@ import { isContractFactory, isEthersContract, isBytecodeFactory, isTruffleFactor
 
 import { Stats } from "../tools/Stats";
 import { Reporter } from "../tools/reporters/Reporter";
+import { networkManager } from "../tools/network/NetworkManager";
 import { TransactionRunner } from "../tools/runners/TransactionRunner";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 
@@ -103,7 +104,7 @@ export class Deployer {
     value: bigint,
     name: string = SEND_NATIVE_TX_NAME,
   ): Promise<TransactionFieldsToSave> {
-    const signer = await getSignerHelper();
+    const signer = await networkManager!.getSigner();
 
     const tx = await this._buildSendTransaction(to, value, name);
 
@@ -138,8 +139,12 @@ export class Deployer {
     return savedTx!;
   }
 
+  public async setSigner(from?: string) {
+    await networkManager!.setSigner(from);
+  }
+
   public async getSigner(from?: string): Promise<Signer> {
-    return getSignerHelper(from);
+    return networkManager!.getSigner(from);
   }
 
   public async getChainId(): Promise<bigint> {
@@ -152,7 +157,7 @@ export class Deployer {
       value,
       chainId: await getChainId(),
       data: "0x",
-      from: (await getSignerHelper()).address,
+      from: (await networkManager!.getSigner()).address,
       name,
     };
   }

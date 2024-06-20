@@ -1,5 +1,7 @@
 import axios, { Axios } from "axios";
+import { AddressLike, ethers } from "ethers";
 
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import type { HardhatEthersProvider as HardhatEthersProviderT } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -61,9 +63,25 @@ class NetworkManager {
   public axios: Axios;
   public provider: HardhatEthersProviderT;
 
+  private currentFrom: string | undefined = undefined;
+
   constructor() {
     this.axios = this.withRetry(axios);
     this.provider = this.withRetry(ethersProvider!);
+  }
+
+  public async getSigner(from?: null | AddressLike): Promise<HardhatEthersSigner> {
+    if (!from) {
+      return this.provider.getSigner(this.currentFrom);
+    }
+
+    const address = await ethers.resolveAddress(from, this.provider);
+
+    return this.provider.getSigner(address);
+  }
+
+  public async setSigner(from?: AddressLike): Promise<void> {
+    this.currentFrom = from ? await ethers.resolveAddress(from, this.provider) : undefined;
   }
 
   public withRetry<T extends { [key: string]: any }>(instance: T): T {
