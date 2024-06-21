@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.1.10
+
+* Added an ability to change signer during the migration
+
 ## Version 2.1.9
 
 * Updated dependencies

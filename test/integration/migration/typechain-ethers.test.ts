@@ -47,4 +47,14 @@ describe("typechain-ethers", () => {
       await runWithContinue(hre, 3);
     });
   });
+
+  describe("migration flow for edge cases", () => {
+    it("should run migration successfully", async function () {
+      await runWithoutContinue(hre, 4);
+    });
+
+    it("should recover migration successfully", async function () {
+      await runWithContinue(hre, 4);
+    });
+  });
 });

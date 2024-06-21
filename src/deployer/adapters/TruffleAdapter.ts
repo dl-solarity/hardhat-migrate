@@ -14,14 +14,7 @@ import { Adapter } from "./Adapter";
 
 import { MinimalContract } from "../MinimalContract";
 
-import {
-  bytecodeToString,
-  catchError,
-  fillParameters,
-  getInstanceNameFromClass,
-  getMethodString,
-  getSignerHelper,
-} from "../../utils";
+import { bytecodeToString, catchError, fillParameters, getInstanceNameFromClass, getMethodString } from "../../utils";
 
 import { UNKNOWN_TRANSACTION_NAME } from "../../constants";
 
@@ -31,6 +24,7 @@ import { OverridesAndName, TruffleTransactionResponse } from "../../types/deploy
 
 import { Stats } from "../../tools/Stats";
 import { Reporter } from "../../tools/reporters/Reporter";
+import { networkManager } from "../../tools/network/NetworkManager";
 import { TransactionRunner } from "../../tools/runners/TransactionRunner";
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
@@ -133,14 +127,14 @@ export class TruffleAdapter extends Adapter {
       const tx = await contractMethod.populateTransaction(...args);
 
       // In case if the `from` field is not specified, it should be filled with the default signer.
-      tx.from = tx.from ?? (await getSignerHelper()).address;
+      tx.from = tx.from ?? (await networkManager!.getSigner()).address;
 
       await fillParameters(tx);
 
       const keyFields = this._getKeyFieldsFromTransaction(tx, contractMethod, args);
 
       // Connect to signer and get method again with signer
-      contractMethod = ethersBaseContract.connect(await getSignerHelper(tx.from)).getFunction(methodName);
+      contractMethod = ethersBaseContract.connect(await networkManager!.getSigner(tx.from)).getFunction(methodName);
 
       const methodString = getMethodString(contractName, methodName, contractMethod.fragment, args);
 

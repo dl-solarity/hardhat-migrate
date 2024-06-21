@@ -18,7 +18,7 @@ import "../../type-extensions";
 
 import { UNKNOWN_TRANSACTION_NAME } from "../../constants";
 
-import { bytecodeToString, fillParameters, getMethodString, getSignerHelper } from "../../utils";
+import { bytecodeToString, fillParameters, getMethodString } from "../../utils";
 
 import { OverridesAndLibs, OverridesAndName } from "../../types/deployer";
 import { EthersContract, BytecodeFactory } from "../../types/adapter";
@@ -26,6 +26,7 @@ import { KeyTransactionFields, MigrationMetadata, TransactionFieldsToSave } from
 
 import { Stats } from "../../tools/Stats";
 import { Reporter } from "../../tools/reporters/Reporter";
+import { networkManager } from "../../tools/network/NetworkManager";
 import { TransactionRunner } from "../../tools/runners/TransactionRunner";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
 
@@ -46,7 +47,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
   }
 
   public async toInstance<A, I>(instance: Factory<A, I>, address: string, parameters: OverridesAndLibs): Promise<I> {
-    const signer = await getSignerHelper(parameters.from);
+    const signer = await networkManager!.getSigner(parameters.from);
     const contractName = this.getContractName(instance, parameters);
 
     let contract = new BaseContract(address, this.getInterface(instance), signer);
@@ -102,7 +103,7 @@ export abstract class AbstractEthersAdapter extends Adapter {
     contractInterface: Interface,
     contractName: string,
   ): Promise<BaseContract> {
-    const defaultRunner = await getSignerHelper();
+    const defaultRunner = await networkManager!.getSigner();
 
     contract.connect = (runner: ContractRunner | null): BaseContract => {
       const newContract = new BaseContract(contract.target, contractInterface, runner ?? defaultRunner);
