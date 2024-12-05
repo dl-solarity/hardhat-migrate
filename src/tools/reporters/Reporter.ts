@@ -38,7 +38,7 @@ class BaseReporter {
 
     this._network = await this._getNetwork();
     this._nativeSymbol = await this._getNativeSymbol();
-    this._explorerUrl = (await this._getExplorerUrl()) + "/tx/";
+    this._explorerUrl = (await this.getExplorerUrl()) + "/tx/";
   }
 
   public reportMigrationBegin(files: string[]) {
@@ -311,6 +311,26 @@ class BaseReporter {
     console.log(prefix + postfix);
   }
 
+  public async getExplorerUrl(): Promise<string> {
+    const chainId = Number(this._network.chainId);
+
+    if (predefinedChains[chainId]) {
+      const explorers = predefinedChains[chainId].explorers;
+
+      return !explorers || explorers.length === 0 ? "" : explorers[0].url;
+    }
+
+    const customChain = this._getInfoFromHardhatConfig(chainId);
+
+    if (customChain) {
+      return customChain.urls.browserURL;
+    }
+
+    const chain = await this._getChainMetadataById(chainId);
+
+    return chain.explorers[0].url;
+  }
+
   private _getDefaultMessage(): string {
     if (this && this._spinnerMessage) {
       return this._spinnerMessage;
@@ -379,26 +399,6 @@ class BaseReporter {
     } catch {
       return new Network("Local Ethereum", 1337);
     }
-  }
-
-  private async _getExplorerUrl(): Promise<string> {
-    const chainId = Number(this._network.chainId);
-
-    if (predefinedChains[chainId]) {
-      const explorers = predefinedChains[chainId].explorers;
-
-      return !explorers || explorers.length === 0 ? "" : explorers[0].url;
-    }
-
-    const customChain = this._getInfoFromHardhatConfig(chainId);
-
-    if (customChain) {
-      return customChain.urls.browserURL;
-    }
-
-    const chain = await this._getChainMetadataById(chainId);
-
-    return chain.explorers[0].url;
   }
 
   private async _getNativeSymbol(): Promise<string> {
