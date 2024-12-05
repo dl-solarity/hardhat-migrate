@@ -50,10 +50,9 @@ export class Migrator {
       Reporter!.reportMigrationFileBegin(element);
 
       try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const migration = require(resolvePathToFile(this._config.pathToMigrations, element));
+        const migration = await import(resolvePathToFile(this._config.pathToMigrations, element));
 
-        await migration(this._deployer);
+        await migration.default(this._deployer);
       } catch (e: unknown) {
         if (e instanceof MigrateError) {
           throw new HardhatPluginError(pluginName, e.message, e);

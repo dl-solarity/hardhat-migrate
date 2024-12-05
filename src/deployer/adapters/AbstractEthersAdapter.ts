@@ -196,7 +196,6 @@ export abstract class AbstractEthersAdapter extends Adapter {
 
   private _wrapTransactionFieldsToSave(data: TransactionFieldsToSave): ContractTransactionResponse {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       wait(_confirms?: number): Promise<ContractTransactionReceipt | null> {
         return data.receipt as unknown as Promise<ContractTransactionReceipt | null>;
       },

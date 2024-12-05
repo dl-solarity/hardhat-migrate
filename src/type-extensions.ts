@@ -21,7 +21,6 @@ declare module "ethers" {
 }
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Truffle {
     interface TransactionDetails {
       txName?: string;
