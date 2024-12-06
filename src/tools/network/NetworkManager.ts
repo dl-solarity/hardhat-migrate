@@ -34,7 +34,7 @@ class StateMiddleware {
       return result;
     } catch (e: any) {
       const networkErrorCodes = ["EAI_AGAIN", "ENETDOWN", "ENETUNREACH", "ENOTFOUND", "ECONNABORTED"];
-      const isNetworkError = networkErrorCodes.includes(e.code) || e.isAxiosError;
+      const isNetworkError = networkErrorCodes.includes(e.code);
 
       if (!isNetworkError) {
         Reporter?.stopSpinner();
