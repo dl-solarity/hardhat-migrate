@@ -1,11 +1,13 @@
-import { join } from "path";
+import { join, sep } from "path";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { UNKNOWN_CONTRACT_NAME } from "../constants";
 
 export function resolvePathToFile(hre: HardhatRuntimeEnvironment, path: string, file: string = ""): string {
-  return join(join(hre.config.paths.root, path), file);
+  const pathToMigration = join(hre.config.paths.root, path, file);
+
+  return pathToMigration.endsWith(sep) ? pathToMigration.slice(0, -1) : pathToMigration;
 }
 
 export function getInstanceNameFromClass(instance: any): string {

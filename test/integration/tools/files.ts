@@ -1,8 +1,11 @@
 import { assert } from "chai";
 
-import { resolvePathToFile } from "../../src/utils";
+import { useEnvironment } from "../../helpers";
+import { resolvePathToFile } from "../../../src/utils";
 
 describe("ResolvePathToFile()", () => {
+  useEnvironment("typechain-ethers");
+
   it("should correctly resolve paths with and without slash", () => {
     const firstResolvedPath = resolvePathToFile(require("hardhat"), __dirname + "/deploy-files/");
 
