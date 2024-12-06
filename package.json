@@ -37,10 +37,10 @@
     "prepare": "husky",
     "compile": "npm run prepare-tests && npm run build",
     "build": "tsc --build .",
-    "prepare-tests": "npm --filter \"*\" compile",
+    "prepare-tests": "npm run compile --workspaces",
     "test": "mocha --recursive 'test/**/*.ts' --exit",
     "coverage": "nyc mocha --recursive 'test/**/*.ts' --exit",
-    "clean-tests": "npm --filter \"*\" clean",
+    "clean-tests": "npm run clean --workspaces",
     "lint-fix": "prettier --write \"./**/*.ts\" && eslint \"src/**/*.{js,ts}\" --cache --fix",
     "publish-to-npm": "npm run compile && npm run lint-fix && npm publish ./ --access public"
   },
