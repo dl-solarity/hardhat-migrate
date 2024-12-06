@@ -24,7 +24,7 @@ describe("Migrator Storage", function () {
   });
 
   it("should set state without file", function () {
-    const manuallyDefinedStorage = new MigrateStorage("test-storage");
+    const manuallyDefinedStorage = new MigrateStorage(require("hardhat"), "test-storage");
 
     manuallyDefinedStorage.set("test-key", "test-value");
 

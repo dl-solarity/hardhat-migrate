@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, writeFileSync, rmSync, mkdirSync } from "fs";
 
 import { lazyObject } from "hardhat/plugins";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { MigrateError } from "../../errors";
 
@@ -15,7 +16,10 @@ class BaseStorage {
 
   protected _state: Record<string, any>;
 
-  constructor(private _namespace: string = StorageNamespaces.Storage) {
+  constructor(
+    private _hre: HardhatRuntimeEnvironment,
+    private _namespace: string = StorageNamespaces.Storage,
+  ) {
     this._state = this.readFullStateFromFile()[this._namespace] || {};
 
     if (!existsSync(this.filePath())) {
@@ -46,7 +50,7 @@ class BaseStorage {
   }
 
   public filePath(): string {
-    return resolvePathToFile("cache", this._fileName);
+    return resolvePathToFile(this._hre, "cache", this._fileName);
   }
 
   protected _saveStateToFile() {
@@ -106,11 +110,15 @@ export class MigrateStorage extends BaseStorage {
   }
 }
 
-export const DefaultStorage = lazyObject(() => new BaseStorage());
-export const UserStorage = lazyObject(() => new MigrateStorage(StorageNamespaces.Storage));
-export const TransactionStorage = lazyObject(() => new MigrateStorage(StorageNamespaces.Transactions));
-export const ArtifactStorage = lazyObject(() => new MigrateStorage(StorageNamespaces.Artifacts));
-export const VerificationStorage = lazyObject(() => new MigrateStorage(StorageNamespaces.Verification));
+export const DefaultStorage = lazyObject(() => new BaseStorage(require("hardhat")));
+export const UserStorage = lazyObject(() => new MigrateStorage(require("hardhat"), StorageNamespaces.Storage));
+export const TransactionStorage = lazyObject(
+  () => new MigrateStorage(require("hardhat"), StorageNamespaces.Transactions),
+);
+export const ArtifactStorage = lazyObject(() => new MigrateStorage(require("hardhat"), StorageNamespaces.Artifacts));
+export const VerificationStorage = lazyObject(
+  () => new MigrateStorage(require("hardhat"), StorageNamespaces.Verification),
+);
 
 export function clearAllStorage(): void {
   UserStorage.clear();

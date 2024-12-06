@@ -1,13 +1,11 @@
 import { join } from "path";
-import { realpathSync, existsSync } from "fs";
+
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { UNKNOWN_CONTRACT_NAME } from "../constants";
 
-export function resolvePathToFile(path: string, file: string = ""): string {
-  if (!existsSync(path)) {
-    path = "./";
-  }
-
-  return join(realpathSync(path), file);
+export function resolvePathToFile(hre: HardhatRuntimeEnvironment, path: string, file: string = ""): string {
+  return join(join(hre.config.paths.root, path), file);
 }
 
 export function getInstanceNameFromClass(instance: any): string {
