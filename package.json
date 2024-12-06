@@ -35,14 +35,14 @@
   "homepage": "https://github.com/dl-solarity/hardhat-migrate#readme",
   "scripts": {
     "prepare": "husky",
-    "compile": "bun run prepare-tests && bun run build",
+    "compile": "npm run prepare-tests && npm run build",
     "build": "tsc --build .",
-    "prepare-tests": "bun --filter \"*\" compile",
+    "prepare-tests": "npm --filter \"*\" compile",
     "test": "mocha --recursive 'test/**/*.ts' --exit",
     "coverage": "nyc mocha --recursive 'test/**/*.ts' --exit",
-    "clean-tests": "bun --filter \"*\" clean",
+    "clean-tests": "npm --filter \"*\" clean",
     "lint-fix": "prettier --write \"./**/*.ts\" && eslint \"src/**/*.{js,ts}\" --cache --fix",
-    "publish-to-npm": "bun run compile && bun run lint-fix && bun publish ./ --access public"
+    "publish-to-npm": "npm run compile && npm run lint-fix && npm publish ./ --access public"
   },
   "nyc": {
     "reporter": [
