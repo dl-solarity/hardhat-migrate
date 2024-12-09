@@ -33,7 +33,17 @@ class StateMiddleware {
 
       return result;
     } catch (e: any) {
-      const networkErrorCodes = ["EAI_AGAIN", "ENETDOWN", "ENETUNREACH", "ENOTFOUND", "ECONNABORTED"];
+      const networkErrorCodes = [
+        "EAI_AGAIN",
+        "ENETDOWN",
+        "ENETUNREACH",
+        "ENOTFOUND",
+        "ECONNABORTED",
+        "ECONNRESET",
+        "UND_ERR_CONNECT_TIMEOUT",
+        "UND_ERR_HEADERS_TIMEOUT",
+        "UND_ERR_SOCKET",
+      ];
       const isNetworkError = networkErrorCodes.includes(e.code);
 
       if (!isNetworkError) {
