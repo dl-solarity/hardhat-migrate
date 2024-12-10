@@ -9,7 +9,6 @@ export function createEthersProvider(hre: HardhatRuntimeEnvironment): void {
     return;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { HardhatEthersProvider } = require("@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider") as {
     HardhatEthersProvider: typeof HardhatEthersProviderT;
   };

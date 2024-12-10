@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 2.1.11 
+
+* Added a caching mechanism to reduce the number of requests to the RPC provider.  
+* Removed handling of network errors due to the high instability of the current implementation of the network handler.  
+* Updated packages and replaced `require` with `await import` to load migration files.  
+* Updated the version of the eslint package to the latest one.  
+* Added the `reportContractsMD` function to the public reporter.  
+* Fixed a bug where migration files were missing when running the migration command from outside the project root.  
+
 ## Version 2.1.10
 
 * Added an ability to change signer during the migration

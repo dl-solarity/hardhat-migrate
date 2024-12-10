@@ -38,7 +38,7 @@ class BaseReporter {
 
     this._network = await this._getNetwork();
     this._nativeSymbol = await this._getNativeSymbol();
-    this._explorerUrl = (await this._getExplorerUrl()) + "/tx/";
+    this._explorerUrl = (await this.getExplorerUrl()) + "/tx/";
   }
 
   public reportMigrationBegin(files: string[]) {
@@ -68,10 +68,7 @@ class BaseReporter {
     return this.startSpinner("tx-report", formatPendingTimeTask);
   }
 
-  public async startSpinner(
-    id: string,
-    getSpinnerText: (args?: any) => string | Promise<string> = this._getDefaultMessage,
-  ) {
+  public async startSpinner(id: string, getSpinnerText: (args?: any) => string | Promise<string>) {
     if (this._spinnerState.includes(id)) return;
 
     if (this._spinnerState.length === 0) {
@@ -298,25 +295,24 @@ class BaseReporter {
     this._warningsToPrint.set(key, output);
   }
 
-  public reportNetworkError(retry: number, fnName: string, error: Error) {
-    if (this._spinner) {
-      this._spinnerMessage = `Network error in '${fnName}': Reconnect attempt ${retry}...`;
+  public async getExplorerUrl(): Promise<string> {
+    const chainId = Number(this._network.chainId);
 
-      return;
+    if (predefinedChains[chainId]) {
+      const explorers = predefinedChains[chainId].explorers;
+
+      return !explorers || explorers.length === 0 ? "" : explorers[0].url;
     }
 
-    const prefix = `\nNetwork error in ${fnName}:\n`;
-    const postfix = `\n${error.message}`;
+    const customChain = this._getInfoFromHardhatConfig(chainId);
 
-    console.log(prefix + postfix);
-  }
-
-  private _getDefaultMessage(): string {
-    if (this && this._spinnerMessage) {
-      return this._spinnerMessage;
+    if (customChain) {
+      return customChain.urls.browserURL;
     }
 
-    return `Awaiting network response...`;
+    const chain = await this._getChainMetadataById(chainId);
+
+    return chain.explorers[0].url;
   }
 
   private _parseTransactionTitle(tx: TransactionResponse, instanceName: string): string {
@@ -379,26 +375,6 @@ class BaseReporter {
     } catch {
       return new Network("Local Ethereum", 1337);
     }
-  }
-
-  private async _getExplorerUrl(): Promise<string> {
-    const chainId = Number(this._network.chainId);
-
-    if (predefinedChains[chainId]) {
-      const explorers = predefinedChains[chainId].explorers;
-
-      return !explorers || explorers.length === 0 ? "" : explorers[0].url;
-    }
-
-    const customChain = this._getInfoFromHardhatConfig(chainId);
-
-    if (customChain) {
-      return customChain.urls.browserURL;
-    }
-
-    const chain = await this._getChainMetadataById(chainId);
-
-    return chain.explorers[0].url;
   }
 
   private async _getNativeSymbol(): Promise<string> {

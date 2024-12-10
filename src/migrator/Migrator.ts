@@ -33,7 +33,7 @@ export class Migrator {
   private readonly _migrationFiles: string[];
 
   constructor(
-    _hre: HardhatRuntimeEnvironment,
+    private _hre: HardhatRuntimeEnvironment,
     private _config: MigrateConfig = _hre.config.migrate,
   ) {
     this._deployer = new Deployer(_hre);
@@ -50,10 +50,9 @@ export class Migrator {
       Reporter!.reportMigrationFileBegin(element);
 
       try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const migration = require(resolvePathToFile(this._config.pathToMigrations, element));
+        const migration = await import(resolvePathToFile(this._hre, this._config.pathToMigrations, element));
 
-        await migration(this._deployer);
+        await migration.default(this._deployer);
       } catch (e: unknown) {
         if (e instanceof MigrateError) {
           throw new HardhatPluginError(pluginName, e.message, e);
@@ -67,7 +66,7 @@ export class Migrator {
   }
 
   private _getMigrationFiles() {
-    const migrationsDir = resolvePathToFile(this._config.pathToMigrations);
+    const migrationsDir = resolvePathToFile(this._hre, this._config.pathToMigrations);
     const directoryContents = readdirSync(migrationsDir);
 
     const files = directoryContents
@@ -85,7 +84,7 @@ export class Migrator {
           return false;
         }
 
-        return statSync(resolvePathToFile(this._config.pathToMigrations, file)).isFile();
+        return statSync(resolvePathToFile(this._hre, this._config.pathToMigrations, file)).isFile();
       })
       .sort((a, b) => {
         return this._getMigrationNumber(a) - this._getMigrationNumber(b);

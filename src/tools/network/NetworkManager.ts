@@ -6,55 +6,30 @@ import type { HardhatEthersProvider as HardhatEthersProviderT } from "@nomicfoun
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { ethersProvider, createEthersProvider } from "./EthersProvider";
+import { createEthersProvider, ethersProvider } from "./EthersProvider";
 
-import { Reporter } from "../reporters/Reporter";
 import { createTransactionRunner } from "../runners/TransactionRunner";
 
-import { sleep } from "../../utils";
-import { MAX_RECONNECT_ATTEMPTS, RECONNECT_INTERVAL } from "../../constants";
-
 class StateMiddleware {
-  private static _isNetworkIssue: boolean = false;
+  private static pendingRequests: Record<string, any> = {};
 
   public static async retry<T extends (...args: any[]) => any>(
     fn: T,
     args: Parameters<T>,
-    retryCount = 1,
   ): Promise<Awaited<ReturnType<T>>> {
+    const cacheKey = ethers.id(`${fn.name}:${JSON.stringify(args)}`);
+
+    if (this.pendingRequests[cacheKey]) {
+      return this.pendingRequests[cacheKey];
+    }
+
+    const workPromise = fn(...args);
+    this.pendingRequests[cacheKey] = workPromise;
+
     try {
-      const result = await fn(...args);
-
-      if (this._isNetworkIssue) {
-        Reporter?.stopSpinner();
-
-        this._isNetworkIssue = false;
-      }
-
-      return result;
-    } catch (e: any) {
-      const networkErrorCodes = ["EAI_AGAIN", "ENETDOWN", "ENETUNREACH", "ENOTFOUND", "ECONNABORTED"];
-      const isNetworkError = networkErrorCodes.includes(e.code) || e.isAxiosError;
-
-      if (!isNetworkError) {
-        Reporter?.stopSpinner();
-
-        throw e;
-      }
-
-      await Reporter?.startSpinner("network-error");
-
-      Reporter!.reportNetworkError(retryCount, fn.name, e);
-
-      this._isNetworkIssue = true;
-
-      await sleep(RECONNECT_INTERVAL);
-
-      if (retryCount >= MAX_RECONNECT_ATTEMPTS) {
-        throw e;
-      }
-
-      return this.retry(fn, args, retryCount + 1);
+      return await workPromise;
+    } finally {
+      delete this.pendingRequests[cacheKey];
     }
   }
 }
