@@ -57,7 +57,7 @@
     "axios": "1.7.9",
     "ethers": "6.13.4",
     "ora": "5.4.1",
-    "prettier": "^3.4.2"
+    "prettier": "3.4.2"
   },
   "peerDependencies": {
     "hardhat": "^2.10.0",
