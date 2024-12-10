@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 2.1.11 
+
+* Added a caching mechanism to reduce the number of requests to the RPC provider.
+* Removed the handling of network errors due to the high instability of the current implementation of the network handler.
+* Updated packages and used `await import` instead of `require` to load migration files.
+
 ## Version 2.1.10
 
 * Added an ability to change signer during the migration

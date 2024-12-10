@@ -13,7 +13,6 @@ This plugin helps you deploy and verify the source code for your Solidity contra
 - Enjoy full Typechain support for `Ethers-v6`, `Ethers-v5`, and `Truffle`.
 - Leverage the "migration recovery mode" that automatically syncs up the deployment to the last failed transaction.
 - Observe the real-time status of transactions being executed.
-- Benefit from "reconnection spinner" if the network goes down during the deployment.
 - Simplify the `libraries` usage via auto-linking mechanics.
 - And much more.
 

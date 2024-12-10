@@ -68,10 +68,7 @@ class BaseReporter {
     return this.startSpinner("tx-report", formatPendingTimeTask);
   }
 
-  public async startSpinner(
-    id: string,
-    getSpinnerText: (args?: any) => string | Promise<string> = this._getDefaultMessage,
-  ) {
+  public async startSpinner(id: string, getSpinnerText: (args?: any) => string | Promise<string>) {
     if (this._spinnerState.includes(id)) return;
 
     if (this._spinnerState.length === 0) {
@@ -298,19 +295,6 @@ class BaseReporter {
     this._warningsToPrint.set(key, output);
   }
 
-  public reportNetworkError(retry: number, fnName: string, error: Error) {
-    if (this._spinner) {
-      this._spinnerMessage = `Network error in '${fnName}': Reconnect attempt ${retry}...`;
-
-      return;
-    }
-
-    const prefix = `\nNetwork error in ${fnName}:\n`;
-    const postfix = `\n${error.message}`;
-
-    console.log(prefix + postfix);
-  }
-
   public async getExplorerUrl(): Promise<string> {
     const chainId = Number(this._network.chainId);
 
@@ -329,14 +313,6 @@ class BaseReporter {
     const chain = await this._getChainMetadataById(chainId);
 
     return chain.explorers[0].url;
-  }
-
-  private _getDefaultMessage(): string {
-    if (this && this._spinnerMessage) {
-      return this._spinnerMessage;
-    }
-
-    return `Awaiting network response...`;
   }
 
   private _parseTransactionTitle(tx: TransactionResponse, instanceName: string): string {
