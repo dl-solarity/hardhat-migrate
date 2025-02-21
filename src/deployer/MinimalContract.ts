@@ -1,4 +1,4 @@
-import { ethers, InterfaceAbi, Overrides, Signer } from "ethers";
+import { ethers, Interface, Overrides, Signer } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -24,15 +24,15 @@ import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 @catchError
 export class MinimalContract {
   private readonly _rawBytecode: string;
-  private readonly _interface;
+  private readonly _interfaceOnlyWithConstructor;
 
   constructor(
     private readonly _hre: HardhatRuntimeEnvironment,
     private _bytecode: string,
-    private readonly _abi: InterfaceAbi,
+    private readonly _interface: Interface,
     private readonly _contractName: string = "",
   ) {
-    this._interface = getInterfaceOnlyWithConstructor(this._abi);
+    this._interfaceOnlyWithConstructor = getInterfaceOnlyWithConstructor(this._interface.fragments);
     this._rawBytecode = this._bytecode;
 
     if (_contractName === "") {
@@ -73,7 +73,7 @@ export class MinimalContract {
   }
 
   private async _createDeployTransaction(args: any[], txOverrides: Overrides): Promise<ContractDeployTxWithName> {
-    const factory = new ethers.ContractFactory(this._interface, this._bytecode);
+    const factory = new ethers.ContractFactory(this._interfaceOnlyWithConstructor, this._bytecode);
 
     return {
       contractName: this._contractName,

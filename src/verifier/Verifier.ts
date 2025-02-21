@@ -15,6 +15,7 @@ import { sendGetRequest } from "../tools/network/requests";
 import { buildNetworkDeps } from "../tools/network/NetworkManager";
 import { createAndInitReporter, Reporter } from "../tools/reporters/Reporter";
 
+// TODO: add contract linking
 export class Verifier {
   private readonly _etherscanConfig: EtherscanConfig;
 

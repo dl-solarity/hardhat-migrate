@@ -1,4 +1,4 @@
-import { Interface } from "ethers";
+import { ContractFactory, Interface } from "ethers";
 
 import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
 
@@ -13,10 +13,6 @@ import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 export class EthersContractAdapter extends AbstractEthersAdapter {
   public getInterface<A, I>(instance: EthersContract<A, I>): Interface {
     return Interface.from(instance.abi);
-  }
-
-  public getRawAbi<A, I>(instance: EthersContract<A, I>): string {
-    return instance.abi;
   }
 
   public getContractName<A, I>(instance: EthersContract<A, I>, parameters: OverridesAndName): string {

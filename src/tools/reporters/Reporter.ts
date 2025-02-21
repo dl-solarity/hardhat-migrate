@@ -32,6 +32,8 @@ class BaseReporter {
 
   private _warningsToPrint: Map<string, string> = new Map();
 
+  private _totalGasUsed: bigint = 0n;
+
   public async init(hre: HardhatRuntimeEnvironment) {
     this._hre = hre;
     this._config = hre.config.migrate;
@@ -128,12 +130,15 @@ class BaseReporter {
     output += `> fee: ${this._castAmount(receipt.fee, nativeSymbol)}\n`;
 
     console.log(output);
+
+    this._totalGasUsed += receipt.gasUsed;
   }
 
   public summary(totalTransactions: bigint, totalCost: bigint) {
     const output =
       `> ${"Total transactions:".padEnd(20)} ${totalTransactions}\n` +
-      `> ${"Final cost:".padEnd(20)} ${this._castAmount(totalCost, this._nativeSymbol)}\n`;
+      `> ${"Final cost:".padEnd(20)} ${this._castAmount(totalCost, this._nativeSymbol)}\n` +
+      `> ${"Total gas used:".padEnd(20)} ${this._totalGasUsed}\n`;
 
     console.log(`\n${output}`);
 

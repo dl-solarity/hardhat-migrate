@@ -1,7 +1,6 @@
 import {
   BaseContract,
   BaseContractMethod,
-  ContractFactory,
   ContractRunner,
   ContractTransaction,
   ContractTransactionReceipt,
@@ -21,7 +20,6 @@ import { UNKNOWN_TRANSACTION_NAME } from "../../constants";
 import { bytecodeToString, fillParameters, getMethodString } from "../../utils";
 
 import { OverridesAndLibs, OverridesAndName } from "../../types/deployer";
-import { EthersContract, BytecodeFactory } from "../../types/adapter";
 import { KeyTransactionFields, MigrationMetadata, TransactionFieldsToSave } from "../../types/tools";
 
 import { Stats } from "../../tools/Stats";
@@ -29,24 +27,30 @@ import { Reporter } from "../../tools/reporters/Reporter";
 import { networkManager } from "../../tools/network/NetworkManager";
 import { TransactionRunner } from "../../tools/runners/TransactionRunner";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor";
-
-type Factory<A, I> = EthersContract<A, I> | BytecodeFactory | ContractFactory;
+import { EthersFactory, Instance } from "../../types/adapter";
 
 export abstract class AbstractEthersAdapter extends Adapter {
-  public getRawBytecode<A, I>(instance: Factory<A, I>): string {
+  public getRawBytecode<A, I>(instance: Instance<A, I>): string {
     return bytecodeToString(instance.bytecode);
   }
 
-  public async fromInstance<A, I>(instance: Factory<A, I>, parameters: OverridesAndName): Promise<MinimalContract> {
+  public async fromInstance<A, I>(
+    instance: EthersFactory<A, I>,
+    parameters: OverridesAndName,
+  ): Promise<MinimalContract> {
     return new MinimalContract(
       this._hre,
       this.getRawBytecode(instance),
-      this.getRawAbi(instance),
+      instance.createInterface(),
       this.getContractName(instance, parameters),
     );
   }
 
-  public async toInstance<A, I>(instance: Factory<A, I>, address: string, parameters: OverridesAndLibs): Promise<I> {
+  public async toInstance<A, I>(
+    instance: EthersFactory<A, I>,
+    address: string,
+    parameters: OverridesAndLibs,
+  ): Promise<I> {
     const signer = await networkManager!.getSigner(parameters.from);
     const contractName = this.getContractName(instance, parameters);
 

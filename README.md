@@ -10,7 +10,6 @@ This plugin helps you deploy and verify the source code for your Solidity contra
 
 - Specify custom smart contracts deployment rules and configuration via [@ethers](https://www.npmjs.com/package/ethers).
 - Relax from the source code verification hassle due to seamless integration with [@nomicfoundation/hardhat-verify](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify).
-- Enjoy full Typechain support for `Ethers-v6`, `Ethers-v5`, and `Truffle`.
 - Leverage the "migration recovery mode" that automatically syncs up the deployment to the last failed transaction.
 - Observe the real-time status of transactions being executed.
 - Simplify the `libraries` usage via auto-linking mechanics.
@@ -172,7 +171,7 @@ This example illustrates the basic principles of how migrations operate:
 1. The core component is the `Deployer` object, which acts as a wrapper for the [@ethers](https://www.npmjs.com/package/ethers) 
 library, facilitating the deployment and processing of contracts.
 2. The `Reporter` class, a static entity, logs intermediary information into the console.
-3. It is required to import contract factories, or, in the case of Truffle, the necessary Truffle Contract Instance that need to be deployed.
+3. It is required to import contract factories.
 4. All relevant constants can be defined if necessary.
 5. The migration file's main body grants access to the deployer object, allowing for contract deployment and supporting 
 recovery from failures in previous migration runs.
@@ -252,15 +251,6 @@ Displays a list of contract names and addresses in a table format.
 
 The usage of these functionalities is demonstrated in the sample migration file above.
 
-#### Truffle native functions
-
-Most of the functions exposed by the Truffle contract, which directly impact or create the Truffle Contract Instance, are not supported.
-
-The following function is supported:
-- link
-
-For a usage example, see the deployment scripts in the fixture project created to test how plugins work with Truffle.
-
 ### Transactions
 
 We have introduced the capability to assign a specific name to each transaction, enhancing its entropy. 
@@ -279,14 +269,6 @@ await govToken.transferOwnership(TOKEN_OWNER, { customData: { txName: "Transfer 
 
 This method helps avoid potential collisions and ensures a smoother recovery process.
 
-#### Truffle Usage:
-
-For those using Truffle, the transaction name can be specified using the `txName` field. Here's how you can do it:
-
-``` javascript
-await govToken.transferOwnership(TOKEN_OWNER, { txName: "Transfer Ownership" });
-```
-
 #### Purpose
 
 The primary purpose of naming transactions is to facilitate the deployment process.
@@ -303,4 +285,4 @@ If verification fails, the `attempts` parameter indicates how many additional re
 
 - This plugin, as well as the [Hardhat Toolbox](https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox) plugin, use the [@nomicfoundation/hardhat-verify](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify) plugin internally, so both of these plugins cannot be imported at the same time. A quick fix is to manually import the needed plugins that ToolBox imports.
 - Adding, removing, moving or renaming new contracts to the hardhat project or reorganizing the directory structure of contracts after deployment may alter the resulting bytecode in some solc versions. See this [Solidity issue](https://github.com/ethereum/solidity/issues/9573) for further information.
-- This plugin does not function properly with native Truffle or Ethers factories methods, such as `contract.deployed()`, `factory.at()`, or in case of ethers `factory.attach()`. So, instead of using mentioned methods, it is necessary to use the `deployer.deployed()`.
+- This plugin does not function properly with native Ethers factories methods, such as `factory.attach()`. So, instead of using mentioned method, it is necessary to use the `deployer.deployed()`.

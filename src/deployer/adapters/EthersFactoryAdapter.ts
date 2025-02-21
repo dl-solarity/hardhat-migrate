@@ -2,9 +2,9 @@ import { ContractFactory, Interface } from "ethers";
 
 import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
 
-import { OverridesAndName } from "../../types/deployer";
-
 import { catchError, getInstanceNameFromClass } from "../../utils";
+
+import { OverridesAndName } from "../../types/deployer";
 
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 
@@ -12,10 +12,6 @@ import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 export class EthersFactoryAdapter extends AbstractEthersAdapter {
   public getInterface(instance: ContractFactory): Interface {
     return instance.interface;
-  }
-
-  public getRawAbi(instance: ContractFactory): string {
-    return JSON.stringify(instance.interface.fragments);
   }
 
   public getContractName(instance: ContractFactory, parameters: OverridesAndName): string {
