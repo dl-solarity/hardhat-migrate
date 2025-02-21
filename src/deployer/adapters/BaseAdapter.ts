@@ -13,8 +13,6 @@ import {
 import { Adapter } from "./Adapter";
 import { MinimalContract } from "../MinimalContract";
 
-import "../../type-extensions";
-
 import { UNKNOWN_TRANSACTION_NAME } from "../../constants";
 
 import { bytecodeToString, fillParameters, getMethodString } from "../../utils";
