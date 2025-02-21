@@ -1,6 +1,3 @@
-// TODO: fix if already uploaded.
-import "@nomicfoundation/hardhat-verify";
-
 // TODO: add namespaces
 // TODO: add summaries (tech(artifacts + logs + timestamps) and just addresses and relevant metrics)
 

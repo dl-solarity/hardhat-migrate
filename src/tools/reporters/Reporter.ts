@@ -420,7 +420,11 @@ class BaseReporter {
   }
 
   private _getInfoFromHardhatConfig(chainId: number): CustomChainRecord | undefined {
-    const customChains: CustomChainRecord[] = this._hre.config.etherscan.customChains || [];
+    let customChains: CustomChainRecord[] = [];
+
+    if ((this._hre.config as any).etherscan && (this._hre.config as any).etherscan.customChains) {
+      customChains = (this._hre.config as any).etherscan.customChains;
+    }
 
     return customChains.find((chain) => chain.chainId === chainId);
   }

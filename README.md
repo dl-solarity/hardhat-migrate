@@ -23,14 +23,17 @@ npm install --save-dev @solarity/hardhat-migrate
 
 And add the following statement to your `hardhat.config.js`:
 
+[//]: # (TODO: mention that hardhat-verify should be also imported)
 ```js
 require("@solarity/hardhat-migrate");
+require("@nomicfoundation/hardhat-verify");
 ```
 
 Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 
 ```ts
 import "@solarity/hardhat-migrate";
+import "@nomicfoundation/hardhat-verify";
 ```
 
 > [!NOTE]
