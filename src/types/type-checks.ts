@@ -1,6 +1,6 @@
 import { ContractFactory } from "ethers";
 
-import { BytecodeFactory, EthersFactory } from "./adapter";
+import { BytecodeFactory, TypechainFactoryClass } from "./adapter";
 import { BaseTxFields, KeyDeploymentFields, KeyTransactionFields } from "./tools";
 
 import { MigrateError } from "../errors";
@@ -41,7 +41,7 @@ export function validateKeyTxFields(_target: any, _propertyKey: string, descript
   return descriptor;
 }
 
-export function isEthersFactory<A, I>(instance: any): instance is EthersFactory<A, I> {
+export function isTypechainFactoryClass<A, I>(instance: any): instance is TypechainFactoryClass<A, I> {
   return instance.createInterface !== undefined;
 }
 
@@ -49,7 +49,7 @@ export function isBytecodeFactory(instance: any): instance is BytecodeFactory {
   return instance.contractName !== undefined;
 }
 
-export function isContractFactory(instance: any): instance is ContractFactory {
+export function isEthersContractFactory(instance: any): instance is ContractFactory {
   return instance.interface !== undefined && instance.bytecode !== undefined;
 }
 

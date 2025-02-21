@@ -53,7 +53,7 @@ describe("deployer", () => {
       const signer = (await deployer.getSigner()) as any;
 
       await expect(deployer.deploy(ConstructorWithArguments__factory, [signer], {})).to.be.rejectedWith(
-        `Deployer.deploy(): MinimalContract.deploy(): MinimalContract._createDeployTransaction(): invalid BigNumberish value (argument="value", value="<SignerWithAddress 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266>", code=INVALID_ARGUMENT, version=6.13.4)`,
+        `Deployer.deploy(): MinimalContract.deploy(): MinimalContract._createDeployTransaction(): invalid BigNumberish value (argument="value", value="<SignerWithAddress 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266>", code=INVALID_ARGUMENT, version=6.13.5)`,
       );
     });
 

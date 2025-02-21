@@ -1,20 +1,21 @@
-import { ContractFactory, Interface } from "ethers";
+import { Interface } from "ethers";
 
-import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
+import { BaseAdapter } from "./BaseAdapter";
 
 import { catchError, getInstanceNameFromClass } from "../../utils";
 
 import { OverridesAndName } from "../../types/deployer";
+import { TypechainFactoryClass } from "../../types/adapter";
 
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor";
 
 @catchError
-export class EthersFactoryAdapter extends AbstractEthersAdapter {
-  public getInterface(instance: ContractFactory): Interface {
-    return instance.interface;
+export class TypechainContractFactoryAdapter extends BaseAdapter {
+  public getInterface<A, I>(instance: TypechainFactoryClass<A, I>): Interface {
+    return Interface.from(instance.abi);
   }
 
-  public getContractName(instance: ContractFactory, parameters: OverridesAndName): string {
+  public getContractName<A, I>(instance: TypechainFactoryClass<A, I>, parameters: OverridesAndName): string {
     if (parameters.name) {
       return parameters.name;
     }

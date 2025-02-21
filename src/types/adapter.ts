@@ -2,7 +2,7 @@ import { InterfaceAbi, ContractFactory } from "ethers";
 
 import { Bytecode } from "./deployer";
 
-export interface EthersContract<A, I> {
+export interface TypechainFactoryClass<A, I> {
   new (...args: any): A;
 
   abi: any;
@@ -27,4 +27,4 @@ type Parameters<T extends (...args: any) => any> = T extends (...args: infer P) 
 
 export type TypedArgs<A> = A extends { deploy(...args: any): any } ? Parameters<A["deploy"]> : any;
 
-export type Instance<A, I> = EthersContract<A, I> | BytecodeFactory | ContractFactory;
+export type Instance<A, I> = TypechainFactoryClass<A, I> | BytecodeFactory | ContractFactory;

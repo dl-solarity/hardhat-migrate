@@ -1,13 +1,13 @@
 import { Interface } from "ethers";
 
-import { AbstractEthersAdapter } from "./AbstractEthersAdapter";
+import { BaseAdapter } from "./BaseAdapter";
 
 import { catchError } from "../../utils";
 
 import { BytecodeFactory } from "../../types/adapter";
 
 @catchError
-export class BytecodeAdapter extends AbstractEthersAdapter {
+export class BytecodeAdapter extends BaseAdapter {
   public getInterface(instance: BytecodeFactory): Interface {
     return Interface.from(instance.abi);
   }

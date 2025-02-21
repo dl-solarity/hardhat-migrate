@@ -14,19 +14,19 @@ import { SEND_NATIVE_TX_NAME } from "../constants";
 
 import { Adapter } from "./adapters/Adapter";
 import { BytecodeAdapter } from "./adapters/BytecodeAdapter";
-import { EthersContractFactoryAdapter } from "./adapters/EthersContractFactoryAdapter";
 
 import { OverridesAndLibs } from "../types/deployer";
 import { Instance, TypedArgs } from "../types/adapter";
 import { KeyTransactionFields, MigrationMetadata, TransactionFieldsToSave } from "../types/tools";
-import { isContractFactory, isBytecodeFactory, isEthersFactory } from "../types/type-checks";
+import { isEthersContractFactory, isBytecodeFactory, isTypechainFactoryClass } from "../types/type-checks";
 
 import { Stats } from "../tools/Stats";
 import { Reporter } from "../tools/reporters/Reporter";
 import { networkManager } from "../tools/network/NetworkManager";
 import { TransactionRunner } from "../tools/runners/TransactionRunner";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
-import { EthersFactoryAdapter } from "./adapters/EthersFactoryAdapter";
+import { EthersContractFactoryAdapter } from "./adapters/EthersContractFactoryAdapter";
+import { TypechainContractFactoryAdapter } from "./adapters/TypechainContractFactoryAdapter";
 
 const log = debug("hardhat-migrate:deployer");
 
@@ -36,7 +36,7 @@ export class Deployer {
 
   constructor(private _hre: HardhatRuntimeEnvironment) {}
 
-  public async deploy<A, I>(
+  public async deploy<A, I = any>(
     contract: Instance<A, I>,
     argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
     parameters: OverridesAndLibs = {},
@@ -54,7 +54,7 @@ export class Deployer {
     return adapter.toInstance(contract, contractAddress, parameters);
   }
 
-  public async deployed<A, I>(contract: Instance<A, I>, contractIdentifier?: string): Promise<I> {
+  public async deployed<A, I = any>(contract: Instance<A, I>, contractIdentifier?: string): Promise<I> {
     const adapter = Deployer.resolveAdapter(this._hre, contract);
     const defaultContractName = adapter.getContractName(contract, {});
 
@@ -79,7 +79,7 @@ export class Deployer {
     return adapter.toInstance(contract, contractAddress!, {});
   }
 
-  public async save<A, I>(contract: Instance<A, I> | string, contractAddress: string) {
+  public async save<A, I = any>(contract: Instance<A, I> | string, contractAddress: string) {
     if (!(await isDeployedContractAddress(contractAddress))) {
       throw new MigrateError(`Contract with address '${contractAddress}' is not deployed`);
     }
@@ -215,13 +215,13 @@ export class Deployer {
     });
   }
 
-  public static resolveAdapter<A, I>(hre: HardhatRuntimeEnvironment, contract: Instance<A, I>): Adapter {
-    if (isContractFactory(contract)) {
-      return new EthersContractFactoryAdapter(hre);
+  public static resolveAdapter<A, I = any>(hre: HardhatRuntimeEnvironment, contract: Instance<A, I>): Adapter {
+    if (isTypechainFactoryClass(contract)) {
+      return new TypechainContractFactoryAdapter(hre);
     }
 
-    if (isEthersFactory(contract)) {
-      return new EthersFactoryAdapter(hre);
+    if (isEthersContractFactory(contract)) {
+      return new EthersContractFactoryAdapter(hre);
     }
 
     if (isBytecodeFactory(contract)) {
