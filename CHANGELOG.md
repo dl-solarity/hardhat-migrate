@@ -8,6 +8,7 @@
 - Removed import of `@nomicfoundation/hardhat-verify` from the index.ts.
   - Please refer to the `Installation` section in the README for the updated installation instructions.
   - The motivation is to avoid conflicts with `@nomicfoundation/hardhat-toolbox` when using both plugins.
+- Removed the default conversion of the `bigint` to `string` for the `JSON.stringify` function.
 
 ### New features
 
@@ -31,7 +32,12 @@ npx hardhat migrate --namespace l1-deployment
 ```
 
 - Added an ability to disable address shortening in the reporter with following syntax: `PublicReporter.disableShortenAddress().reportContractsMD`
+
 - Added file reporting throughout the migration process
+  - During the migration the relevant report will be generated and stored in the `cache` folder.
+  
+- Added an ability to link proxy to the implementation contract
+  - The linking is decided based on the presence of the `IMPLEMENTATION_SLOT` in the contract
 
 ## Version 2.1.11 
 

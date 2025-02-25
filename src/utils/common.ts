@@ -1,9 +1,27 @@
 import { join, sep } from "path";
-import { formatEther, formatUnits } from "ethers";
+import { toBeHex, formatEther, formatUnits, ethers } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { UNKNOWN_CONTRACT_NAME } from "../constants";
+import { BEACON_IMPLEMENTATION_SLOT, DEFAULT_IMPLEMENTATION_SLOT, UNKNOWN_CONTRACT_NAME } from "../constants";
+
+import { networkManager } from "../tools/network/NetworkManager";
+
+export async function getPossibleImplementationAddress(proxyAddress: string): Promise<string> {
+  const provider = (await networkManager!.getSigner()).provider;
+
+  let implementationAddress = toBeHex(await provider!.getStorage(proxyAddress, DEFAULT_IMPLEMENTATION_SLOT), 20);
+  if (implementationAddress !== ethers.ZeroAddress) {
+    return implementationAddress;
+  }
+
+  implementationAddress = toBeHex(await provider!.getStorage(proxyAddress, BEACON_IMPLEMENTATION_SLOT), 20);
+  if (implementationAddress !== ethers.ZeroAddress) {
+    return implementationAddress;
+  }
+
+  return ethers.ZeroAddress;
+}
 
 export function castAmount(value: bigint, nativeSymbol: string = "ETH"): string {
   if (value > 0n && value < 10n ** 12n) {

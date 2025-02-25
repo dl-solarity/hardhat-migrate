@@ -42,6 +42,8 @@ export type ReportState = {
     failedContracts: Set<[name: string, address: string]>;
     failedToSaveContracts: Set<string>;
     alreadyVerifiedContracts: Set<[name: string, address: string]>;
+    proxyLinkingSuccess: Set<[name: string, address: string]>;
+    proxyLinkingFailure: Set<[name: string, address: string]>;
   };
   collisions: {
     contracts: Set<{
@@ -110,6 +112,8 @@ export class ReporterStorage {
         failedContracts: new Set(),
         failedToSaveContracts: new Set(),
         alreadyVerifiedContracts: new Set(),
+        proxyLinkingSuccess: new Set(),
+        proxyLinkingFailure: new Set(),
       },
       collisions: {
         contracts: new Set(),
@@ -304,6 +308,18 @@ export class ReporterStorage {
     this._commitReport();
   }
 
+  public storeSuccessfulProxyLinking(contractName: string, contractAddress: string) {
+    this._state.verificationStats.proxyLinkingSuccess.add([contractName, contractAddress]);
+
+    this._commitReport();
+  }
+
+  public storeFailedProxyLinking(contractName: string, contractAddress: string) {
+    this._state.verificationStats.proxyLinkingFailure.add([contractName, contractAddress]);
+
+    this._commitReport();
+  }
+
   public completeReport() {
     this._commitReport();
   }
@@ -454,6 +470,20 @@ export class ReporterStorage {
       if (this._state.verificationStats.failedToSaveContracts.size > 0) {
         actualState.push({ h3: "Failed to Save Contracts" });
         actualState.push({ ul: Array.from(this._state.verificationStats.failedToSaveContracts) });
+      }
+
+      if (this._state.verificationStats.proxyLinkingSuccess.size > 0) {
+        actualState.push({ h3: "Proxy Linking Success" });
+        actualState.push({
+          table: { headers: ["Name", "Address"], rows: Array.from(this._state.verificationStats.proxyLinkingSuccess) },
+        });
+      }
+
+      if (this._state.verificationStats.proxyLinkingFailure.size > 0) {
+        actualState.push({ h3: "Proxy Linking Failure" });
+        actualState.push({
+          table: { headers: ["Name", "Address"], rows: Array.from(this._state.verificationStats.proxyLinkingFailure) },
+        });
       }
     }
 

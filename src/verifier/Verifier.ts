@@ -1,21 +1,22 @@
+import { ethers } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
-import { EtherscanConfig } from "@nomicfoundation/hardhat-verify/types";
 
 import { MigrateError } from "../errors";
 
-import { catchError, getChainId, sleep, suppressLogs } from "../utils";
+import { catchError, getChainId, getPossibleImplementationAddress, sleep, suppressLogs } from "../utils";
 
 import { Args } from "../types/deployer";
 import { VerifyConfig } from "../types/migrations";
 import { VerifierArgs } from "../types/verifier";
+import { EtherscanConfig } from "../types/etherscan";
 
 import { sendGetRequest } from "../tools/network/requests";
 import { buildNetworkDeps } from "../tools/network/NetworkManager";
 import { createAndInitReporter, Reporter } from "../tools/reporters/Reporter";
+import { callEtherscanApi, RESPONSE_OK } from "../tools/network/etherscan-api";
 
-// TODO: add contract linking
 export class Verifier {
   private readonly _etherscanConfig: EtherscanConfig;
 
@@ -91,7 +92,7 @@ export class Verifier {
     contractName: string,
     constructorArguments: Args,
   ) {
-    await this._tryRunVerificationTask(contractAddress, contractName, constructorArguments);
+    await this._tryRunVerificationTask(instance, contractAddress, contractName, constructorArguments);
 
     const isVerified = await instance.isVerified(contractAddress);
 
@@ -125,12 +126,19 @@ export class Verifier {
   }
 
   @suppressLogs
-  private async _tryRunVerificationTask(contractAddress: string, contractName: string, args: Args) {
+  private async _tryRunVerificationTask(
+    instance: Etherscan,
+    contractAddress: string,
+    contractName: string,
+    args: Args,
+  ) {
     await this._hre.run("verify:verify", {
       address: contractAddress,
       constructorArguments: args,
       contract: contractName,
     });
+
+    await this._verifyProxy(instance, contractAddress);
   }
 
   private async _validateExplorerConfiguration(instance: Etherscan, contractAddress: string) {
@@ -151,6 +159,62 @@ export class Verifier {
         `The explorer responded with a status code of ${response.status} for the URL "${url.toString().split("?")[0]}".`,
       );
     }
+  }
+
+  private async _verifyProxy(instance: Etherscan, proxyAddress: string) {
+    try {
+      const implementationAddress = await getPossibleImplementationAddress(proxyAddress);
+      if (implementationAddress === ethers.ZeroAddress) {
+        return;
+      }
+
+      await this._linkProxyWithImplementationAbi(instance, proxyAddress, implementationAddress);
+    } catch (e) {
+      /* empty */
+    }
+  }
+
+  /**
+   * Calls the Etherscan API to link a proxy with its implementation ABI.
+   *
+   * Source: https://github.com/OpenZeppelin/openzeppelin-upgrades
+   */
+  private async _linkProxyWithImplementationAbi(instance: Etherscan, proxyAddress: string, implAddress: string) {
+    const params = {
+      module: "contract",
+      action: "verifyproxycontract",
+      address: proxyAddress,
+      expectedimplementation: implAddress,
+    };
+    let verifyProxyResponse = await callEtherscanApi(instance, params);
+
+    if (verifyProxyResponse.status === RESPONSE_OK) {
+      // initial call was OK, but need to send a status request using the
+      // returned guid to get the actual verification status
+      let responseBody = await this._checkProxyVerificationStatus(instance, verifyProxyResponse.result);
+
+      while (responseBody.result === "Pending in queue") {
+        await sleep(5000);
+        responseBody = await this._checkProxyVerificationStatus(instance, verifyProxyResponse.result);
+      }
+    }
+
+    if (verifyProxyResponse.status === RESPONSE_OK) {
+      Reporter!.reportSuccessfulProxyLinking(proxyAddress, implAddress);
+    } else {
+      Reporter!.reportFailedProxyLinking(proxyAddress, implAddress, verifyProxyResponse.result);
+    }
+  }
+
+  private async _checkProxyVerificationStatus(instance: Etherscan, guid: string) {
+    const checkProxyVerificationParams = {
+      module: "contract",
+      action: "checkproxyverification",
+      apikey: instance.apiKey,
+      guid: guid,
+    };
+
+    return callEtherscanApi(instance, checkProxyVerificationParams);
   }
 
   public static async buildVerifierTaskDeps(hre: HardhatRuntimeEnvironment): Promise<void> {

@@ -364,6 +364,18 @@ class BaseReporter {
     return chain.explorers[0].url;
   }
 
+  public reportSuccessfulProxyLinking(proxyAddress: string, implementationAddress: string) {
+    console.log(`Proxy ${proxyAddress} linked to implementation ${implementationAddress}`);
+
+    this._storage!.storeSuccessfulProxyLinking(proxyAddress, implementationAddress);
+  }
+
+  public reportFailedProxyLinking(proxyAddress: string, implementationAddress: string, result: string) {
+    console.log(`Failed to link proxy ${proxyAddress} to implementation ${implementationAddress}: ${result}`);
+
+    this._storage!.storeFailedProxyLinking(proxyAddress, implementationAddress);
+  }
+
   private _parseTransactionTitle(tx: TransactionResponse, instanceName: string): string {
     if (tx.to === null) {
       if (instanceName.split(":").length == 1) {
