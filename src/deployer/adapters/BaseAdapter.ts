@@ -159,7 +159,7 @@ export abstract class BaseAdapter extends Adapter {
     try {
       const savedTransaction = TransactionProcessor?.tryRestoreSavedTransaction(tx);
 
-      Reporter!.notifyTransactionRecovery(methodString);
+      Reporter!.notifyTransactionRecovery(methodString, savedTransaction!);
 
       return this._wrapTransactionFieldsToSave(savedTransaction!);
     } catch {

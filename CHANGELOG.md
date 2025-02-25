@@ -31,6 +31,7 @@ npx hardhat migrate --namespace l1-deployment
 ```
 
 - Added an ability to disable address shortening in the reporter with following syntax: `PublicReporter.disableShortenAddress().reportContractsMD`
+- Added file reporting throughout the migration process
 
 ## Version 2.1.11 
 

@@ -34,7 +34,7 @@
   },
   "homepage": "https://github.com/dl-solarity/hardhat-migrate#readme",
   "scripts": {
-    "compile": "npm run prepare-tests && npm run build",
+    "compile": "npm run clean-tests && npm run prepare-tests && npm run build",
     "build": "tsc --build .",
     "prepare-tests": "npm run compile --workspaces",
     "test": "mocha --recursive 'test/**/*.ts' --exit",
@@ -54,6 +54,7 @@
     "@nomicfoundation/hardhat-verify": "2.0.12",
     "axios": "1.7.9",
     "ethers": "6.13.5",
+    "json2md": "^2.0.2",
     "ora": "5.4.1",
     "prettier": "3.5.1"
   },

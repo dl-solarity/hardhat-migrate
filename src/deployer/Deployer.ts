@@ -1,10 +1,8 @@
 import debug from "debug";
 
-import { defineProperties, isAddress, Signer } from "ethers";
+import { isAddress, Signer } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { createProvider } from "hardhat/internal/core/providers/construction";
-import { LazyInitializationProviderAdapter } from "hardhat/internal/core/providers/lazy-initialization";
 
 import { catchError, getChainId, isDeployedContractAddress } from "../utils";
 
@@ -115,7 +113,7 @@ export class Deployer {
       try {
         const savedTx = TransactionProcessor?.tryRestoreSavedTransaction(tx);
 
-        Reporter!.notifyTransactionRecovery(methodString);
+        Reporter!.notifyTransactionRecovery(methodString, savedTx!);
 
         return savedTx!;
       } catch {
@@ -154,20 +152,6 @@ export class Deployer {
   //   return await deployer.deployed(factory, `${name} Proxy`);
   // }
 
-  //   public async switchTo(networkName: string) {
-  //   await this._recreateNetwork(networkName);
-  //
-  //   await instance.recreateDeployer(hre);
-  // }
-  //
-  // public async switchBack(hre: HardhatRuntimeEnvironment, instance: BaseDAOInstance) {
-  //   if (initialNetwork === undefined) throw new Error("Network has not changed");
-  //
-  //   recreateNetwork(hre, initialNetwork);
-  //
-  //   await instance.recreateDeployer(hre);
-  // }
-
   public async setSigner(from?: string) {
     await networkManager!.setSigner(from);
   }
@@ -189,30 +173,6 @@ export class Deployer {
       from: (await networkManager!.getSigner()).address,
       name,
     };
-  }
-
-  private async _recreateNetwork(networkName: string) {
-    if (this._initialNetwork === undefined) {
-      this._initialNetwork = this._hre.network.name;
-    }
-
-    const networkConfig = this._hre.config.networks[networkName];
-
-    if (networkConfig === undefined)
-      throw new Error(
-        `No network configuration found for network ${networkName}. Available networks: ${Object.keys(this._hre.config.networks).join(", ")}`,
-      );
-
-    const provider = new LazyInitializationProviderAdapter(async () => {
-      log(`Creating provider for network ${networkName}`);
-      return createProvider(this._hre.config, networkName, this._hre.artifacts);
-    });
-
-    defineProperties(this._hre.network, {
-      name: networkName,
-      config: networkConfig,
-      provider,
-    });
   }
 
   public static resolveAdapter<A, I = any>(hre: HardhatRuntimeEnvironment, contract: Instance<A, I>): Adapter {

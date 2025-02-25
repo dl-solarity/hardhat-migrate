@@ -3,7 +3,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { runWithContinue, runWithoutContinue } from "./helper";
 
 import { useEnvironment } from "../../helpers";
-import { resetReporter } from "../../../src/tools/reporters/Reporter";
+import { createAndInitReporter } from "../../../src/tools/reporters/Reporter";
 import { resetTransactionRunner } from "../../../src/tools/runners/TransactionRunner";
 
 describe("typechain-ethers", () => {
@@ -14,8 +14,8 @@ describe("typechain-ethers", () => {
   beforeEach("setup", async function () {
     hre = this.hre;
 
-    resetReporter();
     resetTransactionRunner();
+    await createAndInitReporter(hre);
   });
 
   describe("simple migration flow", () => {

@@ -1,13 +1,15 @@
 /* eslint-disable no-console */
 import ora, { Ora } from "ora";
 
-import { Network, TransactionResponse, formatEther, formatUnits, TransactionReceipt, id } from "ethers";
+import { Network, TransactionResponse, TransactionReceipt, id } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
+import { ReporterStorage } from "./ReporterStorage";
+
 import { networkManager } from "../network/NetworkManager";
 
-import { catchError, underline } from "../../utils";
+import { castAmount, catchError, underline } from "../../utils";
 
 import { MigrateConfig } from "../../types/migrations";
 import { ChainRecord, CustomChainRecord, predefinedChains } from "../../types/verifier";
@@ -32,7 +34,7 @@ class BaseReporter {
 
   private _warningsToPrint: Map<string, string> = new Map();
 
-  private _totalGasUsed: bigint = 0n;
+  private _storage: ReporterStorage | null = null;
 
   public async init(hre: HardhatRuntimeEnvironment) {
     this._hre = hre;
@@ -41,6 +43,12 @@ class BaseReporter {
     this._network = await this._getNetwork();
     this._nativeSymbol = await this._getNativeSymbol();
     this._explorerUrl = (await this.getExplorerUrl()) + "/tx/";
+
+    this._storage = new ReporterStorage(hre);
+  }
+
+  public notifyStorageAboutContracts(contracts: [name: string, address: string][]) {
+    this._storage!.storeReportedContracts(contracts);
   }
 
   public reportMigrationBegin(files: string[]) {
@@ -49,16 +57,24 @@ class BaseReporter {
     this._reportChainInfo();
 
     console.log("\nStarting migration...\n");
+
+    this._storage!.storeMigrationBegin();
   }
 
   public reportMigrationFileBegin(file: string) {
     console.log(`\n${underline(`Running ${file}...`)}`);
+
+    this._storage!.storeMigrationFileBegin(file);
   }
 
   public reportTransactionResponseHeader(tx: TransactionResponse, instanceName: string) {
     console.log("\n" + underline(this._parseTransactionTitle(tx, instanceName)));
 
-    console.log(`> explorer: ${this._getExplorerLink(tx.hash)}`);
+    const txLink = this._getExplorerLink(tx.hash);
+
+    console.log(`> explorer: ${txLink}`);
+
+    this._storage!.storeTransactionResponseHeader(tx, instanceName, txLink);
   }
 
   public async startTxReporting(tx: TransactionResponse) {
@@ -119,30 +135,32 @@ class BaseReporter {
 
     output += `> account: ${receipt.from}\n`;
 
-    output += `> value: ${this._castAmount((await receipt.getTransaction()).value, nativeSymbol)}\n`;
+    const value = (await receipt.getTransaction()).value;
+    output += `> value: ${castAmount(value, nativeSymbol)}\n`;
 
-    output += `> balance: ${this._castAmount(await receipt.provider.getBalance(receipt.from), nativeSymbol)}\n`;
+    output += `> balance: ${castAmount(await receipt.provider.getBalance(receipt.from), nativeSymbol)}\n`;
 
     output += `> gasUsed: ${receipt.gasUsed}\n`;
 
-    output += `> gasPrice: ${this._castAmount(receipt.gasPrice, nativeSymbol)}\n`;
+    output += `> gasPrice: ${castAmount(receipt.gasPrice, nativeSymbol)}\n`;
 
-    output += `> fee: ${this._castAmount(receipt.fee, nativeSymbol)}\n`;
+    output += `> fee: ${castAmount(receipt.fee, nativeSymbol)}\n`;
 
     console.log(output);
 
-    this._totalGasUsed += receipt.gasUsed;
+    this._storage!.storeTransactionReceipt(receipt, value);
   }
 
   public summary(totalTransactions: bigint, totalCost: bigint) {
     const output =
       `> ${"Total transactions:".padEnd(20)} ${totalTransactions}\n` +
-      `> ${"Final cost:".padEnd(20)} ${this._castAmount(totalCost, this._nativeSymbol)}\n` +
-      `> ${"Total gas used:".padEnd(20)} ${this._totalGasUsed}\n`;
+      `> ${"Final cost:".padEnd(20)} ${castAmount(totalCost, this._nativeSymbol)}\n`;
 
     console.log(`\n${output}`);
 
     this.reportWarnings();
+
+    this._storage!.completeReport();
   }
 
   public notifyDeploymentInsteadOfRecovery(contractName: string): void {
@@ -155,6 +173,8 @@ class BaseReporter {
     const output = `\nDeploying missing library ${libraryName}...`;
 
     console.log(output);
+
+    this._storage!.storeDeploymentOfMissingLibrary(libraryName);
   }
 
   public notifyTransactionSendingInsteadOfRecovery(contractMethod: string): void {
@@ -167,12 +187,16 @@ class BaseReporter {
     const output = `\nContract address for ${contractName} has been recovered: ${contractAddress}`;
 
     console.log(output);
+
+    this._storage!.storeContractRecovery(contractName, contractAddress);
   }
 
-  public notifyTransactionRecovery(methodString: string): void {
+  public notifyTransactionRecovery(methodString: string, savedTx: TransactionFieldsToSave): void {
     const output = `\nTransaction ${methodString} has been recovered.`;
 
     console.log(output);
+
+    this._storage!.storeTransactionRecovery(methodString, savedTx);
   }
 
   public reportVerificationBatchBegin() {
@@ -181,30 +205,40 @@ class BaseReporter {
 
   public reportNothingToVerify() {
     console.log(`\nNothing to verify. Selected network is ${this._network.name}`);
+
+    this._storage!.storeNothingToVerify();
   }
 
   public reportSuccessfulVerification(contractAddress: string, contractName: string) {
     const output = `\nContract ${contractName} (${contractAddress}) verified successfully.`;
 
     console.log(output);
+
+    this._storage!.storeVerificationSuccess(contractName, contractAddress);
   }
 
   public reportAlreadyVerified(contractAddress: string, contractName: string) {
     const output = `\nContract ${contractName} (${contractAddress}) already verified.`;
 
     console.log(output);
+
+    this._storage!.storeAlreadyVerified(contractName, contractAddress);
   }
 
   public reportVerificationError(contractAddress: string, contractName: string, message: string) {
     const output = `\nContract ${contractName} (${contractAddress}) verification failed: ${message}`;
 
     console.log(output);
+
+    this._storage!.storeVerificationFailure(contractName, contractAddress);
   }
 
   public reportVerificationFailedToSave(contractName: string) {
     const output = `\nFailed to save verification arguments for contract: ${contractName}`;
 
     console.log(output);
+
+    this._storage!.storeVerificationSaveFailure(contractName);
   }
 
   public notifyContractCollisionByName(oldData: ContractFieldsToSave, dataToSave: ContractFieldsToSave) {
@@ -234,6 +268,12 @@ class BaseReporter {
     }
 
     this._warningsToPrint.set(key, output);
+
+    this._storage!.storeTransactionCollision(oldData, dataToSave);
+  }
+
+  public addWarning(warning: string) {
+    this._warningsToPrint.set(id(warning), warning);
   }
 
   public notifyUnknownCollision(
@@ -257,6 +297,8 @@ class BaseReporter {
     }
 
     this._warningsToPrint.set(key, output);
+
+    this._storage!.storeUnknownCollision(metadata, dataToSave);
   }
 
   public reportWarnings() {
@@ -298,6 +340,8 @@ class BaseReporter {
     }
 
     this._warningsToPrint.set(key, output);
+
+    this._storage!.storeContractCollision(oldData, dataToSave);
   }
 
   public async getExplorerUrl(): Promise<string> {
@@ -346,18 +390,6 @@ class BaseReporter {
     return this._explorerUrl + txHash;
   }
 
-  private _castAmount(value: bigint, nativeSymbol: string): string {
-    if (value > 0n && value < 10n ** 12n) {
-      return this._toGWei(value) + " GWei";
-    }
-
-    return formatEther(value) + ` ${nativeSymbol}`;
-  }
-
-  private _toGWei(value: bigint): string {
-    return formatUnits(value, "gwei");
-  }
-
   private _reportMigrationFiles(files: string[]) {
     console.log("\nMigration files:");
 
@@ -366,12 +398,16 @@ class BaseReporter {
     });
 
     console.log("");
+
+    this._storage!.storeMigrationFiles(files);
   }
 
   private _reportChainInfo() {
     console.log(`> ${"Network:".padEnd(20)} ${this._network.name}`);
 
     console.log(`> ${"Network id:".padEnd(20)} ${this._network.chainId}`);
+
+    this._storage!.storeChainInfo(this._network);
   }
 
   private async _getNetwork(): Promise<Network> {

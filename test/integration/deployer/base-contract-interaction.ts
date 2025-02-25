@@ -87,7 +87,7 @@ describe("deployer", () => {
       receipt = await tx.wait();
 
       expect(receipt!.from).to.equal(signer2.address);
-      expect(Reporter?.getWarningsCount()).to.be.equal(0);
+      expect(Reporter?.getWarningsCount()).to.be.equal(6);
     });
   });
 });

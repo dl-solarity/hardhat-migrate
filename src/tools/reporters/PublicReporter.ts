@@ -23,7 +23,7 @@ export class PublicReporter {
     await TransactionRunner!.reportTransactionResponse(tx, name || "Unknown");
   }
 
-  public static reportContracts(...contracts: [string, string][]): void {
+  public static reportContracts(...contracts: [name: string, address: string][]): void {
     const table: { Contract: string; Address: string }[] = contracts.map(([contract, address]) => ({
       Contract: contract,
       Address: address,
@@ -31,9 +31,11 @@ export class PublicReporter {
     console.log();
     console.table(table);
     console.log();
+
+    Reporter!.notifyStorageAboutContracts(contracts);
   }
 
-  public static async reportContractsMD(...contracts: [string, string][]): Promise<void> {
+  public static async reportContractsMD(...contracts: [name: string, address: string][]): Promise<void> {
     const explorer = await Reporter!.getExplorerUrl();
     const normalizedExplorer = explorer.endsWith("/") ? explorer : `${explorer}/address/`;
 
@@ -56,6 +58,8 @@ export class PublicReporter {
         proseWrap: "always",
       }),
     );
+
+    Reporter!.notifyStorageAboutContracts(contracts);
   }
 
   public static disableShortenAddress(): typeof PublicReporter {

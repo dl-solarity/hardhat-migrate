@@ -1,5 +1,3 @@
-// TODO: add summaries (tech(artifacts + logs + timestamps) and just addresses and relevant metrics)
-
 import { ActionType, HardhatRuntimeEnvironment } from "hardhat/types";
 import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { extendConfig, task, types } from "hardhat/config";

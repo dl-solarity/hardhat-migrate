@@ -1,8 +1,21 @@
 import { join, sep } from "path";
+import { formatEther, formatUnits } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { UNKNOWN_CONTRACT_NAME } from "../constants";
+
+export function castAmount(value: bigint, nativeSymbol: string = "ETH"): string {
+  if (value > 0n && value < 10n ** 12n) {
+    return toGWei(value) + " GWei";
+  }
+
+  return formatEther(value) + ` ${nativeSymbol}`;
+}
+
+export function toGWei(value: bigint): string {
+  return formatUnits(value, "gwei");
+}
 
 export function resolvePathToFile(hre: HardhatRuntimeEnvironment, path: string, file: string = ""): string {
   const pathToMigration = join(hre.config.paths.root, path, file);
@@ -29,7 +42,7 @@ function parseClassName(classDefinitionString: string) {
 }
 
 export function deepCopy<T>(obj: T): T {
-  return JSON.parse(JSON.stringify(obj));
+  return JSON.parse(toJSON(obj));
 }
 
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

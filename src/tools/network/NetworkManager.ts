@@ -8,6 +8,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { createEthersProvider, ethersProvider } from "./EthersProvider";
 
+import { toJSON } from "../../utils";
 import { createTransactionRunner } from "../runners/TransactionRunner";
 
 class StateMiddleware {
@@ -17,7 +18,7 @@ class StateMiddleware {
     fn: T,
     args: Parameters<T>,
   ): Promise<Awaited<ReturnType<T>>> {
-    const cacheKey = ethers.id(`${fn.name}:${JSON.stringify(args)}`);
+    const cacheKey = ethers.id(`${fn.name}:${toJSON(args)}`);
 
     if (this.pendingRequests[cacheKey]) {
       return this.pendingRequests[cacheKey];

@@ -20,7 +20,7 @@ describe("Public Reporter", () => {
     await createAndInitReporter(hre);
   });
 
-  it.only("should shorten address by default", async () => {
+  it("should shorten address by default", async () => {
     const { log, logs } = captureLog();
     await PublicReporter.reportContractsMD(["Contract", "Address"]);
     console.log = log;
