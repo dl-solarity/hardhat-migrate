@@ -5,6 +5,9 @@
 ### Breaking changes
 
 - Removed Truffle support.
+- Removed import of `@nomicfoundation/hardhat-verify` from the index.ts.
+  - Please refer to the `Installation` section in the README for the updated installation instructions.
+  - The motivation is to avoid conflicts with `@nomicfoundation/hardhat-toolbox` when using both plugins.
 
 ### New features
 
@@ -26,6 +29,8 @@ And when running the migration, you can specify the namespace like this:
 ```bash
 npx hardhat migrate --namespace l1-deployment
 ```
+
+- Added an ability to disable address shortening in the reporter with following syntax: `PublicReporter.disableShortenAddress().reportContractsMD`
 
 ## Version 2.1.11 
 

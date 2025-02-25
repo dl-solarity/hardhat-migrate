@@ -53,6 +53,12 @@ async function getSignedTxViaCast(tx: TransactionRequest, castOpts: CastSignOpti
     delete tx.from;
   }
 
+  if (castOpts.trezor || castOpts.ledger) {
+    throw new Error(
+      "Hardware wallets currently are not supported for signing transactions. See issue: https://github.com/alloy-rs/alloy/issues/2114",
+    );
+  }
+
   // Build the transaction
   const btx = Transaction.from(<TransactionLike<string>>tx);
   btx.signature = await signMessage(btx.unsignedHash, {
