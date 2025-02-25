@@ -23,17 +23,16 @@ npm install --save-dev @solarity/hardhat-migrate
 
 And add the following statement to your `hardhat.config.js`:
 
-[//]: # (TODO: mention that hardhat-verify should be also imported)
 ```js
 require("@solarity/hardhat-migrate");
-require("@nomicfoundation/hardhat-verify");
+require("@nomicfoundation/hardhat-verify"); // If you want to verify contracts after deployment
 ```
 
 Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 
 ```ts
 import "@solarity/hardhat-migrate";
-import "@nomicfoundation/hardhat-verify";
+import "@nomicfoundation/hardhat-verify"; // If you want to verify contracts after deployment
 ```
 
 > [!NOTE]
@@ -85,6 +84,7 @@ module.exports = {
     verifyParallel: 1,
     verifyAttempts: 3,
     pathToMigrations: "./deploy",
+    namespace: "",
     force: false,
     continue: false,
     transactionStatusCheckInterval: 2000,
@@ -104,6 +104,8 @@ module.exports = {
 - `verifyParallel` : The size of the batch for verification.
 - `verifyAttempts` : The number of attempts to verify the contract.
 - `pathToMigrations` : The path to the folder with the specified migrations.
+- `namespace`: The path to the folder where the migration should be done.
+   - This parameter is used together with the `pathToMigrations` parameter. If the `namespace` parameter specified, the migrations will be retrieved from following path: `{hardhat.config.path.root}/{pathToMigrations}/{namespace}`
 - `force` : The flag indicating whether the contracts compilation is forced.
 - `continue` : The flag indicating whether the deployment should restore the state from the previous deployment.
 - `transactionStatusCheckInterval` : The interval in milliseconds between transaction status checks.
