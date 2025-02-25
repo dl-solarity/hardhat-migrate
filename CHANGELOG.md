@@ -1,5 +1,32 @@
 # Changelog
 
+## Version 3.0.0
+
+### Breaking changes
+
+- Removed Truffle support.
+
+### New features
+
+- Added an ability to specify namespaces for deployment scripts.
+
+Now instead of having all deployment scripts in the `deploy` folder, tou can separate those into subfolders like below.
+
+```
+deploy
+├── l1-deployment
+│   ├── 1_core.migration.ts
+│   └── 2_setup.migration.ts
+└── l2-testnet
+    ├── 1_prepare.migration.ts
+    └── 2_deploy.migration.ts
+```
+
+And when running the migration, you can specify the namespace like this:
+```bash
+npx hardhat migrate --namespace l1-deployment
+```
+
 ## Version 2.1.11 
 
 * Added a caching mechanism to reduce the number of requests to the RPC provider.  

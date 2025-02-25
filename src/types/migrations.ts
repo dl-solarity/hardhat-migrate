@@ -53,6 +53,14 @@ export interface MigrateConfig {
   pathToMigrations: string;
 
   /*
+   * The path to the folder where the migration should be done.
+   * This parameter is used together with the `pathToMigrations` parameter.
+   * If the following parameter specified, the migrations will be retrieved from following path:
+   * `{hardhat.config.path.root}/{pathToMigrations}/{namespace}`
+   */
+  namespace: string;
+
+  /*
    * The flag indicating whether the compilation is forced.
    */
   force: boolean;

@@ -18,6 +18,7 @@ const defaultConfig: MigrateConfig = {
   verifyParallel: 1,
   verifyAttempts: 3,
   pathToMigrations: "./deploy",
+  namespace: "",
   force: false,
   continue: false,
   transactionStatusCheckInterval: 2000,

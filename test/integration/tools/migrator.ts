@@ -22,6 +22,7 @@ function getMigratorInstance(
         skip: skip,
         verify: false,
         pathToMigrations: "./deploy-files",
+        namespace: "",
         force: false,
         wait: 0,
         verificationDelay: 0,

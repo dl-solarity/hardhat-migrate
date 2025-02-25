@@ -20,31 +20,31 @@ describe("ethers", () => {
 
   describe("simple migration flow", () => {
     it("should run migration successfully", async function () {
-      await runWithoutContinue(hre, 1);
+      await runWithoutContinue(hre, { only: 1 } as any);
     });
 
     it("should recover migration successfully", async function () {
-      await runWithContinue(hre, 1);
+      await runWithContinue(hre, { only: 1 } as any);
     });
   });
 
   describe("migration flow with libraries pre-deployment", () => {
     it("should run migration successfully", async function () {
-      await runWithoutContinue(hre, 2);
+      await runWithoutContinue(hre, { only: 2 } as any);
     });
 
     it("should recover migration successfully", async function () {
-      await runWithContinue(hre, 2);
+      await runWithContinue(hre, { only: 2 } as any);
     });
   });
 
   describe("migration flow for edge cases", () => {
     it("should run migration successfully", async function () {
-      await runWithoutContinue(hre, 3);
+      await runWithoutContinue(hre, { only: 3 } as any);
     });
 
     it("should recover migration successfully", async function () {
-      await runWithContinue(hre, 3);
+      await runWithContinue(hre, { only: 3 } as any);
     });
   });
 });

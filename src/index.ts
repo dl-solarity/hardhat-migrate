@@ -1,4 +1,3 @@
-// TODO: add namespaces
 // TODO: add summaries (tech(artifacts + logs + timestamps) and just addresses and relevant metrics)
 
 import { ActionType, HardhatRuntimeEnvironment } from "hardhat/types";
@@ -88,6 +87,7 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
     undefined,
     types.string,
   )
+  .addOptionalParam("namespace", "The path to the folder where the migration should be done.", undefined, types.string)
   .addFlag("force", "The flag indicating whether the compilation is forced.")
   .addFlag("continue", "The flag indicating whether the previous deployment should be continued.")
   .setAction(migrate);
