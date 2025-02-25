@@ -1,6 +1,4 @@
-import debug from "debug";
-
-import { isAddress, Signer } from "ethers";
+import { isAddress, Signer, ZeroAddress } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -23,15 +21,12 @@ import { Reporter } from "../tools/reporters/Reporter";
 import { networkManager } from "../tools/network/NetworkManager";
 import { TransactionRunner } from "../tools/runners/TransactionRunner";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
+import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 import { EthersContractFactoryAdapter } from "./adapters/EthersContractFactoryAdapter";
 import { TypechainContractFactoryAdapter } from "./adapters/TypechainContractFactoryAdapter";
 
-const log = debug("hardhat-migrate:deployer");
-
 @catchError
 export class Deployer {
-  private _initialNetwork: string | undefined = undefined;
-
   constructor(private _hre: HardhatRuntimeEnvironment) {}
 
   public async deploy<A, I = any>(
@@ -50,6 +45,84 @@ export class Deployer {
     const contractAddress = await minimalContract.deploy(argsOrParameters as TypedArgs<A>, parameters);
 
     return adapter.toInstance(contract, contractAddress, parameters);
+  }
+
+  public async deployERC1967Proxy<A, I = any>(
+    implementationFactory: Instance<A, I>,
+    argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
+    parameters: OverridesAndLibs = {},
+  ) {
+    return this._deployProxy(implementationFactory, "ERC1967Proxy", ["0x"], argsOrParameters, parameters);
+  }
+
+  public async deployTransparentUpgradeableProxy<A, I = any>(
+    implementationFactory: Instance<A, I>,
+    proxyAdmin: string,
+    argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
+    parameters: OverridesAndLibs = {},
+  ) {
+    if (proxyAdmin === ZeroAddress) {
+      throw new MigrateError("Proxy admin cannot be the zero address");
+    }
+
+    return this._deployProxy(
+      implementationFactory,
+      "TransparentUpgradeableProxy",
+      [proxyAdmin, "0x"],
+      argsOrParameters,
+      parameters,
+    );
+  }
+
+  private async _deployProxy<A, I = any>(
+    implementationFactory: Instance<A, I>,
+    proxyFactoryName: string,
+    proxyArgs: any[],
+    argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
+    parameters: OverridesAndLibs = {},
+  ) {
+    const adapter = Deployer.resolveAdapter(this._hre, implementationFactory);
+
+    let implementationArgs: TypedArgs<A> = [] as any;
+    let implementationParameters: OverridesAndLibs = {};
+
+    if (argsOrParameters && Array.isArray(argsOrParameters)) {
+      implementationArgs = argsOrParameters;
+    } else if (argsOrParameters && typeof argsOrParameters === "object") {
+      implementationParameters = argsOrParameters;
+    } else {
+      implementationParameters = parameters;
+    }
+
+    let instanceName = adapter.getContractName(implementationFactory, parameters);
+
+    const implementation = (await this.deploy(implementationFactory, implementationArgs, {
+      ...implementationParameters,
+      name: `${instanceName} implementation`,
+    })) as any;
+    VerificationProcessor.saveVerificationFunction({
+      contractAddress: await implementation.getAddress(),
+      contractName: instanceName,
+      constructorArguments: implementationArgs,
+      chainId: Number(await getChainId()),
+    });
+
+    const { ethers, artifacts } = await import("hardhat");
+    const proxyFactory = await ethers.getContractFactory(proxyFactoryName);
+
+    let artifact = await artifacts.readArtifact(proxyFactoryName);
+
+    const proxy = await this.deploy(proxyFactory, [await implementation.getAddress(), ...proxyArgs], {
+      name: instanceName,
+    });
+    VerificationProcessor.saveVerificationFunction({
+      contractAddress: await proxy.getAddress(),
+      contractName: `${artifact.sourceName}:${artifact.contractName}`,
+      constructorArguments: [await implementation.getAddress(), ...proxyArgs],
+      chainId: Number(await getChainId()),
+    });
+
+    return this.deployed(implementationFactory, instanceName);
   }
 
   public async deployed<A, I = any>(contract: Instance<A, I>, contractIdentifier?: string): Promise<I> {
@@ -137,20 +210,6 @@ export class Deployer {
 
     return savedTx!;
   }
-
-  //   public deployProxy<T, I = BaseContract>(
-  //   deployer: Deployer,
-  //   factory: EthersContract<T, I>,
-  //   name: string,
-  // ) {
-  //   const implementation = (await deployer.deploy(factory, { name: name })) as BaseContract;
-  //
-  //   await deployer.deploy(ERC1967Proxy__factory, [await implementation.getAddress(), "0x"], {
-  //     name: `${name} Proxy`,
-  //   });
-  //
-  //   return await deployer.deployed(factory, `${name} Proxy`);
-  // }
 
   public async setSigner(from?: string) {
     await networkManager!.setSigner(from);

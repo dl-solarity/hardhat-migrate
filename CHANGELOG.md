@@ -39,6 +39,8 @@ npx hardhat migrate --namespace l1-deployment
 - Added an ability to link proxy to the implementation contract
   - The linking is decided based on the presence of the `IMPLEMENTATION_SLOT` in the contract
 
+- Added helper function to the Deployer for the proxy deployment: `deployERC1967Proxy` and `deployTransparentUpgradeableProxy`
+
 ## Version 2.1.11 
 
 * Added a caching mechanism to reduce the number of requests to the RPC provider.  
