@@ -1,4 +1,4 @@
-import { isAddress, Signer, ZeroAddress } from "ethers";
+import { isAddress, ZeroAddress } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -24,6 +24,7 @@ import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
 import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 import { EthersContractFactoryAdapter } from "./adapters/EthersContractFactoryAdapter";
 import { TypechainContractFactoryAdapter } from "./adapters/TypechainContractFactoryAdapter";
+import { ExtendedHardhatEthersSigner } from "../tools/network/ExtendedHardhatEthersSigner";
 
 @catchError
 export class Deployer {
@@ -215,7 +216,7 @@ export class Deployer {
     await networkManager!.setSigner(from);
   }
 
-  public async getSigner(from?: string): Promise<Signer> {
+  public async getSigner(from?: string): Promise<ExtendedHardhatEthersSigner> {
     return networkManager!.getSigner(from);
   }
 
@@ -229,7 +230,7 @@ export class Deployer {
       value,
       chainId: await getChainId(),
       data: "0x",
-      from: (await networkManager!.getSigner()).address,
+      from: await (await networkManager!.getSigner()).innerSigner.getAddress(),
       name,
     };
   }

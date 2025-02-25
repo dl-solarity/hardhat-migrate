@@ -41,6 +41,8 @@ npx hardhat migrate --namespace l1-deployment
 
 - Added helper function to the Deployer for the proxy deployment: `deployERC1967Proxy` and `deployTransparentUpgradeableProxy`
 
+[//]: # (// TODO: add tests for the deployment of proxies)
+
 ## Version 2.1.11 
 
 * Added a caching mechanism to reduce the number of requests to the RPC provider.  

@@ -44,7 +44,7 @@ describe("TransactionStorage", async () => {
       const factory = new ContractFactory(PayableConstructor__factory.abi, PayableConstructor__factory.bytecode);
 
       const tx = await factory.getDeployTransaction({
-        from: await (await deployer.getSigner()).getAddress(),
+        from: await (await deployer.getSigner()).innerSigner.getAddress(),
         chainId: await deployer.getChainId(),
         value: 0,
       });
@@ -80,7 +80,7 @@ describe("TransactionStorage", async () => {
 
       const tx = await factory.getDeployTransaction({
         value: value,
-        from: await (await deployer.getSigner()).getAddress(),
+        from: await (await deployer.getSigner()).innerSigner.getAddress(),
         chainId: await deployer.getChainId(),
       });
 
@@ -105,7 +105,7 @@ describe("TransactionStorage", async () => {
 
       const data = await factory.getDeployTransaction(100n, {
         chainId: 1,
-        from: await (await deployer.getSigner()).getAddress(),
+        from: await (await deployer.getSigner()).innerSigner.getAddress(),
         value: 0,
       });
 
@@ -155,7 +155,7 @@ describe("TransactionStorage", async () => {
 
       const data = await factory.getDeployTransaction(100n, {
         nonce: 0,
-        from: await (await deployer.getSigner()).getAddress(),
+        from: await (await deployer.getSigner()).innerSigner.getAddress(),
         chainId: await deployer.getChainId(),
         value: 0,
       });
@@ -180,7 +180,7 @@ describe("TransactionStorage", async () => {
       );
 
       const data = await factory.getDeployTransaction(200n, {
-        from: await (await deployer.getSigner()).getAddress(),
+        from: await (await deployer.getSigner()).innerSigner.getAddress(),
         chainId: await deployer.getChainId(),
         value: 0,
       });

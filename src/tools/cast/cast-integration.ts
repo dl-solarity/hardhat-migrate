@@ -16,7 +16,7 @@ import { networkManager } from "../network/NetworkManager";
 
 const execAsync = promisify(exec);
 
-async function getCastVersion(): Promise<string> {
+export async function getCastVersion(): Promise<string> {
   try {
     const { stdout } = await execAsync("cast -V");
     return stdout.trim();
@@ -25,7 +25,7 @@ async function getCastVersion(): Promise<string> {
   }
 }
 
-async function getSignedTxViaCast(tx: TransactionRequest, castOpts: CastSignOptions = {}) {
+export async function getSignedTxViaCast(tx: TransactionRequest, castOpts: CastSignOptions = {}) {
   const signer = await networkManager?.getSigner()!;
 
   tx = copyRequest(tx);

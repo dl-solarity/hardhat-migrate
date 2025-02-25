@@ -1,4 +1,4 @@
-import { ethers, Interface, Overrides, Signer } from "ethers";
+import { ethers, Interface, Overrides } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -78,7 +78,7 @@ export class MinimalContract {
     return {
       contractName: this._contractName,
       chainId: await getChainId(),
-      from: (await networkManager!.getSigner(txOverrides.from)).address,
+      from: await (await networkManager!.getSigner(txOverrides.from)).innerSigner.getAddress(),
       ...(await factory.getDeployTransaction(...args, txOverrides)),
     };
   }
@@ -102,7 +102,7 @@ export class MinimalContract {
   }
 
   private async _processContractDeploymentTransaction(tx: ContractDeployTxWithName, args: any[]): Promise<string> {
-    const signer: Signer = await networkManager!.getSigner(tx.from);
+    const signer = await networkManager!.getSigner(tx.from);
 
     const txResponse = await signer.sendTransaction(tx);
 
