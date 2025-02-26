@@ -32,14 +32,10 @@ jobs:
             ${{ runner.os }}-node-v${{ matrix.node }}-
 
       - name: Install Foundry
-        run: curl -L https://foundry.paradigm.xyz | bash
-
-      - name: Initialize Foundry
-        run: foundryup
-
-      - name: Debug Environment
         run: |
-          echo "Checking Foundry installation..."
+          curl -L https://foundry.paradigm.xyz | bash
+          source /home/runner/.bashrc
+          foundryup
           foundryup --version
           echo "Checking Cast installation..."
           cast --version
