@@ -81,10 +81,10 @@ export class Migrator {
         if (
           isNaN(migrationNumber) ||
           migrationNumber <= 0 ||
-          this._config.from > migrationNumber ||
-          (this._config.to < migrationNumber && this._config.to !== -1) ||
-          (this._config.only !== migrationNumber && this._config.only !== -1) ||
-          this._config.skip === migrationNumber
+          this._config.filter.from > migrationNumber ||
+          (this._config.filter.to < migrationNumber && this._config.filter.to !== -1) ||
+          (this._config.filter.only !== migrationNumber && this._config.filter.only !== -1) ||
+          this._config.filter.skip === migrationNumber
         ) {
           return false;
         }
@@ -107,7 +107,7 @@ export class Migrator {
   }
 
   private _getMigrationDir() {
-    return join(this._hre.config.paths.root, this._config.pathToMigrations, this._config.namespace);
+    return join(this._hre.config.paths.root, this._config.paths.pathToMigrations, this._config.paths.namespace);
   }
 
   public static async buildMigrateTaskDeps(hre: HardhatRuntimeEnvironment): Promise<void> {
@@ -117,7 +117,7 @@ export class Migrator {
     buildNetworkDeps(hre);
     await createAndInitReporter(hre);
 
-    if (!hre.config.migrate.continue) {
+    if (!hre.config.migrate.execution.continue) {
       clearAllStorage();
     }
 

@@ -154,7 +154,7 @@ export class BaseTransactionProcessor {
       name: args.name,
     });
 
-    if (TransactionStorage.has(dataKey) && !this._config.continue) {
+    if (TransactionStorage.has(dataKey) && !this._config.execution.continue) {
       this._processCollision(dataKey, dataToSave);
     }
 
@@ -164,7 +164,7 @@ export class BaseTransactionProcessor {
   }
 
   private _saveContract(keyByArgs: string, dataToSave: ContractFieldsToSave) {
-    if (TransactionStorage.has(keyByArgs) && !this._config.continue) {
+    if (TransactionStorage.has(keyByArgs) && !this._config.execution.continue) {
       this._processCollision(keyByArgs, dataToSave);
     }
 
@@ -172,7 +172,7 @@ export class BaseTransactionProcessor {
   }
 
   private _saveContractByName(contractName: string, dataToSave: ContractFieldsToSave) {
-    if (TransactionStorage.has(contractName) && !this._config.continue) {
+    if (TransactionStorage.has(contractName) && !this._config.execution.continue) {
       this._processCollision(contractName, dataToSave);
     }
 
@@ -180,7 +180,7 @@ export class BaseTransactionProcessor {
   }
 
   private _processCollision(dataKey: string, dataToSave: TransactionFieldsToSave | ContractFieldsToSave) {
-    if (this._config.continue) {
+    if (this._config.execution.continue) {
       return;
     }
 

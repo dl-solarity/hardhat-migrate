@@ -1,22 +1,30 @@
 import { join } from "path";
+import { format } from "prettier";
 import { existsSync, mkdirSync, writeFile } from "fs";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { Network, TransactionReceipt, TransactionResponse } from "ethers";
 
-import { ContractFieldsToSave, MigrationMetadata, TransactionFieldsToSave } from "../../types/tools";
-import { format } from "prettier";
-import { castAmount, catchError } from "../../utils";
 import { Reporter } from "./Reporter";
+
 import { Stats } from "../Stats";
+
+import { ContractFieldsToSave, MigrationMetadata, TransactionFieldsToSave } from "../../types/tools";
+
+import { castAmount, catchError } from "../../utils";
+
+export type NetworkInfo = {
+  network: Network;
+  explorer: string;
+};
 
 export type ReportState = {
   title: string;
   generalInfo: {
     title: string;
     migrationFiles: Set<string>;
-    networks: Record<string, Network>;
+    networks: Record<string, NetworkInfo>;
   };
   reportedContracts: Set<[name: string, address: string]>;
   detailedMigrationFiles: {
@@ -302,8 +310,8 @@ export class ReporterStorage {
     this._commitReport();
   }
 
-  public storeChainInfo(network: Network) {
-    this._state.generalInfo.networks[network.name] = network;
+  public storeChainInfo(network: NetworkInfo) {
+    this._state.generalInfo.networks[network.network.name] = network;
 
     this._commitReport();
   }
@@ -374,10 +382,11 @@ export class ReporterStorage {
     actualState.push({ h3: "Networks" });
     actualState.push({
       ul: Object.values(generalInfo.networks).map((network) => {
-        const name = network.name;
-        const chainId = network.chainId;
+        const name = network.network.name;
+        const chainId = network.network.chainId;
+        const explorer = network.explorer;
 
-        return `${name} - Chain ID: ${chainId}`;
+        return `${name} - Chain ID: ${chainId}. Explorer: ${explorer}`;
       }),
     });
 

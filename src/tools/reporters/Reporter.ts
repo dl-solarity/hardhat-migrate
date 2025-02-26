@@ -31,6 +31,7 @@ class BaseReporter {
 
   private _nativeSymbol: string = "";
   private _explorerUrl: string = "";
+  private _txExplorerUrl: string = "";
 
   private _warningsToPrint: Map<string, string> = new Map();
 
@@ -42,7 +43,8 @@ class BaseReporter {
 
     this._network = await this._getNetwork();
     this._nativeSymbol = await this._getNativeSymbol();
-    this._explorerUrl = (await this.getExplorerUrl()) + "/tx/";
+    this._explorerUrl = await this.getExplorerUrl();
+    this._txExplorerUrl = this._explorerUrl + "/tx/";
 
     this._storage = new ReporterStorage(hre);
   }
@@ -100,7 +102,7 @@ class BaseReporter {
         }
 
         this._spinner.text = await getSpinnerText();
-      }, this._config.transactionStatusCheckInterval);
+      }, this._config.execution.transactionStatusCheckInterval);
     }
 
     this._spinnerState.push(id);
@@ -399,7 +401,7 @@ class BaseReporter {
   }
 
   private _getExplorerLink(txHash: string): string {
-    return this._explorerUrl + txHash;
+    return this._txExplorerUrl + txHash;
   }
 
   private _reportMigrationFiles(files: string[]) {
@@ -419,7 +421,7 @@ class BaseReporter {
 
     console.log(`> ${"Network id:".padEnd(20)} ${this._network.chainId}`);
 
-    this._storage!.storeChainInfo(this._network);
+    this._storage!.storeChainInfo({ network: this._network, explorer: this._explorerUrl });
   }
 
   private async _getNetwork(): Promise<Network> {

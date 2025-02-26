@@ -53,7 +53,13 @@ export class Deployer {
     argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
     parameters: OverridesAndLibs = {},
   ) {
-    return this._deployProxy(implementationFactory, "ERC1967Proxy", ["0x"], argsOrParameters, parameters);
+    return this.deployProxy(
+      implementationFactory,
+      "ERC1967Proxy",
+      (implementationAddress) => [implementationAddress, "0x"],
+      argsOrParameters,
+      parameters,
+    );
   }
 
   public async deployTransparentUpgradeableProxy<A, I = any>(
@@ -66,19 +72,19 @@ export class Deployer {
       throw new MigrateError("Proxy admin cannot be the zero address");
     }
 
-    return this._deployProxy(
+    return this.deployProxy(
       implementationFactory,
       "TransparentUpgradeableProxy",
-      [proxyAdmin, "0x"],
+      (implementationAddress) => [implementationAddress, proxyAdmin, "0x"],
       argsOrParameters,
       parameters,
     );
   }
 
-  private async _deployProxy<A, I = any>(
+  public async deployProxy<A, I = any>(
     implementationFactory: Instance<A, I>,
     proxyFactoryName: string,
-    proxyArgs: any[],
+    proxyArgs: (implementationAddress: string) => any[],
     argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
     parameters: OverridesAndLibs = {},
   ) {
@@ -113,13 +119,13 @@ export class Deployer {
 
     let artifact = await artifacts.readArtifact(proxyFactoryName);
 
-    const proxy = await this.deploy(proxyFactory, [await implementation.getAddress(), ...proxyArgs], {
+    const proxy = await this.deploy(proxyFactory, proxyArgs(await implementation.getAddress()), {
       name: instanceName,
     });
     VerificationProcessor.saveVerificationFunction({
       contractAddress: await proxy.getAddress(),
       contractName: `${artifact.sourceName}:${artifact.contractName}`,
-      constructorArguments: [await implementation.getAddress(), ...proxyArgs],
+      constructorArguments: proxyArgs(await implementation.getAddress()),
       chainId: Number(await getChainId()),
     });
 
@@ -183,7 +189,7 @@ export class Deployer {
 
     const methodString = "sendNative";
 
-    if (this._hre.config.migrate.continue) {
+    if (this._hre.config.migrate.execution.continue) {
       try {
         const savedTx = TransactionProcessor?.tryRestoreSavedTransaction(tx);
 
@@ -198,7 +204,7 @@ export class Deployer {
     const txResponse = await signer.sendTransaction(tx);
 
     const [receipt] = await Promise.all([
-      txResponse.wait(this._hre.config.migrate.wait),
+      txResponse.wait(this._hre.config.migrate.execution.wait),
       TransactionRunner!.reportTransactionResponse(txResponse, methodString),
     ]);
 

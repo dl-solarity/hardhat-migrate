@@ -9,6 +9,7 @@
   - Please refer to the `Installation` section in the README for the updated installation instructions.
   - The motivation is to avoid conflicts with `@nomicfoundation/hardhat-toolbox` when using both plugins.
 - Removed the default conversion of the `bigint` to `string` for the `JSON.stringify` function.
+- Updated the `MigrateConfig` layout. Now similar by logic parameter are grouped together.
 
 ### New features
 

@@ -56,7 +56,7 @@ class BaseTransactionRunner {
     let receipt: TransactionReceipt;
     try {
       // We will wait for both contract deployment and common transactions
-      receipt = (await tx.wait(this._config.wait))!;
+      receipt = (await tx.wait(this._config.execution.wait))!;
     } catch (e: any) {
       throw new MigrateError(`Transaction failed: ${e.message}`);
     } finally {

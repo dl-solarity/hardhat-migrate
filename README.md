@@ -13,6 +13,7 @@ This plugin helps you deploy and verify the source code for your Solidity contra
 - Leverage the "migration recovery mode" that automatically syncs up the deployment to the last failed transaction.
 - Observe the real-time status of transactions being executed.
 - Simplify the `libraries` usage via auto-linking mechanics.
+- Support for multiple wallet types, including Cast Wallet and Trezor hardware wallet.
 - And much more.
 
 ## Installation
@@ -53,9 +54,9 @@ It is also **mandatory** to specify the naming convention for migrations such as
 - `migrate:verify` task, which helps you verify already deployed contracts.
 
 > [!WARNING]
-> **Hardhat Config**: Make sure they are follow the docs from `@nomicfoundation/hardhat-verify`.
+> **Hardhat Config**: Make sure they follow the docs from `@nomicfoundation/hardhat-verify`.
 
-Do not import `@solarity/hardhat-migrate` and `@nomicfoundation/hardhat-verify`, `@nomicfoundation/hardhat-ethers` together, the etherscan plugin is already included in the migrate plugin.
+Do not forget to import `@nomicfoundation/hardhat-verify` when using `@solarity/hardhat-migrate` plugin to verify contracts after deployment.
 
 To view the available options, run the command (help command):
 
@@ -74,41 +75,87 @@ You may add the following `migrate` config to your _hardhat config_ file:
 ```js
 module.exports = {
   migrate: {
-    from: -1,
-    to: -1,
-    only: -1,
-    skip: -1,
-    wait: 1,
-    verificationDelay: 5000,
-    verify: false,
-    verifyParallel: 1,
-    verifyAttempts: 3,
-    pathToMigrations: "./deploy",
-    namespace: "",
-    force: false,
-    continue: false,
-    transactionStatusCheckInterval: 2000,
+    filter: {
+      from: -1,
+      to: -1,
+      only: -1,
+      skip: -1,
+    },
+    verification: {
+      verify: false,
+      verificationDelay: 5000,
+      verifyParallel: 1,
+      verifyAttempts: 3,
+    },
+    paths: {
+      pathToMigrations: "./deploy",
+      namespace: "",
+    },
+    execution: {
+      force: false,
+      continue: false,
+      wait: 1,
+      transactionStatusCheckInterval: 2000,
+    },
+    castWallet: {
+      enabled: false,
+      // Optional parameters below
+      // passwordFile: "/path/to/password.txt",
+      // keystore: "/path/to/keystore",
+      // mnemonicIndex: 0,
+      // account: "account-name",
+      // interactive: false,
+    },
+    trezorWallet: {
+      enabled: false,
+      mnemonicIndex: 0,
+    },
   },
 };
 ```
 
 ### Parameter explanation
 
+#### Filter Parameters
+
 - `from` : The migration number from which the migration will be applied.
 - `to` : The migration number up to which the migration will be applied.
 - `only` : The number of the migration that will be applied. **Overrides from and to parameters.**
 - `skip`: The number of migration to skip. **Overrides only parameter.**
-- `wait` : The number of confirmations to wait for after the transaction is mined.
-- `verificationDelay` : The delay in milliseconds between the deployment and verification of the contract.
+
+#### Verification Parameters
+
 - `verify` : The flag indicating whether the contracts have to be verified after all migrations.
+- `verificationDelay` : The delay in milliseconds between the deployment and verification of the contract.
 - `verifyParallel` : The size of the batch for verification.
 - `verifyAttempts` : The number of attempts to verify the contract.
+
+#### Path Parameters
+
 - `pathToMigrations` : The path to the folder with the specified migrations.
 - `namespace`: The path to the folder where the migration should be done.
    - This parameter is used together with the `pathToMigrations` parameter. If the `namespace` parameter specified, the migrations will be retrieved from following path: `{hardhat.config.path.root}/{pathToMigrations}/{namespace}`
+
+#### Execution Parameters
+
 - `force` : The flag indicating whether the contracts compilation is forced.
 - `continue` : The flag indicating whether the deployment should restore the state from the previous deployment.
+- `wait` : The number of confirmations to wait for after the transaction is mined.
 - `transactionStatusCheckInterval` : The interval in milliseconds between transaction status checks.
+
+#### Cast Wallet Parameters
+
+- `enabled`: The flag indicating whether to use the Cast wallet for signing transactions.
+- `passwordFile`: File path to the keystore password.
+- `keystore`: Use a keystore file or directory.
+- `mnemonicIndex`: The mnemonic index (default 0).
+- `account`: The account name (when using the default keystore directory).
+- `interactive`: Open an interactive prompt to enter your private key.
+
+#### Trezor Wallet Parameters
+
+- `enabled`: The flag indicating whether to use the Trezor hardware wallet for signing transactions.
+- `mnemonicIndex`: The mnemonic index for Trezor wallet.
 
 ### Deploying
 
@@ -131,6 +178,18 @@ npx hardhat migrate --network sepolia --from 1 --to 2
 ```
 
 In this case, migrations 1 through 2 (both) will be applied without the automatic verification.
+
+#### Using a specific wallet
+
+With Cast Wallet:
+```bash
+npx hardhat migrate --network sepolia --castWalletEnabled --keystore ./keys --passwordFile ./password.txt
+```
+
+With Trezor hardware wallet:
+```bash
+npx hardhat migrate --network sepolia --trezorEnabled --trezorMnemonicIndex 5
+```
 
 ## How it works
 
@@ -186,7 +245,7 @@ recovery from failures in previous migration runs.
 ### Migration Lifecycle
 
 Migration files are executed in ascending order, sorted by the ordinal file number (the number in the file name). 
-Parameters such as `from`, `to`, `only`, and `skip` influence the selection of migration files.
+Parameters such as `filter.from`, `filter.to`, `filter.only`, and `filter.skip` influence the selection of migration files.
 
 ### Deployer
 
@@ -209,6 +268,24 @@ Saves the contract to storage under the given `address` without deployment.
 - **deployed(contractInstance, contractIdentifier)**: 
 
 Returns the deployed contract instance, inferring types and enhancing functionalities for comfortable interaction.
+
+---
+
+- **deployERC1967Proxy(implementationFactory, argsOrParameters, parameters)**:
+
+Deploys an implementation contract and an ERC1967 proxy pointing to it. The implementation is deployed first, and then the proxy is deployed with the implementation's address. Returns a contract instance representing the proxied implementation.
+
+---
+
+- **deployTransparentUpgradeableProxy(implementationFactory, proxyAdmin, argsOrParameters, parameters)**:
+
+Deploys an implementation contract and a Transparent Upgradeable Proxy pointing to it. Requires a valid proxy admin address. Returns a contract instance representing the proxied implementation.
+
+---
+
+- **deployProxy(implementationFactory, proxyFactoryName, proxyArgs, argsOrParameters, parameters)**:
+
+Generic method for deploying proxies with custom logic.
 
 ---
 
@@ -238,7 +315,8 @@ Identifies the current chain ID for the deployment.
 
 ### Reporter
 
-The Reporter, a static class, provides functionalities like:
+The Reporter provides various methods for logging deployment information.
+Automatically saves transaction data to the deployment report.
 
 ---
 
@@ -254,7 +332,34 @@ Displays a list of contract names and addresses in a table format.
 
 ---
 
-The usage of these functionalities is demonstrated in the sample migration file above.
+- **reportContractsMD(...contracts: [string, string][])**: 
+
+Displays a list of contract names and addresses in Markdown format with links to the block explorer.
+
+---
+
+- **disableShortenAddress()**:
+
+Returns the Reporter class with address shortening disabled. By default, addresses are shortened. Chain with `reportContractsMD` Reporter method:
+
+```typescript
+Reporter.disableShortenAddress().reportContractsMD([
+  "My Contract", "0x1234567890123456789012345678901234567890"
+]);
+```
+
+### Deployment Reporting
+
+The plugin automatically generates comprehensive deployment reports throughout the migration process. 
+These reports are stored in the cache folder and include:
+
+* List of deployed contracts with addresses
+* Transaction details including gas usage and status
+* Networks used in the deployment
+* Statistics about gas usage and fees paid
+* Verification status for contracts
+* Any issues encountered during deployment or verification
+* Proxy contract linking success/failure
 
 ### Transactions
 
@@ -266,7 +371,7 @@ This feature varies depending on the framework used.
 In Ethers.js, you can specify the transaction name using the `customData` field within the overrides. 
 A special field, `txName`, is dedicated for this purpose.
 
-Here’s an example of how to set a transaction name using Ethers.js:
+Here's an example of how to set a transaction name using Ethers.js:
 
 ```javascript
 await govToken.transferOwnership(TOKEN_OWNER, { customData: { txName: "Transfer Ownership" }});
@@ -284,10 +389,28 @@ The Migrator will utilize these names to distinguish between identical transacti
 
 For a list of parameters that affect the verification process, see [Parameter Explanation](https://github.com/dl-solarity/hardhat-migrate#parameter-explanation).
 
-If verification fails, the `attempts` parameter indicates how many additional requests will be made before the migration process is terminated.
+If verification fails, the `verification.verifyAttempts` parameter indicates how many additional requests will be made before the migration process is terminated.
+
+### Namespaces
+
+Instead of having all deployment scripts in the `deploy` folder, you can separate those into subfolders:
+
+```
+deploy
+├── l1-deployment
+│   ├── 1_core.migration.ts
+│   └── 2_setup.migration.ts
+└── l2-testnet
+    ├── 1_prepare.migration.ts
+    └── 2_deploy.migration.ts
+```
+
+And when running the migration, you can specify the namespace like this:
+```bash
+npx hardhat migrate --namespace l1-deployment
+```
 
 ## Known limitations
 
-- This plugin, as well as the [Hardhat Toolbox](https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox) plugin, use the [@nomicfoundation/hardhat-verify](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify) plugin internally, so both of these plugins cannot be imported at the same time. A quick fix is to manually import the needed plugins that ToolBox imports.
 - Adding, removing, moving or renaming new contracts to the hardhat project or reorganizing the directory structure of contracts after deployment may alter the resulting bytecode in some solc versions. See this [Solidity issue](https://github.com/ethereum/solidity/issues/9573) for further information.
 - This plugin does not function properly with native Ethers factories methods, such as `factory.attach()`. So, instead of using mentioned method, it is necessary to use the `deployer.deployed()`.

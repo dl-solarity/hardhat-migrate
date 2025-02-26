@@ -51,7 +51,7 @@ export class MinimalContract {
 
     const tx = await this._createDeployTransaction(args, parameters);
 
-    if (this._hre.config.migrate.continue) {
+    if (this._hre.config.migrate.execution.continue) {
       return this._recoverContractAddress(tx, args);
     } else {
       return this._processContractDeploymentTransaction(tx, args);

@@ -142,7 +142,7 @@ export abstract class BaseAdapter extends Adapter {
 
       const keyFields = this._getKeyFieldsFromTransaction(tx);
 
-      if (this._hre.config.migrate.continue) {
+      if (this._hre.config.migrate.execution.continue) {
         return this._recoverTransaction(methodString, keyFields, oldMethod, args);
       }
 
