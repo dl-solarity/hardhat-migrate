@@ -31,8 +31,20 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-v${{ matrix.node }}-
 
-      - name: Setup foundry
-        uses: foundry-rs/foundry-toolchain@v1
+      - name: Install Foundry
+        run: curl -L https://foundry.paradigm.xyz | bash
+
+      - name: Initialize Foundry
+        run: foundryup
+
+      - name: Debug Environment
+        run: |
+          echo "Checking Foundry installation..."
+          foundryup --version
+          echo "Checking Cast installation..."
+          cast --version
+          echo "Environment variables:"
+          env
 
       - name: Prepare Cast Wallet
         run: cast w i --private-key 0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356 test-7
