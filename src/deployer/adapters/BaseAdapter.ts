@@ -134,7 +134,7 @@ export abstract class BaseAdapter extends Adapter {
   ): (...args: any[]) => Promise<ContractTransactionResponse> {
     return async (...args: any[]): Promise<ContractTransactionResponse> => {
       const tx = await oldMethod.populateTransaction(...args);
-      tx.from = (runner as any).address;
+      tx.from = (runner as any).address || (await (runner as any).getAddress());
 
       await fillParameters(tx);
 

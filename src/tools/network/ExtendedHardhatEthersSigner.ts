@@ -17,8 +17,13 @@ import { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/
 
 import { MigrateError } from "../../errors";
 
-import { initTrezor, signWithTrezor } from "../integrations/trezor-integration";
-import { CastSignOptions, getCastVersion, getSignedTxViaCast } from "../integrations/cast-integration";
+import { getTrezorAddress, initTrezor, signWithTrezor } from "../integrations/trezor-integration";
+import {
+  CastSignOptions,
+  getCastVersion,
+  getCastWalletAddress,
+  getSignedTxViaCast,
+} from "../integrations/cast-integration";
 import { MigrateConfig } from "../../types/migrations";
 import { networkManager } from "./NetworkManager";
 
@@ -48,8 +53,10 @@ export class ExtendedHardhatEthersSigner {
     signerName: AddressLike | undefined,
   ) {
     this.address = signerName;
-    this.provider = this._hre.ethers.provider;
     this.ethersSigner = ethersSigner;
+
+    this.provider = this._hre.ethers.provider;
+
     this._config = this._hre.config.migrate;
   }
 
@@ -76,7 +83,6 @@ export class ExtendedHardhatEthersSigner {
 
     const populatedTx = await this.ethersSigner.populateTransaction(tx);
     delete populatedTx.from;
-
     const txObj = Transaction.from(populatedTx);
 
     return this.provider.broadcastTransaction(await this._signTransaction(txObj));
@@ -88,12 +94,11 @@ export class ExtendedHardhatEthersSigner {
     }
 
     if (this._config.castWallet.enabled) {
-      // const castOpts = this._getCastOptions();
-      throw new MigrateError("Cast wallet requires an explicit address to be provided");
+      return getCastWalletAddress(this._getCastOptions());
     }
 
     if (this._config.trezorWallet.enabled) {
-      throw new MigrateError("Trezor wallet requires an explicit address to be provided");
+      return getTrezorAddress(this._config.trezorWallet.mnemonicIndex || 0);
     }
 
     if ("getAddress" in this.ethersSigner) {

@@ -60,6 +60,7 @@ export async function signWithTrezor(tx: Transaction, mnemonicIndex: number = 0)
     const result = await TrezorConnect.ethereumSignTransaction({
       transaction: trezorTx,
       path,
+      useEmptyPassphrase: true,
     });
 
     if (!result.success) {
@@ -86,6 +87,7 @@ export async function getTrezorAddress(mnemonicIndex: number = 0): Promise<strin
     const result = await TrezorConnect.ethereumGetAddress({
       path,
       showOnTrezor: false,
+      useEmptyPassphrase: true,
     });
 
     if (!result.success) {

@@ -48,7 +48,7 @@ class NetworkManager {
     this.provider = this.withRetry(ethersProvider!);
   }
 
-  public async getSigner(from?: null | AddressLike): Promise<HardhatEthersSigner> {
+  public async getEthersSigner(from?: null | AddressLike): Promise<HardhatEthersSigner> {
     if (!from) {
       return this.provider.getSigner(this.currentFrom);
     }
@@ -57,21 +57,20 @@ class NetworkManager {
     return this.provider.getSigner(address);
   }
 
-  // async getSigner(from?: null | AddressLike): Promise<ExtendedHardhatEthersSigner> {
-  //   // Default option
-  //   if (!from) {
-  //     return ExtendedHardhatEthersSigner.fromSignerName(this.currentFrom);
-  //   }
-  //
-  //   // From specified as name. Cast Wallet branch.
-  //   if (!ethers.isAddress(from)) {
-  //     return ExtendedHardhatEthersSigner.fromSignerName(from);
-  //   }
-  //
-  //   // From specified as address. HardhatEthersProvider branch.
-  //   const address = await ethers.resolveAddress(from, this.provider);
-  //   return ExtendedHardhatEthersSigner.fromSignerName(address);
-  // }
+  async getSigner(from?: null | AddressLike): Promise<ExtendedHardhatEthersSigner> {
+    if (!from) {
+      return ExtendedHardhatEthersSigner.fromSignerName(this.currentFrom);
+    }
+
+    // From specified as name. Cast Wallet branch.
+    if (!ethers.isAddress(from)) {
+      return ExtendedHardhatEthersSigner.fromSignerName(from);
+    }
+
+    // From specified as address. HardhatEthersProvider branch.
+    const address = await ethers.resolveAddress(from, this.provider);
+    return ExtendedHardhatEthersSigner.fromSignerName(address);
+  }
 
   public async setSigner(from?: AddressLike): Promise<void> {
     this.currentFrom = from ? await ethers.resolveAddress(from, this.provider) : undefined;
