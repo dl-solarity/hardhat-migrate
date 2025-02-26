@@ -44,10 +44,6 @@ npx hardhat migrate --namespace l1-deployment
 
 - Added integration with [cast](https://book.getfoundry.sh/cast/) and [trezor](https://trezor.io/) wallets.
 
-Notes: 
-
-[//]: # (// TODO: add tests for the deployment of proxies)
-
 ## Version 2.1.11 
 
 * Added a caching mechanism to reduce the number of requests to the RPC provider.  
