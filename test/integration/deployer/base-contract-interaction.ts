@@ -73,6 +73,42 @@ describe("deployer", () => {
       expect(await ethersProvider!.provider.getBalance(contract.getAddress())).to.equal(toPay);
     });
 
+    it("should deploy ERC1967 proxy contract and set implementation", async function () {
+      const contract = await deployer.deployERC1967Proxy(PayableReceive__factory);
+
+      const toPay = 100n;
+
+      await contract.pay({ value: toPay.toString() });
+
+      expect(await ethersProvider!.provider.getBalance(contract.getAddress())).to.equal(toPay);
+    });
+
+    it("should deploy TransparentUpgradeableProxy contract and set implementation", async function () {
+      const contract = await deployer.deployTransparentUpgradeableProxy(
+        PayableReceive__factory,
+        await (await deployer.getSigner()).getAddress(),
+      );
+
+      const toPay = 100n;
+
+      await contract.pay({ value: toPay.toString() });
+
+      expect(await ethersProvider!.provider.getBalance(contract.getAddress())).to.equal(toPay);
+    });
+
+    it("should deploy generic proxy contract", async function () {
+      const contract = await deployer.deployProxy(PayableReceive__factory, "ERC1967Proxy", (implementationAddress) => [
+        implementationAddress,
+        "0x",
+      ]);
+
+      const toPay = 100n;
+
+      await contract.pay({ value: toPay.toString() });
+
+      expect(await ethersProvider!.provider.getBalance(contract.getAddress())).to.equal(toPay);
+    });
+
     it("should connect to different signer and send transaction", async function () {
       const [signer1, signer2] = await hre.ethers.getSigners();
 

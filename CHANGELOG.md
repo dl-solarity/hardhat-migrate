@@ -42,6 +42,10 @@ npx hardhat migrate --namespace l1-deployment
 
 - Added helper function to the Deployer for the proxy deployment: `deployERC1967Proxy` and `deployTransparentUpgradeableProxy`
 
+- Added integration with [cast](https://book.getfoundry.sh/cast/) and [trezor](https://trezor.io/) wallets.
+
+Notes: 
+
 [//]: # (// TODO: add tests for the deployment of proxies)
 
 ## Version 2.1.11 
