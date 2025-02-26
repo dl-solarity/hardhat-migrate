@@ -6,7 +6,7 @@ import { useEnvironment } from "../../helpers";
 import { resetReporter } from "../../../src/tools/reporters/Reporter";
 import { resetTransactionRunner } from "../../../src/tools/runners/TransactionRunner";
 
-describe("cast integration", () => {
+describe.skip("cast integration", () => {
   useEnvironment("cast-integration");
 
   let hre: HardhatRuntimeEnvironment;

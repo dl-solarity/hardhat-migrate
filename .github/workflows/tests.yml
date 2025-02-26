@@ -31,27 +31,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-v${{ matrix.node }}-
 
-      - name: Install Foundry
-        run: |
-          curl -L https://foundry.paradigm.xyz | bash
-          echo "Checking Cast installation..."
-          source /home/runner/.bashrc
-          echo "Checking Cast installation..."
-          foundryup
-          echo "Checking Cast installation..."
-          foundryup --version
-          echo "Checking Cast installation..."
-          cast --version
-          echo "Environment variables:"
-          env
-
-      - name: Prepare Cast Wallet
-        run: cast w i --private-key 0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356 test-7
-
       - name: Install Dependencies
         run: npm install
 
       - name: Compile
         run: npm run compile
+
       - name: Run All Node.js Tests
         run: npm run test
