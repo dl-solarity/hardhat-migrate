@@ -4,7 +4,13 @@ import { extendConfig, task, types } from "hardhat/config";
 
 import "./type-extensions";
 
-import { extendVerifyConfigs, mergeConfigs, migrateConfigExtender, validateConfig } from "./config";
+import {
+  convertFlatToNested,
+  extendVerifyConfigs,
+  mergeConfigs,
+  migrateConfigExtender,
+  validateConfig,
+} from "./config";
 import { TASK_MIGRATE, TASK_MIGRATE_VERIFY } from "./constants";
 
 import { MigrateConfig, MigrateVerifyConfig } from "./types/migrations";
@@ -22,7 +28,7 @@ export { UserStorage, TransactionStorage, VerificationStorage, ArtifactStorage }
 extendConfig(migrateConfigExtender);
 
 const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
-  env.config.migrate = mergeConfigs(taskArgs, env.config.migrate);
+  env.config.migrate = mergeConfigs(convertFlatToNested(taskArgs), env.config.migrate);
   validateConfig(env.config.migrate);
 
   await env.run(TASK_COMPILE, {

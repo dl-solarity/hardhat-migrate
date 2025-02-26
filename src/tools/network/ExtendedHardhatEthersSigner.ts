@@ -81,9 +81,12 @@ export class ExtendedHardhatEthersSigner {
       return this.ethersSigner.sendTransaction(tx);
     }
 
-    const populatedTx = await this.ethersSigner.populateTransaction(tx);
-    delete populatedTx.from;
-    const txObj = Transaction.from(populatedTx);
+    let voidSigner = new VoidSigner(await this.getAddress(), this.provider);
+
+    const preparedTx = await voidSigner.populateTransaction(tx);
+    delete preparedTx.from;
+
+    const txObj = Transaction.from(preparedTx);
 
     return this.provider.broadcastTransaction(await this._signTransaction(txObj));
   }
@@ -121,8 +124,7 @@ export class ExtendedHardhatEthersSigner {
   }
 
   private async _signWithCast(tx: Transaction): Promise<string> {
-    const castOpts = this._getCastOptions();
-    return getSignedTxViaCast(tx, castOpts);
+    return getSignedTxViaCast(tx, this._getCastOptions());
   }
 
   private async _signWithTrezor(tx: Transaction): Promise<string> {

@@ -54,7 +54,7 @@ export const mergeConfigs = (
   migrateConfig: MigrateConfig,
 ): MigrateConfig => {
   if (externalConfig) {
-    return deepMerge(migrateConfig, externalConfig.filter ? externalConfig : convertFlatToNested(externalConfig));
+    return deepMerge(migrateConfig, externalConfig);
   }
 
   return migrateConfig;
@@ -63,46 +63,65 @@ export const mergeConfigs = (
 export function convertFlatToNested(flatConfig: any): Partial<MigrateConfig> {
   const result: Partial<MigrateConfig> = {};
 
-  result.filter = {
-    from: flatConfig.from ?? defaultConfig.filter.from,
-    to: flatConfig.to ?? defaultConfig.filter.to,
-    only: flatConfig.only ?? defaultConfig.filter.only,
-    skip: flatConfig.skip ?? defaultConfig.filter.skip,
-  };
+  if (flatConfig.from || flatConfig.to || flatConfig.only || flatConfig.skip) {
+    result.filter = {} as any;
+  }
 
-  result.verification = {
-    verify: flatConfig.verify ?? false,
-    verificationDelay: flatConfig.verificationDelay ?? defaultConfig.verification.verificationDelay,
-    verifyParallel: flatConfig.verifyParallel ?? defaultConfig.verification.verifyParallel,
-    verifyAttempts: flatConfig.verifyAttempts ?? defaultConfig.verification.verifyAttempts,
-  };
+  if (flatConfig.from) result.filter!.from = flatConfig.from;
+  if (flatConfig.to) result.filter!.to = flatConfig.to;
+  if (flatConfig.only) result.filter!.only = flatConfig.only;
+  if (flatConfig.skip) result.filter!.skip = flatConfig.skip;
 
-  result.paths = {
-    pathToMigrations: flatConfig.pathToMigrations ?? defaultConfig.paths.pathToMigrations,
-    namespace: flatConfig.namespace ?? defaultConfig.paths.namespace,
-  };
+  if (flatConfig.verify || flatConfig.verificationDelay || flatConfig.verifyParallel || flatConfig.verifyAttempts) {
+    result.verification = {} as any;
+  }
 
-  result.execution = {
-    force: flatConfig.force ?? defaultConfig.execution.force,
-    continue: flatConfig.continue ?? defaultConfig.execution.continue,
-    wait: flatConfig.wait ?? defaultConfig.execution.wait,
-    transactionStatusCheckInterval:
-      flatConfig.transactionStatusCheckInterval ?? defaultConfig.execution.transactionStatusCheckInterval,
-  };
+  if (flatConfig.verify) result.verification!.verify = flatConfig.verify;
+  if (flatConfig.verificationDelay) result.verification!.verificationDelay = flatConfig.verificationDelay;
+  if (flatConfig.verifyParallel) result.verification!.verifyParallel = flatConfig.verifyParallel;
+  if (flatConfig.verifyAttempts) result.verification!.verifyAttempts = flatConfig.verifyAttempts;
 
-  result.castWallet = {
-    enabled: flatConfig.castWalletEnabled ?? defaultConfig.castWallet.enabled,
-    passwordFile: flatConfig.passwordFile,
-    keystore: flatConfig.keystore,
-    mnemonicIndex: flatConfig.mnemonicIndex,
-    account: flatConfig.account,
-    interactive: flatConfig.interactive,
-  };
+  if (flatConfig.pathToMigrations || flatConfig.namespace) {
+    result.paths = {} as any;
+  }
 
-  result.trezorWallet = {
-    enabled: flatConfig.trezorEnabled ?? defaultConfig.trezorWallet.enabled,
-    mnemonicIndex: flatConfig.trezorMnemonicIndex ?? defaultConfig.trezorWallet.mnemonicIndex,
-  };
+  if (flatConfig.pathToMigrations) result.paths!.pathToMigrations = flatConfig.pathToMigrations;
+  if (flatConfig.namespace) result.paths!.namespace = flatConfig.namespace;
+
+  if (flatConfig.force || flatConfig.continue || flatConfig.wait || flatConfig.transactionStatusCheckInterval) {
+    result.execution = {} as any;
+  }
+
+  if (flatConfig.force) result.execution!.force = flatConfig.force;
+  if (flatConfig.continue) result.execution!.continue = flatConfig.continue;
+  if (flatConfig.wait) result.execution!.wait = flatConfig.wait;
+  if (flatConfig.transactionStatusCheckInterval)
+    result.execution!.transactionStatusCheckInterval = flatConfig.transactionStatusCheckInterval;
+
+  if (
+    flatConfig.castWalletEnabled ||
+    flatConfig.passwordFile ||
+    flatConfig.keystore ||
+    flatConfig.mnemonicIndex ||
+    flatConfig.account ||
+    flatConfig.interactive
+  ) {
+    result.castWallet = {} as any;
+  }
+
+  if (flatConfig.castWalletEnabled) result.castWallet!.enabled = flatConfig.castWalletEnabled;
+  if (flatConfig.passwordFile) result.castWallet!.passwordFile = flatConfig.passwordFile;
+  if (flatConfig.keystore) result.castWallet!.keystore = flatConfig.keystore;
+  if (flatConfig.mnemonicIndex) result.castWallet!.mnemonicIndex = flatConfig.mnemonicIndex;
+  if (flatConfig.account) result.castWallet!.account = flatConfig.account;
+  if (flatConfig.interactive) result.castWallet!.interactive = flatConfig.interactive;
+
+  if (flatConfig.trezorEnabled || flatConfig.trezorMnemonicIndex) {
+    result.trezorWallet = {} as any;
+  }
+
+  if (flatConfig.trezorEnabled) result.trezorWallet!.enabled = flatConfig.trezorEnabled;
+  if (flatConfig.trezorMnemonicIndex) result.trezorWallet!.mnemonicIndex = flatConfig.trezorMnemonicIndex;
 
   return result;
 }
