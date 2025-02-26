@@ -30,7 +30,7 @@ export async function initTrezor(): Promise<void> {
       },
       debug: false,
       lazyLoad: true,
-      pendingTransportEvent: true,
+      transports: ["BridgeTransport", "NodeUsbTransport", "WebUsbTransport"],
     });
 
     trezorInitialized = true;
@@ -43,8 +43,6 @@ export async function signWithTrezor(tx: Transaction, mnemonicIndex: number = 0)
   if (!trezorInitialized) {
     await initTrezor();
   }
-
-  const path = `m/44'/60'/0'/0/${mnemonicIndex}`;
 
   const trezorTx: TrezorTx = {
     to: tx.to!,
@@ -59,7 +57,7 @@ export async function signWithTrezor(tx: Transaction, mnemonicIndex: number = 0)
   try {
     const result = await TrezorConnect.ethereumSignTransaction({
       transaction: trezorTx,
-      path,
+      path: getKeyPath(mnemonicIndex),
       useEmptyPassphrase: true,
     });
 
@@ -67,10 +65,7 @@ export async function signWithTrezor(tx: Transaction, mnemonicIndex: number = 0)
       throw new MigrateError(`Trezor signing failed: ${result.payload.error}`);
     }
 
-    const { r, s, v } = result.payload;
-    tx.signature = { r, s, v };
-
-    return tx.serialized;
+    return result.payload.serializedTx;
   } catch (error: any) {
     throw new MigrateError(`Error signing transaction with Trezor: ${error.message}`);
   }
@@ -81,12 +76,9 @@ export async function getTrezorAddress(mnemonicIndex: number = 0): Promise<strin
     await initTrezor();
   }
 
-  const path = `m/44'/60'/0'/0/${mnemonicIndex}`;
-
   try {
     const result = await TrezorConnect.ethereumGetAddress({
-      path,
-      showOnTrezor: false,
+      path: getKeyPath(mnemonicIndex),
       useEmptyPassphrase: true,
     });
 
@@ -98,4 +90,8 @@ export async function getTrezorAddress(mnemonicIndex: number = 0): Promise<strin
   } catch (error: any) {
     throw new MigrateError(`Error getting address from Trezor: ${error.message}`);
   }
+}
+
+function getKeyPath(mnemonicIndex: number): string {
+  return `m/44'/60'/0'/0/${mnemonicIndex}`;
 }

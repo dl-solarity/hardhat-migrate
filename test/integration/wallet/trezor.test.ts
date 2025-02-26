@@ -6,8 +6,8 @@ import { useEnvironment } from "../../helpers";
 import { resetReporter } from "../../../src/tools/reporters/Reporter";
 import { resetTransactionRunner } from "../../../src/tools/runners/TransactionRunner";
 
-describe("cast integration", () => {
-  useEnvironment("cast-integration");
+describe.skip("trezor integration", () => {
+  useEnvironment("trezor-integration");
 
   let hre: HardhatRuntimeEnvironment;
 

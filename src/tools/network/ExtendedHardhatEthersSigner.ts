@@ -86,6 +86,15 @@ export class ExtendedHardhatEthersSigner {
     const preparedTx = await voidSigner.populateTransaction(tx);
     delete preparedTx.from;
 
+    if (this._config.trezorWallet.enabled) {
+      delete preparedTx.maxFeePerBlobGas;
+      delete preparedTx.maxFeePerGas;
+      delete preparedTx.maxPriorityFeePerGas;
+
+      preparedTx.type = 1;
+      preparedTx.gasPrice = await this.provider.send("eth_gasPrice", []);
+    }
+
     const txObj = Transaction.from(preparedTx);
 
     return this.provider.broadcastTransaction(await this._signTransaction(txObj));
