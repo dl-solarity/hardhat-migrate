@@ -34,6 +34,9 @@ jobs:
       - name: Setup foundry
         uses: foundry-rs/foundry-toolchain@v1
 
+      - name: Prepare Cast Wallet
+        run: cast w i --private-key 0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356 test-7
+
       - name: Install Dependencies
         run: npm install
 
