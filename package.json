@@ -52,6 +52,7 @@
   "dependencies": {
     "@nomicfoundation/hardhat-ethers": "3.0.8",
     "@nomicfoundation/hardhat-verify": "2.0.12",
+    "@trezor/connect": "^9.4.7",
     "axios": "1.7.9",
     "ethers": "6.13.5",
     "json2md": "^2.0.2",

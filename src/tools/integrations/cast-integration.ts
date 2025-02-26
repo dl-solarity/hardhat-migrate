@@ -1,18 +1,7 @@
 import { exec } from "child_process";
 import { promisify } from "util";
 
-import {
-  TransactionRequest,
-  copyRequest,
-  resolveProperties,
-  resolveAddress,
-  assertArgument,
-  getAddress,
-  Transaction,
-  TransactionLike,
-} from "ethers";
-
-import { networkManager } from "../network/NetworkManager";
+import { Transaction } from "ethers";
 
 const execAsync = promisify(exec);
 
@@ -25,48 +14,13 @@ export async function getCastVersion(): Promise<string> {
   }
 }
 
-export async function getSignedTxViaCast(tx: TransactionRequest, castOpts: CastSignOptions = {}) {
-  const signer = await networkManager?.getSigner()!;
-
-  tx = copyRequest(tx);
-
-  // Replace any Addressable or ENS name with an address
-  const { to, from } = await resolveProperties({
-    to: tx.to ? resolveAddress(tx.to, signer.provider) : undefined,
-    from: tx.from ? resolveAddress(tx.from, signer.provider) : undefined,
-  });
-
-  if (to != null) {
-    tx.to = to;
-  }
-  if (from != null) {
-    tx.from = from;
-  }
-
-  if (tx.from != null) {
-    assertArgument(
-      getAddress(<string>tx.from) === signer.address,
-      "transaction from address mismatch",
-      "tx.from",
-      tx.from,
-    );
-    delete tx.from;
-  }
-
-  if (castOpts.trezor || castOpts.ledger) {
-    throw new Error(
-      "Hardware wallets currently are not supported for signing transactions. See issue: https://github.com/alloy-rs/alloy/issues/2114",
-    );
-  }
-
-  // Build the transaction
-  const btx = Transaction.from(<TransactionLike<string>>tx);
-  btx.signature = await signMessage(btx.unsignedHash, {
+export async function getSignedTxViaCast(tx: Transaction, castOpts: CastSignOptions = {}) {
+  tx.signature = await signMessage(tx.unsignedHash, {
     noHash: true,
     ...castOpts,
   });
 
-  return btx.serialized;
+  return tx.serialized;
 }
 
 /**

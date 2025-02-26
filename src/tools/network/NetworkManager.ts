@@ -11,6 +11,7 @@ import { createEthersProvider, ethersProvider } from "./EthersProvider";
 
 import { toJSON } from "../../utils";
 import { createTransactionRunner } from "../runners/TransactionRunner";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 class StateMiddleware {
   private static pendingRequests: Record<string, any> = {};
@@ -47,15 +48,30 @@ class NetworkManager {
     this.provider = this.withRetry(ethersProvider!);
   }
 
-  public async getSigner(from?: null | AddressLike): Promise<ExtendedHardhatEthersSigner> {
+  public async getSigner(from?: null | AddressLike): Promise<HardhatEthersSigner> {
     if (!from) {
-      return new ExtendedHardhatEthersSigner(await this.provider.getSigner(this.currentFrom));
+      return this.provider.getSigner(this.currentFrom);
     }
 
     const address = await ethers.resolveAddress(from, this.provider);
-
-    return new ExtendedHardhatEthersSigner(await this.provider.getSigner(address));
+    return this.provider.getSigner(address);
   }
+
+  // async getSigner(from?: null | AddressLike): Promise<ExtendedHardhatEthersSigner> {
+  //   // Default option
+  //   if (!from) {
+  //     return ExtendedHardhatEthersSigner.fromSignerName(this.currentFrom);
+  //   }
+  //
+  //   // From specified as name. Cast Wallet branch.
+  //   if (!ethers.isAddress(from)) {
+  //     return ExtendedHardhatEthersSigner.fromSignerName(from);
+  //   }
+  //
+  //   // From specified as address. HardhatEthersProvider branch.
+  //   const address = await ethers.resolveAddress(from, this.provider);
+  //   return ExtendedHardhatEthersSigner.fromSignerName(address);
+  // }
 
   public async setSigner(from?: AddressLike): Promise<void> {
     this.currentFrom = from ? await ethers.resolveAddress(from, this.provider) : undefined;

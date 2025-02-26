@@ -78,7 +78,7 @@ export class MinimalContract {
     return {
       contractName: this._contractName,
       chainId: await getChainId(),
-      from: await (await networkManager!.getSigner(txOverrides.from)).innerSigner.getAddress(),
+      from: await (await networkManager!.getSigner(txOverrides.from)).getAddress(),
       ...(await factory.getDeployTransaction(...args, txOverrides)),
     };
   }
