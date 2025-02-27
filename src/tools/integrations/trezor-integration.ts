@@ -6,6 +6,9 @@ import { MigrateError } from "../../errors";
 
 let trezorInitialized = false;
 
+let cachedAddress: string | null = null;
+let lastMnemonicIndexAsked: number | null = null;
+
 export type TrezorTx = {
   maxFeePerGas?: undefined;
   maxPriorityFeePerGas?: undefined;
@@ -30,7 +33,7 @@ export async function initTrezor(): Promise<void> {
       },
       debug: false,
       lazyLoad: true,
-      transports: ["BridgeTransport", "NodeUsbTransport", "WebUsbTransport"],
+      transports: ["BridgeTransport", "NodeUsbTransport"],
     });
 
     trezorInitialized = true;
@@ -54,26 +57,33 @@ export async function signWithTrezor(tx: Transaction, mnemonicIndex: number = 0)
     data: tx.data || "0x",
   };
 
-  try {
-    const result = await TrezorConnect.ethereumSignTransaction({
-      transaction: trezorTx,
-      path: getKeyPath(mnemonicIndex),
-      useEmptyPassphrase: true,
-    });
+  const result = await TrezorConnect.ethereumSignTransaction({
+    transaction: trezorTx,
+    path: getKeyPath(mnemonicIndex),
+    useEmptyPassphrase: true,
+  });
 
-    if (!result.success) {
-      throw new MigrateError(`Trezor signing failed: ${result.payload.error}`);
+  if (!result.success) {
+    let errorMessage = `Failed to sign transaction with Trezor: ${result.payload.error}\n`;
+
+    if (result.payload.error.includes("Forbidden key path")) {
+      errorMessage +=
+        "\n See following GitHub issue on how to resolve the problem: https://github.com/trezor/trezor-suite/issues/17203 \n\n";
     }
 
-    return result.payload.serializedTx;
-  } catch (error: any) {
-    throw new MigrateError(`Error signing transaction with Trezor: ${error.message}`);
+    throw new MigrateError(errorMessage);
   }
+
+  return result.payload.serializedTx;
 }
 
 export async function getTrezorAddress(mnemonicIndex: number = 0): Promise<string> {
   if (!trezorInitialized) {
     await initTrezor();
+  }
+
+  if (lastMnemonicIndexAsked === mnemonicIndex && cachedAddress) {
+    return cachedAddress;
   }
 
   try {
@@ -85,6 +95,9 @@ export async function getTrezorAddress(mnemonicIndex: number = 0): Promise<strin
     if (!result.success) {
       throw new MigrateError(`Failed to get Trezor address: ${result.payload.error}`);
     }
+
+    lastMnemonicIndexAsked = mnemonicIndex;
+    cachedAddress = result.payload.address;
 
     return result.payload.address;
   } catch (error: any) {

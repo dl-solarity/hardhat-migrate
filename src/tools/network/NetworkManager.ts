@@ -41,7 +41,9 @@ class NetworkManager {
   public axios: Axios;
   public provider: HardhatEthersProviderT;
 
-  private currentFrom: string | undefined = undefined;
+  private _currentFrom: string | undefined = undefined;
+
+  private _signers: Record<string, ExtendedHardhatEthersSigner> = {};
 
   constructor() {
     this.axios = this.withRetry(axios);
@@ -50,7 +52,7 @@ class NetworkManager {
 
   public async getEthersSigner(from?: null | AddressLike): Promise<HardhatEthersSigner> {
     if (!from) {
-      return this.provider.getSigner(this.currentFrom);
+      return this.provider.getSigner(this._currentFrom);
     }
 
     const address = await ethers.resolveAddress(from, this.provider);
@@ -58,8 +60,23 @@ class NetworkManager {
   }
 
   async getSigner(from?: null | AddressLike): Promise<ExtendedHardhatEthersSigner> {
+    if (from && this._signers[from as string]) {
+      return this._signers[from as string];
+    }
+
+    const signer = await this._getSigner(from);
+
+    this._signers[await signer.getAddress()] = signer;
+    if (from) {
+      this._signers[from as string] = signer;
+    }
+
+    return signer;
+  }
+
+  private async _getSigner(from?: null | AddressLike): Promise<ExtendedHardhatEthersSigner> {
     if (!from) {
-      return ExtendedHardhatEthersSigner.fromSignerName(this.currentFrom);
+      return ExtendedHardhatEthersSigner.fromSignerName(this._currentFrom);
     }
 
     // From specified as name. Cast Wallet branch.
@@ -73,7 +90,7 @@ class NetworkManager {
   }
 
   public async setSigner(from?: AddressLike): Promise<void> {
-    this.currentFrom = from ? await ethers.resolveAddress(from, this.provider) : undefined;
+    this._currentFrom = from ? await ethers.resolveAddress(from, this.provider) : from;
   }
 
   public withRetry<T extends { [key: string]: any }>(instance: T): T {

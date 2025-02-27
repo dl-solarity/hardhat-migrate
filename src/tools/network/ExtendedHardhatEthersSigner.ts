@@ -28,83 +28,41 @@ import { MigrateConfig } from "../../types/migrations";
 import { networkManager } from "./NetworkManager";
 
 export class ExtendedHardhatEthersSigner {
-  public address: AddressLike | undefined;
-  public provider: JsonRpcProvider | HardhatEthersProvider;
-
-  private _config: MigrateConfig = {} as any;
+  private readonly _config: MigrateConfig;
   private _initialized: boolean = false;
 
-  public ethersSigner: VoidSigner | HardhatEthersSigner;
+  public readonly provider: JsonRpcProvider | HardhatEthersProvider;
+  public readonly ethersSigner: VoidSigner | HardhatEthersSigner;
+  public readonly signerIdentifier: AddressLike;
 
-  static async fromSignerName(signerName: AddressLike | undefined): Promise<ExtendedHardhatEthersSigner> {
+  static async fromSignerName(signerName?: AddressLike): Promise<ExtendedHardhatEthersSigner> {
     const hre = await import("hardhat");
     let ethersSigner: VoidSigner | HardhatEthersSigner;
+
     try {
       ethersSigner = await networkManager?.getEthersSigner(signerName as any)!;
     } catch {
-      ethersSigner = new VoidSigner(isAddress(signerName) ? signerName : ethers.ZeroAddress, hre.ethers.provider);
+      const address = isAddress(signerName) ? signerName : ethers.ZeroAddress;
+      ethersSigner = new VoidSigner(address, hre.ethers.provider);
     }
+
     return new ExtendedHardhatEthersSigner(hre, ethersSigner, signerName);
   }
 
   constructor(
-    private _hre: HardhatRuntimeEnvironment,
+    private readonly _hre: HardhatRuntimeEnvironment,
     ethersSigner: VoidSigner | HardhatEthersSigner,
-    signerName: AddressLike | undefined,
+    signerName?: AddressLike,
   ) {
-    this.address = signerName;
     this.ethersSigner = ethersSigner;
 
+    this._config = this._hre.config.migrate;
     this.provider = this._hre.ethers.provider;
 
-    this._config = this._hre.config.migrate;
-  }
-
-  private async _initialize(): Promise<void> {
-    if (this._initialized) return;
-
-    if (this._config.trezorWallet.enabled) {
-      await initTrezor();
-    }
-
-    if (this._config.castWallet.enabled) {
-      await getCastVersion();
-    }
-
-    this._initialized = true;
-  }
-
-  public async sendTransaction(tx: TransactionRequest): Promise<TransactionResponse> {
-    await this._initialize();
-
-    if (!this._config.castWallet.enabled && !this._config.trezorWallet.enabled) {
-      return this.ethersSigner.sendTransaction(tx);
-    }
-
-    let voidSigner = new VoidSigner(await this.getAddress(), this.provider);
-
-    const preparedTx = await voidSigner.populateTransaction(tx);
-    delete preparedTx.from;
-
-    if (this._config.trezorWallet.enabled) {
-      delete preparedTx.maxFeePerBlobGas;
-      delete preparedTx.maxFeePerGas;
-      delete preparedTx.maxPriorityFeePerGas;
-
-      preparedTx.type = 1;
-      preparedTx.gasPrice = await this.provider.send("eth_gasPrice", []);
-    }
-
-    const txObj = Transaction.from(preparedTx);
-
-    return this.provider.broadcastTransaction(await this._signTransaction(txObj));
+    this.signerIdentifier = this._determineSignerIdentifier(signerName);
   }
 
   public async getAddress(): Promise<string> {
-    if (isAddress(this.address)) {
-      return this.address as string;
-    }
-
     if (this._config.castWallet.enabled) {
       return getCastWalletAddress(this._getCastOptions());
     }
@@ -120,33 +78,81 @@ export class ExtendedHardhatEthersSigner {
     throw new MigrateError("No valid signer configuration found to determine address");
   }
 
-  private async _signTransaction(tx: Transaction): Promise<string> {
+  public async sendTransaction(tx: TransactionRequest): Promise<TransactionResponse> {
+    await this._ensureInitialized();
+
+    if (!this._config.castWallet.enabled && !this._config.trezorWallet.enabled) {
+      return this.ethersSigner.sendTransaction(tx);
+    }
+
+    const voidSigner = new VoidSigner(await this.getAddress(), this.provider);
+    let preparedTx = await voidSigner.populateTransaction(tx);
+    delete preparedTx.from;
+
+    if (this._config.trezorWallet.enabled) {
+      preparedTx = await this._prepareTrezorTransaction(preparedTx);
+    }
+
+    const signedTx = await this._signTransaction(Transaction.from(preparedTx));
+
+    return this.provider.broadcastTransaction(signedTx);
+  }
+
+  private _determineSignerIdentifier(signerName?: AddressLike): AddressLike {
+    if (signerName) {
+      return signerName;
+    }
+
     if (this._config.castWallet.enabled) {
-      return this._signWithCast(tx);
+      if (!this._config.castWallet.account) {
+        throw new MigrateError("Cast wallet account not set and no signer name provided");
+      }
+      return this._config.castWallet.account;
     }
 
     if (this._config.trezorWallet.enabled) {
-      return this._signWithTrezor(tx);
+      return "trezor";
+    }
+
+    return this.ethersSigner.getAddress();
+  }
+
+  private async _ensureInitialized(): Promise<void> {
+    if (this._initialized) return;
+
+    if (this._config.trezorWallet.enabled) {
+      await initTrezor();
+    }
+
+    if (this._config.castWallet.enabled) {
+      await getCastVersion();
+    }
+
+    this._initialized = true;
+  }
+
+  private async _prepareTrezorTransaction(tx: ethers.TransactionLike<string>): Promise<ethers.TransactionLike<string>> {
+    delete tx.maxFeePerBlobGas;
+    delete tx.maxFeePerGas;
+    delete tx.maxPriorityFeePerGas;
+
+    tx.type = 1;
+    tx.gasPrice = await this.provider.send("eth_gasPrice", []);
+
+    return tx;
+  }
+
+  private async _signTransaction(tx: Transaction): Promise<string> {
+    if (this._config.castWallet.enabled) {
+      return getSignedTxViaCast(tx, this._getCastOptions());
+    }
+
+    if (this._config.trezorWallet.enabled) {
+      const mnemonicIndex = this._config.trezorWallet.mnemonicIndex || 0;
+      return signWithTrezor(tx, mnemonicIndex);
     }
 
     throw new MigrateError("No valid signer configuration found to sign transaction");
-  }
-
-  private async _signWithCast(tx: Transaction): Promise<string> {
-    return getSignedTxViaCast(tx, this._getCastOptions());
-  }
-
-  private async _signWithTrezor(tx: Transaction): Promise<string> {
-    const mnemonicIndex = this._config.trezorWallet.mnemonicIndex || 0;
-    return signWithTrezor(tx, mnemonicIndex);
-  }
-
-  private async _signWithHardhat(tx: Transaction): Promise<string> {
-    if (!("signTransaction" in this.ethersSigner)) {
-      throw new MigrateError("Current signer does not support transaction signing");
-    }
-
-    return this.ethersSigner.signTransaction(tx);
   }
 
   private _getCastOptions(): CastSignOptions {
@@ -154,7 +160,7 @@ export class ExtendedHardhatEthersSigner {
     return {
       keystore: config.keystore,
       passwordFile: config.passwordFile,
-      account: config.account,
+      account: this.signerIdentifier as string,
       interactive: config.interactive,
       mnemonicIndex: config.mnemonicIndex,
     };

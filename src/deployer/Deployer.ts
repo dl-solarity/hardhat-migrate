@@ -222,7 +222,7 @@ export class Deployer {
     await networkManager!.setSigner(from);
   }
 
-  public async getSigner(from?: string): Promise<any> {
+  public async getSigner(from?: string): Promise<ExtendedHardhatEthersSigner> {
     return networkManager!.getSigner(from);
   }
 
