@@ -80,6 +80,10 @@ class BaseReporter {
   }
 
   public async startTxReporting(tx: TransactionResponse) {
+    if (this._hre.config.migrate.execution.withoutCLIReporting) {
+      return;
+    }
+
     const timeStart = Date.now();
     const blockStart = await networkManager!.provider.getBlockNumber();
 

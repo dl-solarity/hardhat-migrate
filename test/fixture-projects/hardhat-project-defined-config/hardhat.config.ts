@@ -28,6 +28,7 @@ const defaultConfig: HardhatUserConfig = {
       continue: true,
       wait: 2,
       transactionStatusCheckInterval: 4000,
+      withoutCLIReporting: false,
     },
     castWallet: {
       enabled: false,

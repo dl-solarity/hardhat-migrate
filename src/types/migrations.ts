@@ -42,6 +42,8 @@ export interface ExecutionConfig {
   wait: number;
   /** The interval in milliseconds between transaction status checks */
   transactionStatusCheckInterval: number;
+  /** The flag indicating whether the CLI reporting should be disabled */
+  withoutCLIReporting: boolean;
 }
 
 export interface CastWalletConfig {

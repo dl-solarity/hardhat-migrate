@@ -96,6 +96,7 @@ module.exports = {
       continue: false,
       wait: 1,
       transactionStatusCheckInterval: 2000,
+      withoutCLIReporting: false,
     },
     castWallet: {
       enabled: false,
@@ -142,6 +143,7 @@ module.exports = {
 - `continue` : The flag indicating whether the deployment should restore the state from the previous deployment.
 - `wait` : The number of confirmations to wait for after the transaction is mined.
 - `transactionStatusCheckInterval` : The interval in milliseconds between transaction status checks.
+- `withoutCLIReporting` : The flag indicating whether the CLI reporting should be disabled.
 
 #### Cast Wallet Parameters
 
@@ -259,9 +261,10 @@ Utilizes `ContractFactory` from [@ethers](https://www.npmjs.com/package/ethers) 
 
 ---
 
-- **save(contractInstance | name, address)**:
+- **save(contractInstance | name, address, force [default: false])**:
  
-Saves the contract to storage under the given `address` without deployment.
+Saves the contract to storage under the given `address` without deployment. 
+If force is set to `true`, the contract will be saved even if it is not deployed.
 
 ---
 

@@ -29,6 +29,7 @@ const defaultConfig: MigrateConfig = {
     continue: false,
     wait: 1,
     transactionStatusCheckInterval: 2000,
+    withoutCLIReporting: false,
   },
   castWallet: {
     enabled: false,

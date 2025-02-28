@@ -157,8 +157,8 @@ export class Deployer {
     return adapter.toInstance(contract, contractAddress!, {});
   }
 
-  public async save<A, I = any>(contract: Instance<A, I> | string, contractAddress: string) {
-    if (!(await isDeployedContractAddress(contractAddress))) {
+  public async save<A, I = any>(contract: Instance<A, I> | string, contractAddress: string, force: boolean = false) {
+    if (!(await isDeployedContractAddress(contractAddress)) && !force) {
       throw new MigrateError(`Contract with address '${contractAddress}' is not deployed`);
     }
 

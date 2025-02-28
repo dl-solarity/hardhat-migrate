@@ -37,6 +37,7 @@ function getMigratorInstance(
           continue: false,
           wait: 0,
           transactionStatusCheckInterval: 0,
+          withoutCLIReporting: false,
         },
         castWallet: {
           enabled: false,
