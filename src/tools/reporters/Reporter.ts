@@ -461,7 +461,7 @@ class BaseReporter {
 
     const hardhatChainInfo = this._getInfoFromHardhatConfig(chainId);
 
-    if (hardhatChainInfo && hardhatChainInfo.urls.browserURL !== chain.explorers[0].url) {
+    if (hardhatChainInfo && chain.explorers.length > 0 && hardhatChainInfo.urls.browserURL !== chain.explorers[0].url) {
       chain.explorers[0].url = hardhatChainInfo.urls.browserURL;
 
       // Also we reset the Native Currency symbol as it may be different
