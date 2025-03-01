@@ -44,7 +44,7 @@ class BaseReporter {
     this._network = await this._getNetwork();
     this._nativeSymbol = await this._getNativeSymbol();
     this._explorerUrl = await this.getExplorerUrl();
-    this._txExplorerUrl = this._explorerUrl + "/tx/";
+    this._txExplorerUrl = this._explorerUrl[0] === "/" ? this._explorerUrl : this._explorerUrl + "tx/";
 
     this._storage = new ReporterStorage(hre);
   }
@@ -457,6 +457,15 @@ class BaseReporter {
       chain = chains.find((chain) => chain.chainId === chainId) ?? predefinedChains[1337];
     } catch {
       chain = predefinedChains[1337];
+    }
+
+    if (chain.explorers === undefined || chain.explorers.length === 0) {
+      chain.explorers = [
+        {
+          url: "",
+          name: "",
+        },
+      ];
     }
 
     const hardhatChainInfo = this._getInfoFromHardhatConfig(chainId);
