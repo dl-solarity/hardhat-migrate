@@ -353,16 +353,17 @@ class BaseReporter {
   public async getExplorerUrl(): Promise<string> {
     const chainId = Number(this._network.chainId);
 
-    if (predefinedChains[chainId]) {
-      const explorers = predefinedChains[chainId].explorers;
-
-      return !explorers || explorers.length === 0 ? "" : explorers[0].url;
-    }
-
     const customChain = this._getInfoFromHardhatConfig(chainId);
-
     if (customChain) {
       return customChain.urls.browserURL;
+    }
+
+    if (
+      predefinedChains[chainId] &&
+      predefinedChains[chainId].explorers !== undefined &&
+      predefinedChains[chainId].explorers.length > 0
+    ) {
+      return predefinedChains[chainId].explorers[0].url;
     }
 
     const chain = await this._getChainMetadataById(chainId);
