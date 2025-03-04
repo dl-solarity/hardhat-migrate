@@ -44,7 +44,7 @@ class BaseReporter {
     this._network = await this._getNetwork();
     this._nativeSymbol = await this._getNativeSymbol();
     this._explorerUrl = await this.getExplorerUrl();
-    this._txExplorerUrl = this._explorerUrl[0] === "/" ? this._explorerUrl : this._explorerUrl + "tx/";
+    this._txExplorerUrl = this._explorerUrl[0] === "/" ? this._explorerUrl + "tx/" : this._explorerUrl + "/tx/";
 
     this._storage = new ReporterStorage(hre);
   }
