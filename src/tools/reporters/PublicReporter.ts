@@ -11,8 +11,6 @@ import { TransactionRunner } from "../runners/TransactionRunner";
 import { MigrateError } from "../../errors";
 
 export class PublicReporter {
-  public static toShortenAddress = true;
-
   public static async reportTransactionByHash(txHash: string, name?: string) {
     const tx = await networkManager!.provider.getTransaction(txHash);
 
@@ -46,8 +44,7 @@ export class PublicReporter {
       "|---------------|--------------------------------------------|",
     ];
     const rows = contracts.map(([contract, address]) => {
-      const shortenedAddress = `${address.slice(0, 6)}...${address.slice(-4)}`; // Shorten address
-      return `| ${contract} | [${this.toShortenAddress ? shortenedAddress : address}](${normalizedExplorer}${address}) |`;
+      return `| ${contract} | [${address}](${normalizedExplorer}${address}) |`;
     });
 
     markdownContent = [...headers, ...rows].join("\n");
@@ -60,10 +57,5 @@ export class PublicReporter {
     );
 
     Reporter!.notifyStorageAboutContracts(contracts);
-  }
-
-  public static disableShortenAddress(): typeof PublicReporter {
-    this.toShortenAddress = false;
-    return this;
   }
 }
