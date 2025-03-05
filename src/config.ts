@@ -169,6 +169,10 @@ export const validateConfig = (config: MigrateConfig): void => {
     throw new HardhatPluginError(pluginName, "config.migrate.paths.pathToMigrations must be a relative path");
   }
 
+  if (config.trezorWallet.enabled && config.castWallet.enabled) {
+    throw new HardhatPluginError(pluginName, "config.migrate.trezorWallet.enabled and config.migrate.castWallet.enabled cannot be enabled at the same time");
+  }
+
   if (
     config.execution.transactionStatusCheckInterval !== undefined &&
     config.execution.transactionStatusCheckInterval < 1000
