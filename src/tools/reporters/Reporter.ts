@@ -44,7 +44,12 @@ class BaseReporter {
     this._network = await this._getNetwork();
     this._nativeSymbol = await this._getNativeSymbol();
     this._explorerUrl = await this.getExplorerUrl();
-    this._txExplorerUrl = this._explorerUrl[0] === "/" ? this._explorerUrl + "tx/" : this._explorerUrl + "/tx/";
+
+    try {
+      this._txExplorerUrl = this._explorerUrl !== "" ? new URL("tx/", this._explorerUrl).toString() : "";
+    } catch {
+      this._txExplorerUrl = "";
+    }
 
     this._storage = new ReporterStorage(hre);
   }
@@ -406,7 +411,11 @@ class BaseReporter {
   }
 
   private _getExplorerLink(txHash: string): string {
-    return this._txExplorerUrl + txHash;
+    try {
+      return this._txExplorerUrl !== "" ? new URL(txHash, this._txExplorerUrl).toString() : `tx/${txHash}`;
+    } catch {
+      return `tx/${txHash}`;
+    }
   }
 
   private _reportMigrationFiles(files: string[]) {
