@@ -62,6 +62,20 @@ export class Deployer {
     );
   }
 
+  public async deployAdminableProxy<A, I = any>(
+    implementationFactory: Instance<A, I>,
+    argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
+    parameters: OverridesAndLibs = {},
+  ) {
+    return this.deployProxy(
+      implementationFactory,
+      "AdminableProxy",
+      (implementationAddress) => [implementationAddress, "0x"],
+      argsOrParameters,
+      parameters,
+    );
+  }
+
   public async deployTransparentUpgradeableProxy<A, I = any>(
     implementationFactory: Instance<A, I>,
     proxyAdmin: string,
@@ -88,6 +102,17 @@ export class Deployer {
     argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
     parameters: OverridesAndLibs = {},
   ) {
+    const { ethers, artifacts } = await import("hardhat");
+    let proxyFactory;
+
+    try {
+      proxyFactory = await ethers.getContractFactory(proxyFactoryName);
+    } catch {
+      throw new MigrateError(
+        `Contract factory for ${proxyFactoryName} not found. Please add import of the proxy to one of the contracts in the project.`,
+      );
+    }
+
     const adapter = Deployer.resolveAdapter(this._hre, implementationFactory);
 
     let implementationArgs: TypedArgs<A> = [] as any;
@@ -113,9 +138,6 @@ export class Deployer {
       constructorArguments: implementationArgs,
       chainId: Number(await getChainId()),
     });
-
-    const { ethers, artifacts } = await import("hardhat");
-    const proxyFactory = await ethers.getContractFactory(proxyFactoryName);
 
     let artifact = await artifacts.readArtifact(proxyFactoryName);
 
