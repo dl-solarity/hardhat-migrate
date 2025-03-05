@@ -26,6 +26,7 @@ And add the following statement to your `hardhat.config.js`:
 
 ```js
 require("@solarity/hardhat-migrate");
+require("@nomicfoundation/hardhat-ethers");
 require("@nomicfoundation/hardhat-verify"); // If you want to verify contracts after deployment
 ```
 
@@ -33,6 +34,7 @@ Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 
 ```ts
 import "@solarity/hardhat-migrate";
+import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-verify"; // If you want to verify contracts after deployment
 ```
 
@@ -57,6 +59,8 @@ It is also **mandatory** to specify the naming convention for migrations such as
 > **Hardhat Config**: Make sure they follow the docs from `@nomicfoundation/hardhat-verify`.
 
 Do not forget to import `@nomicfoundation/hardhat-verify` when using `@solarity/hardhat-migrate` plugin to verify contracts after deployment.
+
+The `@nomicfoundation/hardhat-verify` import is mandatory as it is a fallback option when determining a signer and provide for the deployment.  
 
 To view the available options, run the command (help command):
 

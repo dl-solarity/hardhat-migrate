@@ -170,7 +170,10 @@ export const validateConfig = (config: MigrateConfig): void => {
   }
 
   if (config.trezorWallet.enabled && config.castWallet.enabled) {
-    throw new HardhatPluginError(pluginName, "config.migrate.trezorWallet.enabled and config.migrate.castWallet.enabled cannot be enabled at the same time");
+    throw new HardhatPluginError(
+      pluginName,
+      "config.migrate.trezorWallet.enabled and config.migrate.castWallet.enabled cannot be enabled at the same time",
+    );
   }
 
   if (
