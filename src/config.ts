@@ -100,7 +100,7 @@ export function convertFlatToNested(flatConfig: any): Partial<MigrateConfig> {
     result.execution!.transactionStatusCheckInterval = flatConfig.transactionStatusCheckInterval;
 
   if (
-    flatConfig.castWalletEnabled ||
+    flatConfig.castEnabled ||
     flatConfig.passwordFile ||
     flatConfig.keystore ||
     flatConfig.mnemonicIndex ||
@@ -110,7 +110,7 @@ export function convertFlatToNested(flatConfig: any): Partial<MigrateConfig> {
     result.castWallet = {} as any;
   }
 
-  if (flatConfig.castWalletEnabled) result.castWallet!.enabled = flatConfig.castWalletEnabled;
+  if (flatConfig.castEnabled) result.castWallet!.enabled = flatConfig.castEnabled;
   if (flatConfig.passwordFile) result.castWallet!.passwordFile = flatConfig.passwordFile;
   if (flatConfig.keystore) result.castWallet!.keystore = flatConfig.keystore;
   if (flatConfig.mnemonicIndex) result.castWallet!.mnemonicIndex = flatConfig.mnemonicIndex;

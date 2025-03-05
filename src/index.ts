@@ -103,7 +103,7 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
   .addOptionalParam("namespace", "The path to the folder where the migration should be done.", undefined, types.string)
 
   // Cast wallet params
-  .addFlag("castWalletEnabled", "Enable cast wallet for signing transactions")
+  .addFlag("castEnabled", "Enable cast wallet for signing transactions")
   .addOptionalParam("passwordFile", "File path to the keystore password", undefined, types.string)
   .addOptionalParam("keystore", "Use a keystore file or directory", undefined, types.string)
   .addOptionalParam("mnemonicIndex", "The mnemonic index (default 0)", undefined, types.int)

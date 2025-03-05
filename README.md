@@ -189,7 +189,7 @@ In this case, migrations 1 through 2 (both) will be applied without the automati
 
 With Cast Wallet:
 ```bash
-npx hardhat migrate --network sepolia --castWalletEnabled --keystore ./keys --passwordFile ./password.txt
+npx hardhat migrate --network sepolia --castEnabled --keystore ./keys --passwordFile ./password.txt
 ```
 
 With Trezor hardware wallet:
@@ -452,7 +452,7 @@ module.exports = {
 
 Or via command line:
 ```bash
-npx hardhat migrate --network sepolia --castWalletEnabled --passwordFile ./password
+npx hardhat migrate --network sepolia --castEnabled --passwordFile ./password
 ```
 
 ### Trezor Hardware Wallet Integration
