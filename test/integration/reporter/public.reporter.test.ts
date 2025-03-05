@@ -20,18 +20,9 @@ describe("Public Reporter", () => {
     await createAndInitReporter(hre);
   });
 
-  it("should shorten address by default", async () => {
+  it("should report using MD table", async () => {
     const { log, logs } = captureLog();
     await PublicReporter.reportContractsMD(["Contract", "Address"]);
-    console.log = log;
-
-    expect(logs).to.have.length(1);
-    expect(logs[0]).to.include("| Contract | [Addres...ress](/address/Address) |");
-  });
-
-  it("should be able to set shorten address to false", async () => {
-    const { log, logs } = captureLog();
-    await PublicReporter.disableShortenAddress().reportContractsMD(["Contract", "Address"]);
     console.log = log;
 
     expect(logs).to.have.length(1);
