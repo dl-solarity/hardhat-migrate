@@ -43,7 +43,86 @@ import "@nomicfoundation/hardhat-verify"; // If you want to verify contracts aft
 > [!NOTE]
 > The `@nomicfoundation/hardhat-ethers` import is obligatory as it is used to determine the deployment account.
 
-## Hardhat tasks
+## Usage
+
+You may add the following `migrate` config to your `hardhat.config file:
+
+```js
+module.exports = {
+  migrate: {
+    filter: {
+      from: -1,
+      to: -1,
+      only: -1,
+      skip: -1,
+    },
+    verification: {
+      verify: false,
+      verificationDelay: 5000,
+      verifyParallel: 1,
+      verifyAttempts: 3,
+    },
+    paths: {
+      pathToMigrations: "./deploy",
+      namespace: "",
+    },
+    execution: {
+      force: false,
+      continue: false,
+      wait: 1,
+      transactionStatusCheckInterval: 2000,
+      withoutCLIReporting: false,
+    },
+    castWallet: {
+      enabled: false,
+      // Optional parameters below
+      // passwordFile: "/path/to/password.txt",
+      // keystore: "/path/to/keystore",
+      // mnemonicIndex: 0,
+      // account: "account-name",
+      // interactive: false,
+    },
+    trezorWallet: {
+      enabled: false,
+      mnemonicIndex: 0,
+    },
+  },
+};
+```
+
+Where:
+
+- `filter`
+  - `from` - The migration number from which the migration will be applied.
+  - `to` - The migration number up to which the migration will be applied.
+  - `only` - The number of the migration that will be applied. **Overrides from and to parameters.**
+  - `skip`- The number of migration to skip. **Overrides only parameter.**
+- `verification`
+  - `verify` - The flag indicating whether the contracts have to be verified after all migrations.
+  - `verificationDelay` - The delay in milliseconds between the deployment and verification of the contract.
+  - `verifyParallel` - The size of the batch for verification.
+  - `verifyAttempts` - The number of attempts to verify the contract.
+- `paths`
+  - `pathToMigrations` - The path to the folder with the specified migrations.
+  - `namespace` - The path to the subfolder where the migration should be run.
+- `execution`
+  - `force` - The flag indicating whether the contracts compilation is forced.
+  - `continue` - The flag indicating whether the deployment should restore the state from the previous deployment.
+  - `wait` - The number of block confirmations to wait for after the transaction is mined.
+  - `transactionStatusCheckInterval` - The interval in milliseconds between transaction status checks.
+  - `withoutCLIReporting` - The flag indicating whether the CLI reporting should be disabled.
+- `castWallet`
+  - `enabled` - The flag indicating whether to use the Cast wallet for signing transactions.
+  - `passwordFile` - File path to the keystore password.
+  - `keystore` - Use a keystore file or directory.
+  - `mnemonicIndex` - The mnemonic index (default 0).
+  - `account` - The account name (when using the default keystore directory).
+  - `interactive` - Open an interactive prompt to enter your private key.
+- `trezorWallet`
+  - `enabled` - The flag indicating whether to use the Trezor hardware wallet for signing transactions.
+  - `mnemonicIndex` - The mnemonic index for Trezor wallet.
+
+## Tasks
 
 - `migrate` task, which allows you to deploy and automatically verify contracts.
 - `migrate:verify` task, which helps you verify already deployed contracts.
@@ -56,21 +135,6 @@ npx hardhat help migrate
 
 > [!WARNING]
 > If you are willing to verify smart contracts source code, make sure to specify the correct config for the `@nomicfoundation/hardhat-verify` plugin.
-
-## How it works
-
-The plugin includes the following packages to perform smart contracts deployment and verification process:
-
-- For deployment:
-  - [@ethers](https://www.npmjs.com/package/ethers)
-  - [@nomicfoundation/hardhat-ethers](https://www.npmjs.com/package/@nomicfoundation/hardhat-ethers)
-- For verification:
-  - [@nomicfoundation/hardhat-verify](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify)
-
-The core of this plugin is migration files, allowing you to specify the migration route that suits your needs best.
-
-> [!TIP]
-> Check out the full configuration of the plugin in the [Usage Guide](./docs/Usage.md).
 
 ## Migration naming
 
@@ -186,7 +250,6 @@ For more detailed information, please refer to the following documentation:
 - [Reporter API](./docs/Reporter.md) - Logging and reporting utilities 
 - [Migration Process](./docs/MigrationProcess.md) - Lifecycle and transaction handling
 - [External Wallets](./docs/ExternalWallets.md) - Cast Wallet and Trezor integration
-- [Usage Guide](./docs/Usage.md) - Configuration options and parameters
 - [Detailed Example](./docs/DetailedExample.md) - Comprehensive migration example
 
 ## Known limitations
