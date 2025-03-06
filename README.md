@@ -41,28 +41,12 @@ import "@nomicfoundation/hardhat-verify"; // If you want to verify contracts aft
 ```
 
 > [!NOTE]
-> See [How it works](https://github.com/dl-solarity/hardhat-migrate#how-it-works) for further information.
+> The `@nomicfoundation/hardhat-ethers` import is obligatory as it is used to determine the deployment account.
 
-## Naming convention
-
-It is **mandatory** to follow this naming convention for migration files:
-
-> X_migration_name.migration.[js|ts]
-
-- Where **X** is an ordinal number indicating the order in which the migration will be applied.
-- **migration_name** is simply the name of the migration.
-
-## Tasks
+## Hardhat tasks
 
 - `migrate` task, which allows you to deploy and automatically verify contracts.
 - `migrate:verify` task, which helps you verify already deployed contracts.
-
-> [!WARNING]
-> **Hardhat Config**: Make sure to follow the documentation from `@nomicfoundation/hardhat-verify`.
-
-Do not forget to import `@nomicfoundation/hardhat-verify` when using `@solarity/hardhat-migrate` plugin to verify contracts after deployment.
-
-The `@nomicfoundation/hardhat-ethers` import is mandatory as it provides the fallback option for determining a signer for deployment.
 
 To view the available options, run the help command:
 
@@ -70,9 +54,12 @@ To view the available options, run the help command:
 npx hardhat help migrate
 ```
 
+> [!WARNING]
+> If you are willing to verify smart contracts source code, make sure to specify the correct config for the `@nomicfoundation/hardhat-verify` plugin.
+
 ## How it works
 
-The plugin includes the following packages to perform the deployment and verification process:
+The plugin includes the following packages to perform smart contracts deployment and verification process:
 
 - For deployment:
   - [@ethers](https://www.npmjs.com/package/ethers)
@@ -82,7 +69,17 @@ The plugin includes the following packages to perform the deployment and verific
 
 The core of this plugin is migration files, allowing you to specify the migration route that suits your needs best.
 
+> [!TIP]
 > Check out the full configuration of the plugin in the [Usage Guide](./docs/Usage.md).
+
+## Migration naming
+
+It is **mandatory** to follow this naming convention for migration files:
+
+> X_migration_name.migration.[js|ts]
+
+- Where **X** is an ordinal number indicating the order in which the migration will be applied.
+- **migration_name** is simply the name of the migration.
 
 ## Example
 
