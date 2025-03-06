@@ -1,7 +1,6 @@
 # Reporter
 
-The Reporter provides various methods for logging deployment information.
-Automatically saves transaction data to the deployment report.
+The Reporter provides various methods for logging deployment information, automatically saving transactions data to the deployment report.
 
 ---
 
