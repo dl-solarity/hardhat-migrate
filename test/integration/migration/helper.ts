@@ -5,24 +5,20 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { TASK_MIGRATE } from "../../../src/constants";
 import { MigrateConfig } from "../../../src/types/migrations";
 
-export async function runWithoutContinue(hre: HardhatRuntimeEnvironment, only: number) {
-  await hre.run(TASK_MIGRATE, {
-    only,
-  } as MigrateConfig);
+export async function runWithoutContinue(hre: HardhatRuntimeEnvironment, config: MigrateConfig) {
+  await hre.run(TASK_MIGRATE, config);
 }
 
-export async function runWithContinue(hre: HardhatRuntimeEnvironment, only: number) {
-  await hre.run(TASK_MIGRATE, {
-    only,
-  } as MigrateConfig);
+export async function runWithContinue(hre: HardhatRuntimeEnvironment, config: MigrateConfig) {
+  await hre.run(TASK_MIGRATE, config);
 
   const deployer = await hre.ethers.provider.getSigner();
   const deployerBalance = await hre.ethers.provider.getBalance(deployer.address);
 
   await hre.run(TASK_MIGRATE, {
-    only,
+    ...config,
     continue: true,
-  } as MigrateConfig);
+  });
 
   const deployerBalanceAfter = await hre.ethers.provider.getBalance(deployer.address);
 

@@ -27,12 +27,6 @@ export interface ArtifactExtended extends Artifact {
   neededLibraries: NeededLibrary[];
 }
 
-export interface TruffleTransactionResponse {
-  tx: string;
-  receipt: TransactionReceipt;
-  logs?: any[];
-}
-
 export interface TransactionReceipt {
   transactionHash: string;
   transactionIndex: string;

@@ -53,7 +53,7 @@ describe("deployer", () => {
       const signer = (await deployer.getSigner()) as any;
 
       await expect(deployer.deploy(ConstructorWithArguments__factory, [signer], {})).to.be.rejectedWith(
-        `Deployer.deploy(): MinimalContract.deploy(): MinimalContract._createDeployTransaction(): invalid BigNumberish value (argument="value", value="<SignerWithAddress 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266>", code=INVALID_ARGUMENT, version=6.13.4)`,
+        `invalid BigNumberish value`,
       );
     });
 
@@ -65,6 +65,42 @@ describe("deployer", () => {
 
     it("should be able to customize overrides for function calls", async function () {
       const contract = await deployer.deploy(PayableReceive__factory);
+
+      const toPay = 100n;
+
+      await contract.pay({ value: toPay.toString() });
+
+      expect(await ethersProvider!.provider.getBalance(contract.getAddress())).to.equal(toPay);
+    });
+
+    it("should deploy ERC1967 proxy contract and set implementation", async function () {
+      const contract = await deployer.deployERC1967Proxy(PayableReceive__factory);
+
+      const toPay = 100n;
+
+      await contract.pay({ value: toPay.toString() });
+
+      expect(await ethersProvider!.provider.getBalance(contract.getAddress())).to.equal(toPay);
+    });
+
+    it("should deploy TransparentUpgradeableProxy contract and set implementation", async function () {
+      const contract = await deployer.deployTransparentUpgradeableProxy(
+        PayableReceive__factory,
+        await (await deployer.getSigner()).getAddress(),
+      );
+
+      const toPay = 100n;
+
+      await contract.pay({ value: toPay.toString() });
+
+      expect(await ethersProvider!.provider.getBalance(contract.getAddress())).to.equal(toPay);
+    });
+
+    it("should deploy generic proxy contract", async function () {
+      const contract = await deployer.deployProxy(PayableReceive__factory, "ERC1967Proxy", (implementationAddress) => [
+        implementationAddress,
+        "0x",
+      ]);
 
       const toPay = 100n;
 
@@ -87,7 +123,7 @@ describe("deployer", () => {
       receipt = await tx.wait();
 
       expect(receipt!.from).to.equal(signer2.address);
-      expect(Reporter?.getWarningsCount()).to.be.equal(0);
+      expect(Reporter?.getWarningsCount()).to.be.equal(6);
     });
   });
 });

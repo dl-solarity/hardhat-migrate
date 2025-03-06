@@ -1,4 +1,4 @@
-import { ethers, InterfaceAbi, Overrides, Signer } from "ethers";
+import { ethers, Interface, Overrides } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -24,15 +24,15 @@ import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
 @catchError
 export class MinimalContract {
   private readonly _rawBytecode: string;
-  private readonly _interface;
+  private readonly _interfaceOnlyWithConstructor;
 
   constructor(
     private readonly _hre: HardhatRuntimeEnvironment,
     private _bytecode: string,
-    private readonly _abi: InterfaceAbi,
+    private readonly _interface: Interface,
     private readonly _contractName: string = "",
   ) {
-    this._interface = getInterfaceOnlyWithConstructor(this._abi);
+    this._interfaceOnlyWithConstructor = getInterfaceOnlyWithConstructor(this._interface.fragments);
     this._rawBytecode = this._bytecode;
 
     if (_contractName === "") {
@@ -51,7 +51,7 @@ export class MinimalContract {
 
     const tx = await this._createDeployTransaction(args, parameters);
 
-    if (this._hre.config.migrate.continue) {
+    if (this._hre.config.migrate.execution.continue) {
       return this._recoverContractAddress(tx, args);
     } else {
       return this._processContractDeploymentTransaction(tx, args);
@@ -73,12 +73,12 @@ export class MinimalContract {
   }
 
   private async _createDeployTransaction(args: any[], txOverrides: Overrides): Promise<ContractDeployTxWithName> {
-    const factory = new ethers.ContractFactory(this._interface, this._bytecode);
+    const factory = new ethers.ContractFactory(this._interfaceOnlyWithConstructor, this._bytecode);
 
     return {
       contractName: this._contractName,
       chainId: await getChainId(),
-      from: (await networkManager!.getSigner(txOverrides.from)).address,
+      from: await (await networkManager!.getSigner(txOverrides.from)).getAddress(),
       ...(await factory.getDeployTransaction(...args, txOverrides)),
     };
   }
@@ -102,7 +102,7 @@ export class MinimalContract {
   }
 
   private async _processContractDeploymentTransaction(tx: ContractDeployTxWithName, args: any[]): Promise<string> {
-    const signer: Signer = await networkManager!.getSigner(tx.from);
+    const signer = await networkManager!.getSigner(tx.from);
 
     const txResponse = await signer.sendTransaction(tx);
 

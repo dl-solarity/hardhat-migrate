@@ -1,4 +1,4 @@
-import { isAddress, Signer } from "ethers";
+import { isAddress, ZeroAddress } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -9,28 +9,29 @@ import { MigrateError } from "../errors";
 import { SEND_NATIVE_TX_NAME } from "../constants";
 
 import { Adapter } from "./adapters/Adapter";
-import { TruffleAdapter } from "./adapters/TruffleAdapter";
 import { BytecodeAdapter } from "./adapters/BytecodeAdapter";
-import { EthersContractAdapter } from "./adapters/EthersContractAdapter";
-import { EthersFactoryAdapter } from "./adapters/EthersFactoryAdapter";
 
 import { OverridesAndLibs } from "../types/deployer";
 import { Instance, TypedArgs } from "../types/adapter";
 import { KeyTransactionFields, MigrationMetadata, TransactionFieldsToSave } from "../types/tools";
-import { isContractFactory, isEthersContract, isBytecodeFactory, isTruffleFactory } from "../types/type-checks";
+import { isEthersContractFactory, isBytecodeFactory, isTypechainFactoryClass } from "../types/type-checks";
 
 import { Stats } from "../tools/Stats";
 import { Reporter } from "../tools/reporters/Reporter";
 import { networkManager } from "../tools/network/NetworkManager";
 import { TransactionRunner } from "../tools/runners/TransactionRunner";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor";
+import { VerificationProcessor } from "../tools/storage/VerificationProcessor";
+import { EthersContractFactoryAdapter } from "./adapters/EthersContractFactoryAdapter";
+import { TypechainContractFactoryAdapter } from "./adapters/TypechainContractFactoryAdapter";
+import { ExtendedHardhatEthersSigner } from "../tools/network/ExtendedHardhatEthersSigner";
 
 @catchError
 export class Deployer {
   constructor(private _hre: HardhatRuntimeEnvironment) {}
 
-  public async deploy<T, A = T, I = any>(
-    contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never),
+  public async deploy<A, I = any>(
+    contract: Instance<A, I>,
     argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
     parameters: OverridesAndLibs = {},
   ): Promise<I> {
@@ -47,10 +48,113 @@ export class Deployer {
     return adapter.toInstance(contract, contractAddress, parameters);
   }
 
-  public async deployed<T, A = T, I = any>(
-    contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never),
-    contractIdentifier?: string,
-  ): Promise<I> {
+  public async deployERC1967Proxy<A, I = any>(
+    implementationFactory: Instance<A, I>,
+    argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
+    parameters: OverridesAndLibs = {},
+  ) {
+    return this.deployProxy(
+      implementationFactory,
+      "ERC1967Proxy",
+      (implementationAddress) => [implementationAddress, "0x"],
+      argsOrParameters,
+      parameters,
+    );
+  }
+
+  public async deployAdminableProxy<A, I = any>(
+    implementationFactory: Instance<A, I>,
+    argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
+    parameters: OverridesAndLibs = {},
+  ) {
+    return this.deployProxy(
+      implementationFactory,
+      "AdminableProxy",
+      (implementationAddress) => [implementationAddress, "0x"],
+      argsOrParameters,
+      parameters,
+    );
+  }
+
+  public async deployTransparentUpgradeableProxy<A, I = any>(
+    implementationFactory: Instance<A, I>,
+    proxyAdmin: string,
+    argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
+    parameters: OverridesAndLibs = {},
+  ) {
+    if (proxyAdmin === ZeroAddress) {
+      throw new MigrateError("Proxy admin cannot be the zero address");
+    }
+
+    return this.deployProxy(
+      implementationFactory,
+      "TransparentUpgradeableProxy",
+      (implementationAddress) => [implementationAddress, proxyAdmin, "0x"],
+      argsOrParameters,
+      parameters,
+    );
+  }
+
+  public async deployProxy<A, I = any>(
+    implementationFactory: Instance<A, I>,
+    proxyFactoryName: string,
+    proxyArgs: (implementationAddress: string) => any[],
+    argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
+    parameters: OverridesAndLibs = {},
+  ) {
+    const { ethers, artifacts } = await import("hardhat");
+    let proxyFactory;
+
+    try {
+      proxyFactory = await ethers.getContractFactory(proxyFactoryName);
+    } catch {
+      throw new MigrateError(
+        `Contract factory for ${proxyFactoryName} not found. Please add import of the proxy to one of the contracts in the project.`,
+      );
+    }
+
+    const adapter = Deployer.resolveAdapter(this._hre, implementationFactory);
+
+    let implementationArgs: TypedArgs<A> = [] as any;
+    let implementationParameters: OverridesAndLibs = {};
+
+    if (argsOrParameters && Array.isArray(argsOrParameters)) {
+      implementationArgs = argsOrParameters;
+    } else if (argsOrParameters && typeof argsOrParameters === "object") {
+      implementationParameters = argsOrParameters;
+    } else {
+      implementationParameters = parameters;
+    }
+
+    let instanceName = adapter.getContractName(implementationFactory, parameters);
+
+    const implementation = (await this.deploy(implementationFactory, implementationArgs, {
+      ...implementationParameters,
+      name: `${instanceName} implementation`,
+    })) as any;
+    VerificationProcessor.saveVerificationFunction({
+      contractAddress: await implementation.getAddress(),
+      contractName: instanceName,
+      constructorArguments: implementationArgs,
+      chainId: Number(await getChainId()),
+    });
+
+    let artifact = await artifacts.readArtifact(proxyFactoryName);
+
+    const proxy = await this.deploy(proxyFactory, proxyArgs(await implementation.getAddress()), {
+      name: instanceName,
+    });
+    VerificationProcessor.saveVerificationFunction({
+      contractAddress: await proxy.getAddress(),
+      contractName: `${artifact.sourceName}:${artifact.contractName}`,
+      constructorArguments: proxyArgs(await implementation.getAddress()),
+      chainId: Number(await getChainId()),
+    });
+
+    return this.deployed(implementationFactory, instanceName);
+  }
+
+  public async deployed<A, I = any>(contract: Instance<A, I>, contractIdentifier?: string): Promise<I> {
     const adapter = Deployer.resolveAdapter(this._hre, contract);
     const defaultContractName = adapter.getContractName(contract, {});
 
@@ -75,11 +179,8 @@ export class Deployer {
     return adapter.toInstance(contract, contractAddress!, {});
   }
 
-  public async save<T, A = T, I = any>(
-    contract: Instance<A, I> | (T extends Truffle.Contract<I> ? T : never) | string,
-    contractAddress: string,
-  ) {
-    if (!(await isDeployedContractAddress(contractAddress))) {
+  public async save<A, I = any>(contract: Instance<A, I> | string, contractAddress: string, force: boolean = false) {
+    if (!(await isDeployedContractAddress(contractAddress)) && !force) {
       throw new MigrateError(`Contract with address '${contractAddress}' is not deployed`);
     }
 
@@ -110,11 +211,11 @@ export class Deployer {
 
     const methodString = "sendNative";
 
-    if (this._hre.config.migrate.continue) {
+    if (this._hre.config.migrate.execution.continue) {
       try {
         const savedTx = TransactionProcessor?.tryRestoreSavedTransaction(tx);
 
-        Reporter!.notifyTransactionRecovery(methodString);
+        Reporter!.notifyTransactionRecovery(methodString, savedTx!);
 
         return savedTx!;
       } catch {
@@ -125,7 +226,7 @@ export class Deployer {
     const txResponse = await signer.sendTransaction(tx);
 
     const [receipt] = await Promise.all([
-      txResponse.wait(this._hre.config.migrate.wait),
+      txResponse.wait(this._hre.config.migrate.execution.wait),
       TransactionRunner!.reportTransactionResponse(txResponse, methodString),
     ]);
 
@@ -143,7 +244,7 @@ export class Deployer {
     await networkManager!.setSigner(from);
   }
 
-  public async getSigner(from?: string): Promise<Signer> {
+  public async getSigner(from?: string): Promise<ExtendedHardhatEthersSigner> {
     return networkManager!.getSigner(from);
   }
 
@@ -157,26 +258,22 @@ export class Deployer {
       value,
       chainId: await getChainId(),
       data: "0x",
-      from: (await networkManager!.getSigner()).address,
+      from: await (await networkManager!.getSigner()).getAddress(),
       name,
     };
   }
 
-  public static resolveAdapter<A, I>(hre: HardhatRuntimeEnvironment, contract: Instance<A, I>): Adapter {
-    if (isEthersContract(contract)) {
-      return new EthersContractAdapter(hre);
+  public static resolveAdapter<A, I = any>(hre: HardhatRuntimeEnvironment, contract: Instance<A, I>): Adapter {
+    if (isTypechainFactoryClass(contract)) {
+      return new TypechainContractFactoryAdapter(hre);
     }
 
-    if (isTruffleFactory(contract)) {
-      return new TruffleAdapter(hre);
+    if (isEthersContractFactory(contract)) {
+      return new EthersContractFactoryAdapter(hre);
     }
 
     if (isBytecodeFactory(contract)) {
       return new BytecodeAdapter(hre);
-    }
-
-    if (isContractFactory(contract)) {
-      return new EthersFactoryAdapter(hre);
     }
 
     throw new MigrateError("Unknown Contract Factory Type");

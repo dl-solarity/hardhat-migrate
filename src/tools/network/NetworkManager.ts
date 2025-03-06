@@ -1,14 +1,17 @@
 import axios, { Axios } from "axios";
 import { AddressLike, ethers } from "ethers";
 
-import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import type { HardhatEthersProvider as HardhatEthersProviderT } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
+import { ExtendedHardhatEthersSigner } from "./ExtendedHardhatEthersSigner";
+
 import { createEthersProvider, ethersProvider } from "./EthersProvider";
 
+import { toJSON } from "../../utils";
 import { createTransactionRunner } from "../runners/TransactionRunner";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 class StateMiddleware {
   private static pendingRequests: Record<string, any> = {};
@@ -17,7 +20,7 @@ class StateMiddleware {
     fn: T,
     args: Parameters<T>,
   ): Promise<Awaited<ReturnType<T>>> {
-    const cacheKey = ethers.id(`${fn.name}:${JSON.stringify(args)}`);
+    const cacheKey = ethers.id(`${fn.name}:${toJSON(args)}`);
 
     if (this.pendingRequests[cacheKey]) {
       return this.pendingRequests[cacheKey];
@@ -38,25 +41,56 @@ class NetworkManager {
   public axios: Axios;
   public provider: HardhatEthersProviderT;
 
-  private currentFrom: string | undefined = undefined;
+  private _currentFrom: string | undefined = undefined;
+
+  private _signers: Record<string, ExtendedHardhatEthersSigner> = {};
 
   constructor() {
     this.axios = this.withRetry(axios);
     this.provider = this.withRetry(ethersProvider!);
   }
 
-  public async getSigner(from?: null | AddressLike): Promise<HardhatEthersSigner> {
+  public async getEthersSigner(from?: null | AddressLike): Promise<HardhatEthersSigner> {
     if (!from) {
-      return this.provider.getSigner(this.currentFrom);
+      return this.provider.getSigner(this._currentFrom);
     }
 
     const address = await ethers.resolveAddress(from, this.provider);
-
     return this.provider.getSigner(address);
   }
 
+  async getSigner(from?: null | AddressLike): Promise<ExtendedHardhatEthersSigner> {
+    if (from && this._signers[from as string]) {
+      return this._signers[from as string];
+    }
+
+    const signer = await this._getSigner(from);
+
+    this._signers[await signer.getAddress()] = signer;
+    if (from) {
+      this._signers[from as string] = signer;
+    }
+
+    return signer;
+  }
+
+  private async _getSigner(from?: null | AddressLike): Promise<ExtendedHardhatEthersSigner> {
+    if (!from) {
+      return ExtendedHardhatEthersSigner.fromSignerName(this._currentFrom);
+    }
+
+    // From specified as name. Cast Wallet branch.
+    if (!ethers.isAddress(from)) {
+      return ExtendedHardhatEthersSigner.fromSignerName(from);
+    }
+
+    // From specified as address. HardhatEthersProvider branch.
+    const address = await ethers.resolveAddress(from, this.provider);
+    return ExtendedHardhatEthersSigner.fromSignerName(address);
+  }
+
   public async setSigner(from?: AddressLike): Promise<void> {
-    this.currentFrom = from ? await ethers.resolveAddress(from, this.provider) : undefined;
+    this._currentFrom = from ? await ethers.resolveAddress(from, this.provider) : from;
   }
 
   public withRetry<T extends { [key: string]: any }>(instance: T): T {

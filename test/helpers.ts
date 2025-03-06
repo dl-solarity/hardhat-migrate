@@ -2,12 +2,14 @@ import { join } from "path";
 
 import { resetHardhatContext } from "hardhat/plugins-testing";
 
+import { resetReporter } from "../src/tools/reporters/Reporter";
 import { resetNetworkManager } from "../src/tools/network/NetworkManager";
 import { resetEthersProvider } from "../src/tools/network/EthersProvider";
 import { resetTransactionRunner } from "../src/tools/runners/TransactionRunner";
 
 export function useEnvironment(fixtureProjectName: string, networkName = "hardhat") {
   beforeEach("Loading hardhat environment", async function () {
+    resetReporter();
     resetEthersProvider();
     resetNetworkManager();
     resetTransactionRunner();

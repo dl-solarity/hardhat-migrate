@@ -1,13 +1,15 @@
 /* eslint-disable no-console */
 import ora, { Ora } from "ora";
 
-import { Network, TransactionResponse, formatEther, formatUnits, TransactionReceipt, id } from "ethers";
+import { Network, TransactionResponse, TransactionReceipt, id } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
+import { ReporterStorage } from "./ReporterStorage";
+
 import { networkManager } from "../network/NetworkManager";
 
-import { catchError, underline } from "../../utils";
+import { castAmount, catchError, underline } from "../../utils";
 
 import { MigrateConfig } from "../../types/migrations";
 import { ChainRecord, CustomChainRecord, predefinedChains } from "../../types/verifier";
@@ -29,8 +31,11 @@ class BaseReporter {
 
   private _nativeSymbol: string = "";
   private _explorerUrl: string = "";
+  private _txExplorerUrl: string = "";
 
   private _warningsToPrint: Map<string, string> = new Map();
+
+  private _storage: ReporterStorage | null = null;
 
   public async init(hre: HardhatRuntimeEnvironment) {
     this._hre = hre;
@@ -38,7 +43,19 @@ class BaseReporter {
 
     this._network = await this._getNetwork();
     this._nativeSymbol = await this._getNativeSymbol();
-    this._explorerUrl = (await this.getExplorerUrl()) + "/tx/";
+    this._explorerUrl = await this.getExplorerUrl();
+
+    try {
+      this._txExplorerUrl = this._explorerUrl !== "" ? new URL("tx/", this._explorerUrl).toString() : "";
+    } catch {
+      this._txExplorerUrl = "";
+    }
+
+    this._storage = new ReporterStorage(hre);
+  }
+
+  public notifyStorageAboutContracts(contracts: [name: string, address: string][]) {
+    this._storage!.storeReportedContracts(contracts);
   }
 
   public reportMigrationBegin(files: string[]) {
@@ -47,19 +64,31 @@ class BaseReporter {
     this._reportChainInfo();
 
     console.log("\nStarting migration...\n");
+
+    this._storage!.storeMigrationBegin();
   }
 
   public reportMigrationFileBegin(file: string) {
     console.log(`\n${underline(`Running ${file}...`)}`);
+
+    this._storage!.storeMigrationFileBegin(file);
   }
 
   public reportTransactionResponseHeader(tx: TransactionResponse, instanceName: string) {
     console.log("\n" + underline(this._parseTransactionTitle(tx, instanceName)));
 
-    console.log(`> explorer: ${this._getExplorerLink(tx.hash)}`);
+    const txLink = this._getExplorerLink(tx.hash);
+
+    console.log(`> explorer: ${txLink}`);
+
+    this._storage!.storeTransactionResponseHeader(tx, instanceName, txLink);
   }
 
   public async startTxReporting(tx: TransactionResponse) {
+    if (this._hre.config.migrate.execution.withoutCLIReporting) {
+      return;
+    }
+
     const timeStart = Date.now();
     const blockStart = await networkManager!.provider.getBlockNumber();
 
@@ -82,7 +111,7 @@ class BaseReporter {
         }
 
         this._spinner.text = await getSpinnerText();
-      }, this._config.transactionStatusCheckInterval);
+      }, this._config.execution.transactionStatusCheckInterval);
     }
 
     this._spinnerState.push(id);
@@ -117,27 +146,32 @@ class BaseReporter {
 
     output += `> account: ${receipt.from}\n`;
 
-    output += `> value: ${this._castAmount((await receipt.getTransaction()).value, nativeSymbol)}\n`;
+    const value = (await receipt.getTransaction()).value;
+    output += `> value: ${castAmount(value, nativeSymbol)}\n`;
 
-    output += `> balance: ${this._castAmount(await receipt.provider.getBalance(receipt.from), nativeSymbol)}\n`;
+    output += `> balance: ${castAmount(await receipt.provider.getBalance(receipt.from), nativeSymbol)}\n`;
 
     output += `> gasUsed: ${receipt.gasUsed}\n`;
 
-    output += `> gasPrice: ${this._castAmount(receipt.gasPrice, nativeSymbol)}\n`;
+    output += `> gasPrice: ${castAmount(receipt.gasPrice, nativeSymbol)}\n`;
 
-    output += `> fee: ${this._castAmount(receipt.fee, nativeSymbol)}\n`;
+    output += `> fee: ${castAmount(receipt.fee, nativeSymbol)}\n`;
 
     console.log(output);
+
+    this._storage!.storeTransactionReceipt(receipt, value);
   }
 
   public summary(totalTransactions: bigint, totalCost: bigint) {
     const output =
       `> ${"Total transactions:".padEnd(20)} ${totalTransactions}\n` +
-      `> ${"Final cost:".padEnd(20)} ${this._castAmount(totalCost, this._nativeSymbol)}\n`;
+      `> ${"Final cost:".padEnd(20)} ${castAmount(totalCost, this._nativeSymbol)}\n`;
 
     console.log(`\n${output}`);
 
     this.reportWarnings();
+
+    this._storage!.completeReport();
   }
 
   public notifyDeploymentInsteadOfRecovery(contractName: string): void {
@@ -150,6 +184,8 @@ class BaseReporter {
     const output = `\nDeploying missing library ${libraryName}...`;
 
     console.log(output);
+
+    this._storage!.storeDeploymentOfMissingLibrary(libraryName);
   }
 
   public notifyTransactionSendingInsteadOfRecovery(contractMethod: string): void {
@@ -162,12 +198,16 @@ class BaseReporter {
     const output = `\nContract address for ${contractName} has been recovered: ${contractAddress}`;
 
     console.log(output);
+
+    this._storage!.storeContractRecovery(contractName, contractAddress);
   }
 
-  public notifyTransactionRecovery(methodString: string): void {
+  public notifyTransactionRecovery(methodString: string, savedTx: TransactionFieldsToSave): void {
     const output = `\nTransaction ${methodString} has been recovered.`;
 
     console.log(output);
+
+    this._storage!.storeTransactionRecovery(methodString, savedTx);
   }
 
   public reportVerificationBatchBegin() {
@@ -176,30 +216,40 @@ class BaseReporter {
 
   public reportNothingToVerify() {
     console.log(`\nNothing to verify. Selected network is ${this._network.name}`);
+
+    this._storage!.storeNothingToVerify();
   }
 
   public reportSuccessfulVerification(contractAddress: string, contractName: string) {
     const output = `\nContract ${contractName} (${contractAddress}) verified successfully.`;
 
     console.log(output);
+
+    this._storage!.storeVerificationSuccess(contractName, contractAddress);
   }
 
   public reportAlreadyVerified(contractAddress: string, contractName: string) {
     const output = `\nContract ${contractName} (${contractAddress}) already verified.`;
 
     console.log(output);
+
+    this._storage!.storeAlreadyVerified(contractName, contractAddress);
   }
 
   public reportVerificationError(contractAddress: string, contractName: string, message: string) {
     const output = `\nContract ${contractName} (${contractAddress}) verification failed: ${message}`;
 
     console.log(output);
+
+    this._storage!.storeVerificationFailure(contractName, contractAddress);
   }
 
   public reportVerificationFailedToSave(contractName: string) {
     const output = `\nFailed to save verification arguments for contract: ${contractName}`;
 
     console.log(output);
+
+    this._storage!.storeVerificationSaveFailure(contractName);
   }
 
   public notifyContractCollisionByName(oldData: ContractFieldsToSave, dataToSave: ContractFieldsToSave) {
@@ -229,6 +279,12 @@ class BaseReporter {
     }
 
     this._warningsToPrint.set(key, output);
+
+    this._storage!.storeTransactionCollision(oldData, dataToSave);
+  }
+
+  public addWarning(warning: string) {
+    this._warningsToPrint.set(id(warning), warning);
   }
 
   public notifyUnknownCollision(
@@ -252,6 +308,8 @@ class BaseReporter {
     }
 
     this._warningsToPrint.set(key, output);
+
+    this._storage!.storeUnknownCollision(metadata, dataToSave);
   }
 
   public reportWarnings() {
@@ -293,26 +351,41 @@ class BaseReporter {
     }
 
     this._warningsToPrint.set(key, output);
+
+    this._storage!.storeContractCollision(oldData, dataToSave);
   }
 
   public async getExplorerUrl(): Promise<string> {
     const chainId = Number(this._network.chainId);
 
-    if (predefinedChains[chainId]) {
-      const explorers = predefinedChains[chainId].explorers;
-
-      return !explorers || explorers.length === 0 ? "" : explorers[0].url;
-    }
-
     const customChain = this._getInfoFromHardhatConfig(chainId);
-
     if (customChain) {
       return customChain.urls.browserURL;
+    }
+
+    if (
+      predefinedChains[chainId] &&
+      predefinedChains[chainId].explorers !== undefined &&
+      predefinedChains[chainId].explorers.length > 0
+    ) {
+      return predefinedChains[chainId].explorers[0].url;
     }
 
     const chain = await this._getChainMetadataById(chainId);
 
     return chain.explorers[0].url;
+  }
+
+  public reportSuccessfulProxyLinking(proxyAddress: string, implementationAddress: string) {
+    console.log(`Proxy ${proxyAddress} linked to implementation ${implementationAddress}`);
+
+    this._storage!.storeSuccessfulProxyLinking(proxyAddress, implementationAddress);
+  }
+
+  public reportFailedProxyLinking(proxyAddress: string, implementationAddress: string, result: string) {
+    console.log(`Failed to link proxy ${proxyAddress} to implementation ${implementationAddress}: ${result}`);
+
+    this._storage!.storeFailedProxyLinking(proxyAddress, implementationAddress);
   }
 
   private _parseTransactionTitle(tx: TransactionResponse, instanceName: string): string {
@@ -338,19 +411,11 @@ class BaseReporter {
   }
 
   private _getExplorerLink(txHash: string): string {
-    return this._explorerUrl + txHash;
-  }
-
-  private _castAmount(value: bigint, nativeSymbol: string): string {
-    if (value > 0n && value < 10n ** 12n) {
-      return this._toGWei(value) + " GWei";
+    try {
+      return this._txExplorerUrl !== "" ? new URL(txHash, this._txExplorerUrl).toString() : `tx/${txHash}`;
+    } catch {
+      return `tx/${txHash}`;
     }
-
-    return formatEther(value) + ` ${nativeSymbol}`;
-  }
-
-  private _toGWei(value: bigint): string {
-    return formatUnits(value, "gwei");
   }
 
   private _reportMigrationFiles(files: string[]) {
@@ -361,12 +426,16 @@ class BaseReporter {
     });
 
     console.log("");
+
+    this._storage!.storeMigrationFiles(files);
   }
 
   private _reportChainInfo() {
     console.log(`> ${"Network:".padEnd(20)} ${this._network.name}`);
 
     console.log(`> ${"Network id:".padEnd(20)} ${this._network.chainId}`);
+
+    this._storage!.storeChainInfo({ network: this._network, explorer: this._explorerUrl });
   }
 
   private async _getNetwork(): Promise<Network> {
@@ -400,9 +469,18 @@ class BaseReporter {
       chain = predefinedChains[1337];
     }
 
+    if (chain.explorers === undefined || chain.explorers.length === 0) {
+      chain.explorers = [
+        {
+          url: "",
+          name: "",
+        },
+      ];
+    }
+
     const hardhatChainInfo = this._getInfoFromHardhatConfig(chainId);
 
-    if (hardhatChainInfo && hardhatChainInfo.urls.browserURL !== chain.explorers[0].url) {
+    if (hardhatChainInfo && chain.explorers.length > 0 && hardhatChainInfo.urls.browserURL !== chain.explorers[0].url) {
       chain.explorers[0].url = hardhatChainInfo.urls.browserURL;
 
       // Also we reset the Native Currency symbol as it may be different
@@ -415,7 +493,11 @@ class BaseReporter {
   }
 
   private _getInfoFromHardhatConfig(chainId: number): CustomChainRecord | undefined {
-    const customChains: CustomChainRecord[] = this._hre.config.etherscan.customChains || [];
+    let customChains: CustomChainRecord[] = [];
+
+    if ((this._hre.config as any).etherscan && (this._hre.config as any).etherscan.customChains) {
+      customChains = (this._hre.config as any).etherscan.customChains;
+    }
 
     return customChains.find((chain) => chain.chainId === chainId);
   }

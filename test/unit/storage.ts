@@ -10,7 +10,11 @@ import {
   MigrateStorage,
 } from "../../src/tools/storage/MigrateStorage";
 
+import { useEnvironment } from "../helpers";
+
 describe("Migrator Storage", function () {
+  useEnvironment("defined-config");
+
   it("should save and restore state", function () {
     UserStorage.set("test-key", "test-value");
 
@@ -90,6 +94,5 @@ describe("Migrator Storage", function () {
 
   afterEach("Clean up", function () {
     clearAllStorage();
-    DefaultStorage.deleteStateFile();
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "@solarity/hardhat-migrate",
-  "version": "2.1.11",
+  "version": "3.0.0-rc.0",
   "description": "Automatic deployment and verification of smart contracts",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -34,8 +34,7 @@
   },
   "homepage": "https://github.com/dl-solarity/hardhat-migrate#readme",
   "scripts": {
-    "prepare": "husky",
-    "compile": "npm run prepare-tests && npm run build",
+    "compile": "npm run clean-tests && npm run prepare-tests && npm run build",
     "build": "tsc --build .",
     "prepare-tests": "npm run compile --workspaces",
     "test": "mocha --recursive 'test/**/*.ts' --exit",
@@ -51,43 +50,44 @@
     ]
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-ethers": "3.0.8",
-    "@nomicfoundation/hardhat-verify": "2.0.12",
-    "@nomiclabs/hardhat-truffle5": "2.0.7",
+    "@trezor/connect": "9.5.0",
     "axios": "1.7.9",
-    "ethers": "6.13.4",
+    "ethers": "6.13.5",
+    "json2md": "2.0.2",
     "ora": "5.4.1",
-    "prettier": "3.4.2"
+    "prettier": "3.5.1"
   },
   "peerDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.0",
     "hardhat": "^2.10.0",
     "typechain": "^8.0.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.16.0",
-    "@openzeppelin/contracts": "^5.1.0",
+    "@eslint/js": "^9.20.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.12",
+    "@openzeppelin/contracts": "^5.2.0",
     "@typechain/ethers-v6": "^0.5.1",
     "@typechain/hardhat": "^9.1.0",
-    "@typechain/truffle-v5": "^8.0.7",
     "@types/chai": "^4.3.20",
     "@types/chai-as-promised": "^7.1.8",
+    "@types/debug": "^4.1.12",
     "@types/mocha": "^10.0.10",
-    "@types/ora": "^3.2.0",
-    "@typescript-eslint/eslint-plugin": "^8.17.0",
-    "@typescript-eslint/parser": "^8.17.0",
+    "@typescript-eslint/eslint-plugin": "^8.24.1",
+    "@typescript-eslint/parser": "^8.24.1",
     "chai": "^4.5.0",
     "chai-as-promised": "^7.1.2",
-    "eslint": "^9.16.0",
+    "eslint": "^9.20.1",
     "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-promise": "^7.2.1",
-    "hardhat": "2.22.17",
+    "hardhat": "2.22.18",
     "hardhat-abi-exporter": "^2.10.1",
     "husky": "^9.1.7",
-    "mocha": "^11.0.1",
+    "mocha": "^11.1.0",
     "nyc": "^17.1.0",
     "ts-node": "^10.9.2",
     "typechain": "^8.3.2",
-    "typescript": "5.7.2"
+    "typescript": "5.7.3"
   }
 }

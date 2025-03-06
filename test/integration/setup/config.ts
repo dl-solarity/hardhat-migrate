@@ -20,19 +20,36 @@ describe("config", () => {
 
     it("should apply user defined config", async function () {
       const userDefinedConfig: MigrateConfig = {
-        from: 1,
-        to: 3,
-        only: 2,
-        skip: 4,
-        wait: 2,
-        verificationDelay: 5000,
-        verify: true,
-        verifyParallel: 12,
-        verifyAttempts: 32,
-        pathToMigrations: "./path-to-deploy",
-        force: true,
-        continue: true,
-        transactionStatusCheckInterval: 4000,
+        filter: {
+          from: 1,
+          to: 3,
+          only: 2,
+          skip: 4,
+        },
+        verification: {
+          verify: true,
+          verificationDelay: 5000,
+          verifyParallel: 12,
+          verifyAttempts: 32,
+        },
+        paths: {
+          pathToMigrations: "./path-to-deploy",
+          namespace: "",
+        },
+        execution: {
+          force: true,
+          continue: true,
+          wait: 2,
+          transactionStatusCheckInterval: 4000,
+          withoutCLIReporting: false,
+        },
+        castWallet: {
+          enabled: false,
+        },
+        trezorWallet: {
+          enabled: false,
+          mnemonicIndex: 0,
+        },
       };
 
       expect(loadedOptions).to.deep.equal(userDefinedConfig);
@@ -51,19 +68,36 @@ describe("config", () => {
 
     it("the migrate field should be present", function () {
       const defaultConfig: MigrateConfig = {
-        from: -1,
-        to: -1,
-        only: -1,
-        skip: -1,
-        wait: 1,
-        verificationDelay: 5000,
-        verify: false,
-        verifyParallel: 1,
-        verifyAttempts: 3,
-        pathToMigrations: "./deploy",
-        force: false,
-        continue: false,
-        transactionStatusCheckInterval: 2000,
+        filter: {
+          from: -1,
+          to: -1,
+          only: -1,
+          skip: -1,
+        },
+        verification: {
+          verify: false,
+          verificationDelay: 5000,
+          verifyParallel: 1,
+          verifyAttempts: 3,
+        },
+        paths: {
+          pathToMigrations: "./deploy",
+          namespace: "",
+        },
+        execution: {
+          force: false,
+          continue: false,
+          wait: 1,
+          transactionStatusCheckInterval: 2000,
+          withoutCLIReporting: false,
+        },
+        castWallet: {
+          enabled: false,
+        },
+        trezorWallet: {
+          enabled: false,
+          mnemonicIndex: 0,
+        },
       };
 
       expect(loadedOptions).to.deep.equal(defaultConfig);

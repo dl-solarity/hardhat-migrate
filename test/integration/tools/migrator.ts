@@ -16,19 +16,36 @@ function getMigratorInstance(
     config: {
       ...hre.config,
       migrate: {
-        from: from,
-        to: to,
-        only: only,
-        skip: skip,
-        verify: false,
-        pathToMigrations: "./deploy-files",
-        force: false,
-        wait: 0,
-        verificationDelay: 0,
-        verifyParallel: 0,
-        verifyAttempts: 0,
-        continue: false,
-        transactionStatusCheckInterval: 0,
+        filter: {
+          from: from,
+          to: to,
+          only: only,
+          skip: skip,
+        },
+        verification: {
+          verify: false,
+          verificationDelay: 0,
+          verifyParallel: 0,
+          verifyAttempts: 0,
+        },
+        paths: {
+          pathToMigrations: "./deploy-files",
+          namespace: "",
+        },
+        execution: {
+          force: false,
+          continue: false,
+          wait: 0,
+          transactionStatusCheckInterval: 0,
+          withoutCLIReporting: false,
+        },
+        castWallet: {
+          enabled: false,
+        },
+        trezorWallet: {
+          enabled: false,
+          mnemonicIndex: 0,
+        },
       },
     },
   });

@@ -1,5 +1,49 @@
 # Changelog
 
+## Version 3.0.0
+
+### Breaking changes
+
+- Removed Truffle support.
+- Removed import of `@nomicfoundation/hardhat-verify` from the index.ts.
+  - Please refer to the `Installation` section in the README for the updated installation instructions.
+  - The motivation is to avoid conflicts with `@nomicfoundation/hardhat-toolbox` when using both plugins.
+- Removed the default conversion of the `bigint` to `string` for the `JSON.stringify` function.
+- Updated the `MigrateConfig` layout. Now similar by logic parameter are grouped together.
+
+### New features
+
+- Added an ability to specify namespaces for deployment scripts.
+
+Now instead of having all deployment scripts in the `deploy` folder, tou can separate those into subfolders like below.
+
+```
+deploy
+├── l1-deployment
+│   ├── 1_core.migration.ts
+│   └── 2_setup.migration.ts
+└── l2-testnet
+    ├── 1_prepare.migration.ts
+    └── 2_deploy.migration.ts
+```
+
+And when running the migration, you can specify the namespace like this:
+```bash
+npx hardhat migrate --namespace l1-deployment
+```
+
+- Added an ability to disable address shortening in the reporter with following syntax: `PublicReporter.disableShortenAddress().reportContractsMD`
+
+- Added file reporting throughout the migration process
+  - During the migration the relevant report will be generated and stored in the `cache` folder.
+  
+- Added an ability to link proxy to the implementation contract
+  - The linking is decided based on the presence of the `IMPLEMENTATION_SLOT` in the contract
+
+- Added helper function to the Deployer for the proxy deployment: `deployERC1967Proxy` and `deployTransparentUpgradeableProxy`
+
+- Added integration with [cast](https://book.getfoundry.sh/cast/) and [trezor](https://trezor.io/) wallets.
+
 ## Version 2.1.11 
 
 * Added a caching mechanism to reduce the number of requests to the RPC provider.  

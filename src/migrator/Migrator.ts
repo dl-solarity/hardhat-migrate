@@ -1,12 +1,10 @@
-import { readdirSync, statSync } from "fs";
-import { basename } from "path";
+import { basename, join } from "path";
+import { existsSync, readdirSync, statSync } from "fs";
 
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { pluginName } from "../constants";
-
-import { resolvePathToFile } from "../utils";
 
 import { MigrateError } from "../errors";
 
@@ -44,13 +42,15 @@ export class Migrator {
   public async migrate() {
     Reporter!.reportMigrationBegin(this._migrationFiles);
 
+    const migrationsDir = this._getMigrationDir();
+
     for (const element of this._migrationFiles) {
       Stats.currentMigration = this._getMigrationNumber(element);
 
       Reporter!.reportMigrationFileBegin(element);
 
       try {
-        const migration = await import(resolvePathToFile(this._hre, this._config.pathToMigrations, element));
+        const migration = await import(join(migrationsDir, element));
 
         await migration.default(this._deployer);
       } catch (e: unknown) {
@@ -66,7 +66,12 @@ export class Migrator {
   }
 
   private _getMigrationFiles() {
-    const migrationsDir = resolvePathToFile(this._hre, this._config.pathToMigrations);
+    const migrationsDir = this._getMigrationDir();
+
+    if (!existsSync(migrationsDir)) {
+      throw new HardhatPluginError(pluginName, `Migrations directory not found at ${migrationsDir}`);
+    }
+
     const directoryContents = readdirSync(migrationsDir);
 
     const files = directoryContents
@@ -76,15 +81,15 @@ export class Migrator {
         if (
           isNaN(migrationNumber) ||
           migrationNumber <= 0 ||
-          this._config.from > migrationNumber ||
-          (this._config.to < migrationNumber && this._config.to !== -1) ||
-          (this._config.only !== migrationNumber && this._config.only !== -1) ||
-          this._config.skip === migrationNumber
+          this._config.filter.from > migrationNumber ||
+          (this._config.filter.to < migrationNumber && this._config.filter.to !== -1) ||
+          (this._config.filter.only !== migrationNumber && this._config.filter.only !== -1) ||
+          this._config.filter.skip === migrationNumber
         ) {
           return false;
         }
 
-        return statSync(resolvePathToFile(this._hre, this._config.pathToMigrations, file)).isFile();
+        return statSync(join(migrationsDir, file)).isFile();
       })
       .sort((a, b) => {
         return this._getMigrationNumber(a) - this._getMigrationNumber(b);
@@ -101,6 +106,10 @@ export class Migrator {
     return parseInt(basename(file));
   }
 
+  private _getMigrationDir() {
+    return join(this._hre.config.paths.root, this._config.paths.pathToMigrations, this._config.paths.namespace);
+  }
+
   public static async buildMigrateTaskDeps(hre: HardhatRuntimeEnvironment): Promise<void> {
     createLinker(hre);
     createTransactionProcessor(hre.config.migrate);
@@ -108,7 +117,7 @@ export class Migrator {
     buildNetworkDeps(hre);
     await createAndInitReporter(hre);
 
-    if (!hre.config.migrate.continue) {
+    if (!hre.config.migrate.execution.continue) {
       clearAllStorage();
     }
 
