@@ -35,7 +35,13 @@ export class PublicReporter {
 
   public static async reportContractsMD(...contracts: [name: string, address: string][]): Promise<void> {
     const explorer = await Reporter!.getExplorerUrl();
-    const normalizedExplorer = explorer.endsWith("/") ? explorer : `${explorer}/address/`;
+
+    let normalizedExplorer;
+    try {
+      normalizedExplorer = explorer !== "" ? new URL("address/", explorer).toString() : `address/`;
+    } catch {
+      normalizedExplorer = `address/`;
+    }
 
     let markdownContent;
 
