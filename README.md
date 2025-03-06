@@ -126,7 +126,9 @@ export = async (deployer: Deployer) => {
   });
 
   // log the token address via `Reporter` object
-  await Reporter.reportContractsMD(["Example Token", await token.getAddress()]);
+  await Reporter.reportContractsMD(
+    ["Example Token", await token.getAddress()]
+  );
 };
 ```
 </td>
