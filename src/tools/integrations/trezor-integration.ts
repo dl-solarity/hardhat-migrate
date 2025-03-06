@@ -28,13 +28,41 @@ export async function initTrezor(): Promise<void> {
   try {
     await TrezorConnect.init({
       manifest: {
-        email: "developer@example.com", // TODO: This should be configurable
-        appUrl: "https://hardhat.org", // TODO: This should be configurable
+        email: "developer@example.com",
+        appUrl: "https://hardhat.org",
       },
       debug: false,
       lazyLoad: true,
       transports: ["BridgeTransport", "NodeUsbTransport"],
     });
+
+    console.log(`
+Trezor Settings Configuration Notice
+
+We're applying two important settings to your Trezor device:
+
+1. Device Passphrase Entry
+   We've set your Trezor to always request passphrase entry directly on the device itself. 
+   This ensures better security as it's currently not possible to enter passphrases through 
+   the console interface.
+
+2. Temporary Safety Check Override
+   We're temporarily modifying safety checks with the "PromptTemporarily" setting. This is 
+   necessary because some derivation paths used by our application are incorrectly flagged 
+   as "unknown" by the device firmware (reference: Trezor Suite issue #17203 - 
+   https://github.com/trezor/trezor-suite/issues/17203).
+
+The device will prompt you to confirm these changes.
+`);
+
+    const result = await TrezorConnect.applySettings({
+      passphrase_always_on_device: true,
+      safety_checks: "PromptTemporarily",
+    });
+
+    if (!result.success) {
+      throw new MigrateError(`Failed to apply Trezor settings: ${result.payload.error}`);
+    }
 
     trezorInitialized = true;
   } catch (error: any) {

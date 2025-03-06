@@ -26,7 +26,11 @@ describe("Public Reporter", () => {
     console.log = log;
 
     expect(logs).to.have.length(1);
-    expect(logs[0]).to.include("| Contract | [Address](/address/Address) |");
+    expect(logs[0]).to.include(
+      "| Contract | Address                    |\n" +
+        "| -------- | -------------------------- |\n" +
+        "| Contract | [Address](address/Address) |\n",
+    );
   });
 
   function captureLog() {

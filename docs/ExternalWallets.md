@@ -49,9 +49,7 @@ The Trezor integration allows signing transactions with a Trezor hardware wallet
 
 ### Important Notes
 
-- Only **empty passphrases** are currently supported
-- The integration uses the standard Ethereum derivation path: `m/44'/60'/0'/0/{index}`
-- Requires the Trezor Bridge to be installed on the host system
+- The integration uses the standard Ethereum derivation path: `m/44'/60'/0'/0'/{index}`
 - Initial connection requires user interaction with the device to confirm access
 
 ### Usage
