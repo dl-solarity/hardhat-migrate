@@ -201,42 +201,43 @@ export = async (deployer: Deployer) => {
 Migration files:
 > 1_token.migration.ts
 
-> Network:             amoy
-> Network id:          80002
+> Network:             sepolia
+> Network id:          11155111
 
 Starting migration...
 
 Running 1_token.migration.ts...
 
 Deploying ERC20Mock
-> explorer: 0x54c96efe35332f8f2f1f1172ce79c79116ffd85733c1e622927b39e639716e0c
-> contractAddress: 0x4131287D67125B59935A0671dbBa592fF65C0622
-> blockNumber: 18828270
-> blockTimestamp: 1741173920
+> explorer: 0xc35dd9e9600f102cf3b414f1341560870021b3824ace4bedbd59e2216bd89a49
+> contractAddress: 0xc596A6e2f1558c7e030272d2A2E37E53050E2D63
+> blockNumber: 7844739
+> blockTimestamp: 1741263816
 > account: 0xf41ceE234219D6cc3d90A6996dC3276aD378cfCF
-> value: 0.0 POL
-> balance: 35.978078759922074382 POL
+> value: 0.0 ETH
+> balance: 0.117945868841929599 ETH
 > gasUsed: 571635
-> gasPrice: 30.000000015 GWei
-> fee: 0.017149050008574525 POL
+> gasPrice: 96.422889727 GWei
+> fee: 0.055118698569093645 ETH
+
 
 Transaction: ERC20Mock.mint(address,uint256)(2 arguments)
-> explorer: 0x4a2481b749b9b4a444ca270d3a062b41c9c374e3736b2fe35a877caf62c9f5e5
-> blockNumber: 18828272
-> blockTimestamp: 1741173926
+> explorer: 0x508a289795cb8e3e1265dfd8f528efc206146a62deba4f9a80a2fa19d6a6ec8e
+> blockNumber: 7844740
+> blockTimestamp: 1741263828
 > account: 0xf41ceE234219D6cc3d90A6996dC3276aD378cfCF
-> value: 0.0 POL
-> balance: 35.976025769921047887 POL
+> value: 0.0 ETH
+> balance: 0.111637670105208768 ETH
 > gasUsed: 68433
-> gasPrice: 30.000000015 GWei
-> fee: 0.002052990001026495 POL
+> gasPrice: 92.180654607 GWei
+> fee: 0.006308198736720831 ETH
 
 | Contract      | Address                                    |
 | ------------- | ------------------------------------------ |
-| Example Token | 0x4131287D67125B59935A0671dbBa592fF65C0622 |
+| Example Token | 0xc596A6e2f1558c7e030272d2A2E37E53050E2D63 |
 
 > Total transactions:  2
-> Final cost:          0.01920204000960102 POL
+> Final cost:          0.061426897305814476 ETH
 ```
 </td>
 </tr>
