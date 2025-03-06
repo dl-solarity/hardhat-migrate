@@ -29,7 +29,7 @@ Add the following statement to your `hardhat.config.js`:
 ```js
 require("@solarity/hardhat-migrate");
 require("@nomicfoundation/hardhat-ethers");
-require("@nomicfoundation/hardhat-verify"); // If you want to verify contracts after deployment
+require("@nomicfoundation/hardhat-verify"); // If you want to verify contracts
 ```
 
 Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
@@ -37,7 +37,7 @@ Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 ```ts
 import "@solarity/hardhat-migrate";
 import "@nomicfoundation/hardhat-ethers";
-import "@nomicfoundation/hardhat-verify"; // If you want to verify contracts after deployment
+import "@nomicfoundation/hardhat-verify"; // If you want to verify contracts
 ```
 
 > [!NOTE]
@@ -45,7 +45,7 @@ import "@nomicfoundation/hardhat-verify"; // If you want to verify contracts aft
 
 ## Usage
 
-You may add the following `migrate` config to your `hardhat.config file:
+You may add the following `migrate` config to your `hardhat.config` file:
 
 ```js
 module.exports = {
