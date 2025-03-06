@@ -159,13 +159,15 @@ This command will run the migration script and execute all the specified actions
 
 <table>
 <tr>
-<th>1_token.migration.ts</th>
+<th>Migration Script</th>
 <th>Deployment Output</th>
 </tr>
 <tr>
 <td>
 
 ```ts
+// file location: ./deploy/1_token.migration.ts
+
 import { ethers } from "ethers";
 
 import { Deployer, Reporter } from "@solarity/hardhat-migrate";
