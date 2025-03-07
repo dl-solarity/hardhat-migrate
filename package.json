@@ -52,7 +52,6 @@
   "dependencies": {
     "@trezor/connect": "9.5.0",
     "axios": "1.7.9",
-    "dotenv": "^16.4.7",
     "ethers": "6.13.5",
     "json2md": "2.0.2",
     "ora": "5.4.1",
@@ -78,6 +77,7 @@
     "@typescript-eslint/parser": "^8.24.1",
     "chai": "^4.5.0",
     "chai-as-promised": "^7.1.2",
+    "dotenv": "^16.4.7",
     "eslint": "^9.20.1",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.2.3",
