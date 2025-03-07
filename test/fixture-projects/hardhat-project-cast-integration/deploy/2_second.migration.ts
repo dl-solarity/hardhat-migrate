@@ -13,7 +13,10 @@ export = async (deployer: Deployer) => {
 
   await govToken.transferOwnership(await signer.getAddress(), { customData: { txName: "transferOwnership again" } });
 
-  await govToken.connect(signer).transferOwnership(await signer.getAddress());
+  const newSigner = await deployer.getSigner("test-8");
+
+  await govToken.connect(signer).transferOwnership(await newSigner.getAddress());
+  await govToken.connect(newSigner).transferOwnership(await signer.getAddress());
 
   await Reporter.reportTransactionByHash(
     transferOwnershipTx.hash,

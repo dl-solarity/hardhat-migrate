@@ -36,6 +36,16 @@ Or via command line:
 npx hardhat migrate --network sepolia --castEnabled --passwordFile ./password
 ```
 
+### Passwords in the `.env` file
+
+If you want, you can store the password in the `.env` file. 
+
+Assuming the account name is test-0 and the password is `password123`, you can add the following to the `.env` file:
+
+```bash
+PASSWORD_TEST_0=password123
+```
+
 ## Trezor Hardware Wallet Integration
 
 The Trezor integration allows signing transactions with a Trezor hardware wallet for enhanced security.
