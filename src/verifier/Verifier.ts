@@ -71,6 +71,8 @@ export class Verifier {
       if (await instance.isVerified(contractAddress)) {
         Reporter!.reportAlreadyVerified(contractAddress, contractName);
 
+        await this._verifyProxy(instance, contractAddress);
+
         break;
       }
 
