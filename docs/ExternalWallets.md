@@ -36,15 +36,22 @@ Or via command line:
 npx hardhat migrate --network sepolia --castEnabled --passwordFile ./password
 ```
 
-### Passwords in the `.env` file
+### Managing Passwords for Deployment
 
-If you want, you can store the password in the `.env` file. 
-
-Assuming the account name is test-0 and the password is `password123`, you can add the following to the `.env` file:
+You can store passwords in a `.env` file:
 
 ```bash
 PASSWORD_TEST_0=password123
 ```
+
+When using `.env` files, you'll need to load these environment variables into your application using a package like `dotenv`:
+
+```ts
+import * as dotenv from "dotenv";
+dotenv.config();
+```
+
+Alternatively, you can export passwords directly in your CLI before deployment.
 
 ## Trezor Hardware Wallet Integration
 
