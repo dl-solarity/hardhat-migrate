@@ -5,7 +5,7 @@ import { ConfigExtender } from "hardhat/types";
 
 import { pluginName } from "./constants";
 
-import { MigrateConfig, MigrateVerifyConfig } from "./types/migrations";
+import { DeepPartial, MigrateConfig, MigrateVerifyConfig } from "./types/migrations";
 
 const defaultConfig: MigrateConfig = {
   filter: {
@@ -51,7 +51,7 @@ export const migrateConfigExtender: ConfigExtender = (resolvedConfig, config) =>
 };
 
 export const mergeConfigs = (
-  externalConfig: Partial<MigrateConfig> | undefined,
+  externalConfig: DeepPartial<MigrateConfig> | undefined,
   migrateConfig: MigrateConfig,
 ): MigrateConfig => {
   if (externalConfig) {
