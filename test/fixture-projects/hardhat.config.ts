@@ -25,6 +25,11 @@ const config: HardhatUserConfig = {
   abiExporter: {
     flat: true,
   },
+  migrate: {
+    paths: {
+      pathToMigrations: "./deploy",
+    },
+  },
 };
 
 export default config;

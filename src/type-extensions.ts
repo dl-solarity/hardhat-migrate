@@ -2,7 +2,7 @@ import "ethers";
 import "hardhat/types/config";
 import "hardhat/types/runtime";
 
-import { MigrateConfig } from "./types/migrations";
+import { DeepPartial, MigrateConfig } from "./types/migrations";
 
 declare module "hardhat/types/config" {
   interface HardhatConfig {
@@ -10,7 +10,7 @@ declare module "hardhat/types/config" {
   }
 
   interface HardhatUserConfig {
-    migrate?: Partial<MigrateConfig>;
+    migrate?: DeepPartial<MigrateConfig>;
   }
 }
 

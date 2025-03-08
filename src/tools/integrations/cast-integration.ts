@@ -81,6 +81,10 @@ export async function getSignedTxViaCast(tx: Transaction, castOpts: CastSignOpti
   return tx.serialized;
 }
 
+function normalizeNameForEnv(name: string) {
+  return `PASSWORD_${name.replace(/[-_]/g, "_").toUpperCase()}`;
+}
+
 /**
  * Get the Ethereum address associated with the Cast wallet configuration
  *
@@ -143,6 +147,15 @@ export async function signMessage(message: string, options: CastSignOptions = {}
  * Helper function to append common wallet options to a command args array
  */
 function appendWalletOptions(args: string[], options: CastWalletOptions): void {
+  if (options.account) {
+    const possiblePassword = process.env[normalizeNameForEnv(options.account)];
+
+    if (possiblePassword) {
+      options.password = possiblePassword;
+      delete options.passwordFile;
+    }
+  }
+
   if (options.from) {
     args.push("--from", options.from);
   }

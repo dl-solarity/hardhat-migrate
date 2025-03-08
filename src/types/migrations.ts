@@ -88,3 +88,9 @@ export interface MigrateVerifyConfig extends VerifyConfig {
   /** The path to the file with the verification input */
   inputFile: string | undefined;
 }
+
+export type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: DeepPartial<T[P]>;
+    }
+  : T;
