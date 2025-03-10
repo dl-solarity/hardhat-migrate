@@ -38,6 +38,15 @@ npx hardhat migrate --network sepolia --castEnabled --passwordFile ./password
 
 ### Managing Passwords for Deployment
 
+> [!IMPORTANT]
+> The plugin expects the environment variable name to contain the account name itself. 
+> If your account is named `test-0` or `test_0`, the plugin will look for an environment variable named `PASSWORD_TEST_0`.
+> 
+> The plugin automatically:
+> - Adds the `PASSWORD_` prefix to the account name
+> - Converts the entire variable name to uppercase
+> - Transforms hyphens (-) to underscores (_)
+
 You can store passwords in a `.env` file:
 
 ```bash
@@ -51,7 +60,15 @@ import * as dotenv from "dotenv";
 dotenv.config();
 ```
 
-Alternatively, you can export passwords directly in your CLI before deployment.
+Alternatively, you can export passwords directly in your CLI before deployment:
+
+```bash
+export PASSWORD_TEST_0=password123
+```
+
+> [!NOTE]
+> For security reasons, avoid hardcoding passwords in files that are version-controlled. 
+> Consider using environment-specific configuration files that are excluded from your repository.
 
 ## Trezor Hardware Wallet Integration
 
