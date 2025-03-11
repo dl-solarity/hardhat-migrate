@@ -177,16 +177,15 @@ import { ERC20Mock__factory } from "../generated-types/ethers";
 export = async (deployer: Deployer) => {
   // deploy the token via `Deployer` object
   const token = await deployer.deploy(
-    ERC20Mock__factory, 
-    ["Example Token", "ET", 18]
+    ERC20Mock__factory, // contract to deploy
+    ["Example Token", "ET", 18] // constructor params
   );
 
   const recipient = "0x1E3953B6ee74461169A3E346060AE27bD0B5bF2B";
+  const amount = ethers.parseEther("1000");
 
-  // call the `mint` function on the token
-  await token.mint(recipient, ethers.parseEther("1000"), {
-    customData: { txName: "Initial Token Mint" },
-  });
+  // call `mint` function on the token
+  await token.mint(recipient, amount);
 
   // log the token address via `Reporter` object
   await Reporter.reportContractsMD(
