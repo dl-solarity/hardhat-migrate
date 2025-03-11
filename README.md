@@ -155,7 +155,7 @@ Then run:
 npx hardhat migrate --network <the network of choice>
 ```
 
-This command will run the migration script and execute all the specified actions, producing the following deployment log:
+This command will run the migration script and execute all the specified actions, producing the following *live* deployment log:
 
 <table>
 <tr>
@@ -218,7 +218,6 @@ Deploying ERC20Mock
 > gasUsed: 571635
 > gasPrice: 96.422889727 GWei
 > fee: 0.055118698569093645 ETH
-
 
 Transaction: ERC20Mock.mint(address,uint256)(2 arguments)
 > explorer: 0x508a289795cb8e3e1265dfd8f528efc206146a62deba4f9a80a2fa19d6a6ec8e
