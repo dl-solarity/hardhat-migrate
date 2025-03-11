@@ -20,6 +20,7 @@ The following configuration options are available for Cast wallet:
 ### Usage
 
 In your Hardhat config:
+
 ```javascript
 module.exports = {
   migrate: {
@@ -32,26 +33,22 @@ module.exports = {
 ```
 
 Or via command line:
+
 ```bash
 npx hardhat migrate --network sepolia --castEnabled --passwordFile ./password
 ```
 
 ### Managing Passwords for Deployment
 
-> [!IMPORTANT]
-> The plugin expects the environment variable name to contain the account name itself. 
-> If your account is named `test-0` or `test_0`, the plugin will look for an environment variable named `PASSWORD_TEST_0`.
-> 
-> The plugin automatically:
-> - Adds the `PASSWORD_` prefix to the account name
-> - Converts the entire variable name to uppercase
-> - Transforms hyphens (-) to underscores (_)
-
 You can store passwords in a `.env` file:
 
 ```bash
 PASSWORD_TEST_0=password123
 ```
+
+> [!IMPORTANT]
+> The plugin expects the environment variable name to contain the account name itself. 
+> If your account is named `test-0` or `test_0`, the plugin will look for an environment variable named `PASSWORD_TEST_0`.
 
 When using `.env` files, you'll need to load these environment variables into your application using a package like `dotenv`:
 
@@ -89,6 +86,7 @@ The Trezor integration allows signing transactions with a Trezor hardware wallet
 ### Usage
 
 In your Hardhat config:
+
 ```javascript
 module.exports = {
   migrate: {
@@ -101,6 +99,7 @@ module.exports = {
 ```
 
 Or via command line:
+
 ```bash
 npx hardhat migrate --network sepolia --trezorEnabled --trezorMnemonicIndex 5
 ```
@@ -108,10 +107,12 @@ npx hardhat migrate --network sepolia --trezorEnabled --trezorMnemonicIndex 5
 ## Implementation Details
 
 ### Cast Integration
+
 - Uses Node.js `child_process` to execute cast commands
 - Provides wrapped functions to interact with cast's wallet functionality
 - Automatically handles command construction with appropriate flags
 
 ### Trezor Integration
+
 - Uses the official `@trezor/connect` library
 - Provides initialization, address retrieval, and transaction signing
