@@ -71,6 +71,8 @@ export class Verifier {
       if (await instance.isVerified(contractAddress)) {
         Reporter!.reportAlreadyVerified(contractAddress, contractName);
 
+        await this._verifyProxy(instance, contractAddress);
+
         break;
       }
 
@@ -79,6 +81,14 @@ export class Verifier {
         break;
       } catch (e: any) {
         this._handleVerificationError(contractAddress, contractName, e);
+
+        if (
+          e.message !== undefined &&
+          typeof e.message === "string" &&
+          e.message.includes("HH303: Unrecognized task 'verify:verify'")
+        ) {
+          break;
+        }
       }
 
       await sleep(2500);

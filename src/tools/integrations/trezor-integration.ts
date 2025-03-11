@@ -36,6 +36,7 @@ export async function initTrezor(): Promise<void> {
       transports: ["BridgeTransport", "NodeUsbTransport"],
     });
 
+    // eslint-disable-next-line no-console
     console.log(`
 Trezor Settings Configuration Notice
 

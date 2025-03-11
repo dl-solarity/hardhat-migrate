@@ -4,6 +4,9 @@ import "@typechain/hardhat";
 
 import config from "../hardhat.config";
 
+import * as dotenv from "dotenv";
+dotenv.config();
+
 const defaultConfig: HardhatUserConfig = {
   ...config,
   typechain: {
