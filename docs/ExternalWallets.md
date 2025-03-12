@@ -36,7 +36,7 @@ npx hardhat migrate --network sepolia --account test-0 --password-file ./passwor
 ```
 
 > [!NOTE]
-> If account or keystore are provided, the plugin will try to use cast to sign transactions.
+> If an account or keystore is provided, the plugin will try to use cast to sign transactions.
 
 ### Managing Passwords for Deployment
 
