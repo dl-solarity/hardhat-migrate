@@ -1,6 +1,6 @@
 {
   "name": "@solarity/hardhat-migrate",
-  "version": "3.0.0-rc.1",
+  "version": "3.0.0-rc.2",
   "description": "Automatic deployment and verification of smart contracts",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",

@@ -182,7 +182,7 @@ function appendWalletOptions(args: string[], options: CastWalletOptions): void {
     args.push("--account", options.account);
   }
   if (options.password) {
-    args.push("--password", options.password);
+    args.push("--password", `'${options.password}'`);
   }
   if (options.passwordFile) {
     args.push("--password-file", options.passwordFile);
