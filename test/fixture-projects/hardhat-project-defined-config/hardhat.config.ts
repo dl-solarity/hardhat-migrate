@@ -30,9 +30,7 @@ const defaultConfig: HardhatUserConfig = {
       transactionStatusCheckInterval: 4000,
       withoutCLIReporting: false,
     },
-    castWallet: {
-      enabled: false,
-    },
+    castWallet: {},
     trezorWallet: {
       enabled: false,
       mnemonicIndex: 0,

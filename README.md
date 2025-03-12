@@ -74,13 +74,10 @@ module.exports = {
       withoutCLIReporting: false,
     },
     castWallet: {
-      enabled: false,
       // Optional parameters below
       // passwordFile: "/path/to/password.txt",
       // keystore: "/path/to/keystore",
-      // mnemonicIndex: 0,
       // account: "account-name",
-      // interactive: false,
     },
     trezorWallet: {
       enabled: false,
@@ -112,12 +109,9 @@ Where:
   - `transactionStatusCheckInterval` - The interval in milliseconds between transaction status checks.
   - `withoutCLIReporting` - The flag indicating whether the CLI reporting should be disabled.
 - `castWallet`
-  - `enabled` - The flag indicating whether to use the Cast wallet for signing transactions.
   - `passwordFile` - File path to the keystore password.
   - `keystore` - Use a keystore file or directory.
-  - `mnemonicIndex` - The mnemonic index (default 0).
-  - `account` - The account name (when using the default keystore directory).
-  - `interactive` - Open an interactive prompt to enter your private key.
+  - `account` - The account name (__if present, indicates that the cast wallet should be used__).
 - `trezorWallet`
   - `enabled` - The flag indicating whether to use the Trezor hardware wallet for signing transactions.
   - `mnemonicIndex` - The mnemonic index for Trezor wallet.

@@ -63,7 +63,7 @@ export class ExtendedHardhatEthersSigner {
   }
 
   public async getAddress(): Promise<string> {
-    if (this._config.castWallet.enabled) {
+    if (this._isCastEnabled()) {
       return getCastWalletAddress(this._getCastOptions());
     }
 
@@ -81,7 +81,7 @@ export class ExtendedHardhatEthersSigner {
   public async sendTransaction(tx: TransactionRequest): Promise<TransactionResponse> {
     await this._ensureInitialized();
 
-    if (!this._config.castWallet.enabled && !this._config.trezorWallet.enabled) {
+    if (!this._isCastEnabled() && !this._config.trezorWallet.enabled) {
       return this.ethersSigner.sendTransaction(tx);
     }
 
@@ -103,11 +103,8 @@ export class ExtendedHardhatEthersSigner {
       return signerName;
     }
 
-    if (this._config.castWallet.enabled) {
-      if (!this._config.castWallet.account) {
-        throw new MigrateError("Cast wallet account not set and no signer name provided");
-      }
-      return this._config.castWallet.account;
+    if (this._isCastEnabled()) {
+      return (this._config.castWallet.account || this._config.castWallet.keystore)!;
     }
 
     if (this._config.trezorWallet.enabled) {
@@ -124,7 +121,7 @@ export class ExtendedHardhatEthersSigner {
       await initTrezor();
     }
 
-    if (this._config.castWallet.enabled) {
+    if (this._isCastEnabled()) {
       await getCastVersion();
     }
 
@@ -143,7 +140,7 @@ export class ExtendedHardhatEthersSigner {
   }
 
   private async _signTransaction(tx: Transaction): Promise<string> {
-    if (this._config.castWallet.enabled) {
+    if (this._isCastEnabled()) {
       return getSignedTxViaCast(tx, this._getCastOptions());
     }
 
@@ -160,9 +157,11 @@ export class ExtendedHardhatEthersSigner {
     return {
       keystore: config.keystore,
       passwordFile: config.passwordFile,
-      account: this.signerIdentifier as string,
-      interactive: config.interactive,
-      mnemonicIndex: config.mnemonicIndex,
+      account: config.account,
     };
+  }
+
+  private _isCastEnabled(): boolean {
+    return this._config.castWallet.account !== undefined || this._config.castWallet.keystore !== undefined;
   }
 }

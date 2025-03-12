@@ -31,9 +31,7 @@ const defaultConfig: MigrateConfig = {
     transactionStatusCheckInterval: 2000,
     withoutCLIReporting: false,
   },
-  castWallet: {
-    enabled: false,
-  },
+  castWallet: {},
   trezorWallet: {
     enabled: false,
     mnemonicIndex: 0,
@@ -99,23 +97,13 @@ export function convertFlatToNested(flatConfig: any): Partial<MigrateConfig> {
   if (flatConfig.transactionStatusCheckInterval)
     result.execution!.transactionStatusCheckInterval = flatConfig.transactionStatusCheckInterval;
 
-  if (
-    flatConfig.castEnabled ||
-    flatConfig.passwordFile ||
-    flatConfig.keystore ||
-    flatConfig.mnemonicIndex ||
-    flatConfig.account ||
-    flatConfig.interactive
-  ) {
+  if (flatConfig.passwordFile || flatConfig.keystore || flatConfig.account) {
     result.castWallet = {} as any;
   }
 
-  if (flatConfig.castEnabled) result.castWallet!.enabled = flatConfig.castEnabled;
   if (flatConfig.passwordFile) result.castWallet!.passwordFile = flatConfig.passwordFile;
   if (flatConfig.keystore) result.castWallet!.keystore = flatConfig.keystore;
-  if (flatConfig.mnemonicIndex) result.castWallet!.mnemonicIndex = flatConfig.mnemonicIndex;
   if (flatConfig.account) result.castWallet!.account = flatConfig.account;
-  if (flatConfig.interactive) result.castWallet!.interactive = flatConfig.interactive;
 
   if (flatConfig.trezorEnabled || flatConfig.trezorMnemonicIndex) {
     result.trezorWallet = {} as any;
@@ -169,10 +157,17 @@ export const validateConfig = (config: MigrateConfig): void => {
     throw new HardhatPluginError(pluginName, "config.migrate.paths.pathToMigrations must be a relative path");
   }
 
-  if (config.trezorWallet.enabled && config.castWallet.enabled) {
+  if (config.trezorWallet.enabled && config.castWallet.account) {
     throw new HardhatPluginError(
       pluginName,
-      "config.migrate.trezorWallet.enabled and config.migrate.castWallet.enabled cannot be enabled at the same time",
+      "config.migrate.trezorWallet.enabled and config.migrate.castWallet.account cannot be enabled at the same time",
+    );
+  }
+
+  if (config.castWallet.account && config.castWallet.keystore) {
+    throw new HardhatPluginError(
+      pluginName,
+      "config.migrate.castWallet.account and config.migrate.castWallet.keystore cannot be enabled at the same time",
     );
   }
 
