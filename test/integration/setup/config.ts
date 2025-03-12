@@ -43,9 +43,7 @@ describe("config", () => {
           transactionStatusCheckInterval: 4000,
           withoutCLIReporting: false,
         },
-        castWallet: {
-          enabled: false,
-        },
+        castWallet: {},
         trezorWallet: {
           enabled: false,
           mnemonicIndex: 0,
@@ -91,9 +89,7 @@ describe("config", () => {
           transactionStatusCheckInterval: 2000,
           withoutCLIReporting: false,
         },
-        castWallet: {
-          enabled: false,
-        },
+        castWallet: {},
         trezorWallet: {
           enabled: false,
           mnemonicIndex: 0,

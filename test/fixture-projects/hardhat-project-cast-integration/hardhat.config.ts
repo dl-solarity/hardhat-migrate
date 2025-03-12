@@ -15,7 +15,6 @@ const defaultConfig: HardhatUserConfig = {
   },
   migrate: {
     castWallet: {
-      enabled: true,
       account: "test-7",
       passwordFile: "test-0.pwd",
     },

@@ -47,18 +47,12 @@ export interface ExecutionConfig {
 }
 
 export interface CastWalletConfig {
-  /** Flag indicating whether the cast wallet should be used */
-  enabled: boolean;
   /** File path to the keystore password */
   passwordFile?: string;
   /** Use a keystore file or directory */
   keystore?: string;
-  /** The mnemonic index (default 0) */
-  mnemonicIndex?: number;
   /** The account name (when using the default keystore directory) */
   account?: string;
-  /** Open an interactive prompt to enter your private key */
-  interactive?: boolean;
 }
 
 export interface TrezorWalletConfig {

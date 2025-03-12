@@ -39,9 +39,7 @@ function getMigratorInstance(
           transactionStatusCheckInterval: 0,
           withoutCLIReporting: false,
         },
-        castWallet: {
-          enabled: false,
-        },
+        castWallet: {},
         trezorWallet: {
           enabled: false,
           mnemonicIndex: 0,

@@ -10,12 +10,9 @@ The following configuration options are available for Cast wallet:
 
 | Option          | Description                                            |
 |-----------------|--------------------------------------------------------|
-| `enabled`       | Flag to enable/disable Cast wallet usage               |
 | `passwordFile`  | Path to a file containing the keystore password        |
 | `keystore`      | Path to a keystore file or directory                   |
-| `mnemonicIndex` | The index to use with a mnemonic (default: 0)          |
 | `account`       | Account name when using the default keystore directory |
-| `interactive`   | Open an interactive prompt for entering private key    |
 
 ### Usage
 
@@ -25,7 +22,7 @@ In your Hardhat config:
 module.exports = {
   migrate: {
     castWallet: {
-      enabled: true,
+      account: "test-0",
       passwordFile: "./password",
     }
   }
@@ -35,8 +32,11 @@ module.exports = {
 Or via command line:
 
 ```bash
-npx hardhat migrate --network sepolia --castEnabled --passwordFile ./password
+npx hardhat migrate --network sepolia --account test-0 --password-file ./password
 ```
+
+> [!NOTE]
+> If an account or keystore is provided, the plugin will try to use cast to sign transactions.
 
 ### Managing Passwords for Deployment
 
@@ -101,7 +101,7 @@ module.exports = {
 Or via command line:
 
 ```bash
-npx hardhat migrate --network sepolia --trezorEnabled --trezorMnemonicIndex 5
+npx hardhat migrate --network sepolia --trezor-enabled --trezor-mnemonic-index 5
 ```
 
 ## Implementation Details
