@@ -105,7 +105,12 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
   // Cast wallet params
   .addOptionalParam("passwordFile", "File path to the keystore password", undefined, types.string)
   .addOptionalParam("keystore", "Use a keystore file or directory", undefined, types.string)
-  .addOptionalParam("account", "The account name (when using the default keystore directory)", undefined, types.string)
+  .addOptionalParam(
+    "account",
+    "The name of the cast wallet account (when using the default keystore directory)",
+    undefined,
+    types.string,
+  )
 
   // Trezor wallet params
   .addFlag("trezorEnabled", "Enable Trezor hardware wallet for signing transactions")

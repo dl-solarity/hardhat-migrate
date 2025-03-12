@@ -111,7 +111,7 @@ Where:
 - `castWallet`
   - `passwordFile` - File path to the keystore password.
   - `keystore` - Use a keystore file or directory.
-  - `account` - The account name (__if present, indicates that the cast wallet should be used__).
+  - `account` - The name of the cast wallet account.
 - `trezorWallet`
   - `enabled` - The flag indicating whether to use the Trezor hardware wallet for signing transactions.
   - `mnemonicIndex` - The mnemonic index for Trezor wallet.
