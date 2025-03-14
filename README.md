@@ -37,6 +37,7 @@ Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 ```ts
 import "@solarity/hardhat-migrate";
 import "@nomicfoundation/hardhat-ethers";
+import "@typechain/hardhat"; // For typization of Ethers
 import "@nomicfoundation/hardhat-verify"; // If you want to verify contracts
 ```
 
