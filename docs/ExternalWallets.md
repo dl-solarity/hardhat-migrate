@@ -66,6 +66,7 @@ export PASSWORD_TEST_0=password123
 > [!NOTE]
 > For security reasons, avoid hardcoding passwords in files that are version-controlled. 
 > Consider using environment-specific configuration files that are excluded from your repository.
+> Also do not forget to escape [special characters](https://stackoverflow.com/questions/15783701/which-characters-need-to-be-escaped-when-using-bash) in your password if needed.
 
 ## Trezor Hardware Wallet Integration
 
