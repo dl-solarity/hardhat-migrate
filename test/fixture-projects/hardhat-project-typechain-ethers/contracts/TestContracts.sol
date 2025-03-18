@@ -5,7 +5,11 @@ contract PayableConstructor {
     constructor() payable {}
 }
 
-contract ConstructorWithArguments {
+interface IConstructorWithArguments {
+    function value() external view returns (uint256);
+}
+
+contract ConstructorWithArguments is IConstructorWithArguments {
     uint256 public value;
 
     constructor(uint256 _value) {

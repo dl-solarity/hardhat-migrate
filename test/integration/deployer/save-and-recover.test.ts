@@ -6,6 +6,7 @@ import { useEnvironment } from "../../helpers";
 import {
   ConstructorWithArguments,
   ConstructorWithArguments__factory,
+  IConstructorWithArguments__factory,
 } from "../../fixture-projects/hardhat-project-typechain-ethers/typechain-types";
 
 import { Deployer } from "../../../src/deployer/Deployer";
@@ -47,6 +48,14 @@ describe("deployer", () => {
       await deployer.save(ConstructorWithArguments__factory, await contract.getAddress());
 
       const contractInstance = await deployer.deployed(ConstructorWithArguments__factory);
+
+      expect(await contractInstance.getAddress()).to.equal(await contract.getAddress());
+    });
+
+    it("should recover contract using interface", async function () {
+      await deployer.save(ConstructorWithArguments__factory, await contract.getAddress());
+
+      const contractInstance = await deployer.deployed(IConstructorWithArguments__factory, await contract.getAddress());
 
       expect(await contractInstance.getAddress()).to.equal(await contract.getAddress());
     });
