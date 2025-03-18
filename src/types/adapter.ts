@@ -2,27 +2,22 @@ import { ContractFactory, InterfaceAbi } from "ethers";
 
 import { Bytecode } from "./deployer";
 
-export interface BaseTypechainFactoryClass<A, I> {
+export interface TypechainFactoryClass<A, I> {
   new (...args: any): A;
 
   abi: any;
+
+  bytecode: any;
 
   createInterface(): any;
 
   connect(address: string, runner?: any): I;
 }
 
-export interface TypechainFactoryClass<A, I> extends BaseTypechainFactoryClass<A, I> {
-  bytecode: any;
-}
-
-export interface BaseBytecodeFactory {
+export interface BytecodeFactory {
   abi: InterfaceAbi;
-  contractName: string;
-}
-
-export interface BytecodeFactory extends BaseBytecodeFactory {
   bytecode: Bytecode;
+  contractName: string;
 }
 
 type Parameters<T extends (...args: any) => any> = T extends (...args: infer P) => any
@@ -34,8 +29,8 @@ type Parameters<T extends (...args: any) => any> = T extends (...args: infer P) 
 export type TypedArgs<A> = A extends { deploy(...args: any): any } ? Parameters<A["deploy"]> : any;
 
 export type BaseInstance<A, I> =
-  | BaseTypechainFactoryClass<A, I>
-  | BaseBytecodeFactory
+  | Omit<TypechainFactoryClass<A, I>, "bytecode">
+  | Omit<BytecodeFactory, "bytecode">
   | Omit<ContractFactory, "bytecode">;
 
 export type Instance<A, I> = TypechainFactoryClass<A, I> | BytecodeFactory | ContractFactory;
