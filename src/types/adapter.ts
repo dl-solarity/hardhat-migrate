@@ -1,4 +1,4 @@
-import { InterfaceAbi, ContractFactory } from "ethers";
+import { ContractFactory, InterfaceAbi } from "ethers";
 
 import { Bytecode } from "./deployer";
 
@@ -6,6 +6,7 @@ export interface TypechainFactoryClass<A, I> {
   new (...args: any): A;
 
   abi: any;
+
   bytecode: any;
 
   createInterface(): any;
@@ -26,5 +27,10 @@ type Parameters<T extends (...args: any) => any> = T extends (...args: infer P) 
   : never[];
 
 export type TypedArgs<A> = A extends { deploy(...args: any): any } ? Parameters<A["deploy"]> : any;
+
+export type BaseInstance<A, I> =
+  | Omit<TypechainFactoryClass<A, I>, "bytecode">
+  | Omit<BytecodeFactory, "bytecode">
+  | Omit<ContractFactory, "bytecode">;
 
 export type Instance<A, I> = TypechainFactoryClass<A, I> | BytecodeFactory | ContractFactory;

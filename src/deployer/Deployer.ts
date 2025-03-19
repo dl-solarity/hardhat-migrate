@@ -12,7 +12,7 @@ import { Adapter } from "./adapters/Adapter";
 import { BytecodeAdapter } from "./adapters/BytecodeAdapter";
 
 import { OverridesAndLibs } from "../types/deployer";
-import { Instance, TypedArgs } from "../types/adapter";
+import { BaseInstance, Instance, TypedArgs } from "../types/adapter";
 import { KeyTransactionFields, MigrationMetadata, TransactionFieldsToSave } from "../types/tools";
 import { isEthersContractFactory, isBytecodeFactory, isTypechainFactoryClass } from "../types/type-checks";
 
@@ -154,7 +154,7 @@ export class Deployer {
     return this.deployed(implementationFactory, instanceName);
   }
 
-  public async deployed<A, I = any>(contract: Instance<A, I>, contractIdentifier?: string): Promise<I> {
+  public async deployed<A, I = any>(contract: BaseInstance<A, I>, contractIdentifier?: string): Promise<I> {
     const adapter = Deployer.resolveAdapter(this._hre, contract);
     const defaultContractName = adapter.getContractName(contract, {});
 
@@ -263,7 +263,7 @@ export class Deployer {
     };
   }
 
-  public static resolveAdapter<A, I = any>(hre: HardhatRuntimeEnvironment, contract: Instance<A, I>): Adapter {
+  public static resolveAdapter<A, I = any>(hre: HardhatRuntimeEnvironment, contract: BaseInstance<A, I>): Adapter {
     if (isTypechainFactoryClass(contract)) {
       return new TypechainContractFactoryAdapter(hre);
     }
