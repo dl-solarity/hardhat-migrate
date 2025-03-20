@@ -156,6 +156,7 @@ This command will run the migration script and execute all the specified actions
 <tr>
 <th>Migration Script</th>
 <th>Deployment Output</th>
+<th>Markdown Report</th>
 </tr>
 <tr>
 <td>
@@ -232,6 +233,44 @@ Transaction: ERC20Mock.mint(address,uint256)(2 arguments)
 > Total transactions:  2
 > Final cost:          0.061426897305814476 ETH
 ```
+</td>
+<td>
+
+# Migration Report 2025-03-14T16:01:26.567Z.md
+
+## General Information
+
+### Migration Files
+
+- 1_token.migration.ts
+
+### Networks
+
+- sepolia - Chain ID: 11155111. Explorer: https://sepolia.etherscan.io
+
+## Detailed Migration Files
+
+### 1_token.migration.ts
+
+- https://sepolia.etherscan.io/tx/0xc35dd9e9600f102cf3b414f1341560870021b3824ace4bedbd59e2216bd89a49
+- https://sepolia.etherscan.io/tx/0x508a289795cb8e3e1265dfd8f528efc206146a62deba4f9a80a2fa19d6a6ec8e
+
+## Stats
+
+| Total Contracts | Total Transactions | Gas Used | Average Gas Price | Fee Payed                | Native Currency Sent |
+| --------------- | ------------------ | -------- | ----------------- | ------------------------ | -------------------- |
+| 1               | 1                  | 640068   | 94.301772167 GWei | 0.061426897305814476 ETH | 0.0 ETH              |
+
+Total Cost:
+
+0.061426897305814476 ETH
+
+## All Data
+
+| Name                                          | Address                                                            |
+| --------------------------------------------- | ------------------------------------------------------------------ |
+| contracts/mock/tokens/ERC20Mock.sol:ERC20Mock | 0xc596A6e2f1558c7e030272d2A2E37E53050E2D63                         |
+| ERC20Mock.mint(address,uint256)(2 arguments)  | 0x508a289795cb8e3e1265dfd8f528efc206146a62deba4f9a80a2fa19d6a6ec8e |
 </td>
 </tr>
 </table>
