@@ -2,7 +2,7 @@
 
 # Hardhat migrate
 
-[Hardhat](https://hardhat.org) plugin to simplify the deployment and verification of contracts.
+The simplest way to deploy smart contracts.
 
 ## What
 
@@ -14,6 +14,7 @@ With sleek UX that doesn't require writing "deployment wrappers", users can:
 - Verify smart contracts source code through seamless integration with [@nomicfoundation/hardhat-verify](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify).
 - Leverage "migration recovery mode" that syncs up deployment from the last failed transaction.
 - Observe real-time status and logging of executing transactions.
+- Check out the generation of markdown (.md) deployment reports.
 - Simplify Solidity `libraries` usage via auto-linking mechanics.
 - Support multiple wallet types, including [Cast Wallet](https://book.getfoundry.sh/cast/) and [Trezor](https://trezor.io/) hardware wallet.
 - And much more.
