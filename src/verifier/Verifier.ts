@@ -68,14 +68,6 @@ export class Verifier {
     await this._validateExplorerConfiguration(instance, contractAddress);
 
     for (let attempts = 0; attempts < this._config.attempts; attempts++) {
-      if (await instance.isVerified(contractAddress)) {
-        Reporter!.reportAlreadyVerified(contractAddress, contractName);
-
-        await this._verifyProxy(instance, contractAddress);
-
-        break;
-      }
-
       try {
         await this._tryVerify(instance, contractAddress, contractName, constructorArguments);
         break;
@@ -85,7 +77,7 @@ export class Verifier {
         if (
           e.message !== undefined &&
           typeof e.message === "string" &&
-          e.message.includes("HH303: Unrecognized task 'verify:verify'")
+          (e.message.includes("HH303: Unrecognized task 'verify:verify'") || e.message.includes("already verified"))
         ) {
           break;
         }
@@ -146,6 +138,7 @@ export class Verifier {
       address: contractAddress,
       constructorArguments: args,
       contract: contractName,
+      force: true,
     });
 
     await this._verifyProxy(instance, contractAddress);

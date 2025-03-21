@@ -25,8 +25,8 @@ describe("Public Reporter", () => {
     await PublicReporter.reportContractsMD(["Contract", "Address"]);
     console.log = log;
 
-    expect(logs).to.have.length(1);
-    expect(logs[0]).to.include(
+    expect(logs).to.have.length(2);
+    expect(logs[1]).to.include(
       "| Contract | Address                    |\n" +
         "| -------- | -------------------------- |\n" +
         "| Contract | [Address](address/Address) |\n",
