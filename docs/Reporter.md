@@ -20,18 +20,6 @@ Displays a list of contract names and addresses in a table format.
 
 Displays a list of contract names and addresses in Markdown format with links to the block explorer.
 
----
-
-- **disableShortenAddress()**:
-
-Returns the Reporter class with address shortening disabled. By default, addresses are shortened. Chain with `reportContractsMD` Reporter method:
-
-```typescript
-Reporter.disableShortenAddress().reportContractsMD([
-  "My Contract", "0x1234567890123456789012345678901234567890"
-]);
-```
-
 ## Deployment Reporting
 
 The plugin automatically generates comprehensive deployment reports throughout the migration process. 

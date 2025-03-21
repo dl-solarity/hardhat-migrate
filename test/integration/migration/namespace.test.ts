@@ -23,15 +23,15 @@ describe("namespaces", () => {
 
   describe("migration flow with namespaces", () => {
     it("should run the core migration", async function () {
-      await runWithoutContinue(hre, { namespace: "core" } as any);
+      await runWithoutContinue(hre, { namespace: "core" });
 
-      await runWithoutContinue(hre, { namespace: "additional", continue: true } as any);
+      await runWithoutContinue(hre, { namespace: "additional", continue: true });
     });
 
     it("should revert if the namespace is not found", async function () {
       const expectedErrorMessage = `Migrations directory not found at ${join(hre.config.paths.root, "deploy", "not-found")}`;
 
-      await expect(runWithContinue(hre, { namespace: "not-found" } as any)).to.be.rejectedWith(expectedErrorMessage);
+      await expect(runWithContinue(hre, { namespace: "not-found" })).to.be.rejectedWith(expectedErrorMessage);
     });
   });
 });

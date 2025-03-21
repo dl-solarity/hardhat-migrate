@@ -3,13 +3,13 @@ import { expect } from "chai";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { TASK_MIGRATE } from "../../../src/constants";
-import { MigrateConfig } from "../../../src/types/migrations";
+import { MigrateConfig, MigrateConfigArgs } from "../../../src/types/migrations";
 
-export async function runWithoutContinue(hre: HardhatRuntimeEnvironment, config: MigrateConfig) {
+export async function runWithoutContinue(hre: HardhatRuntimeEnvironment, config: MigrateConfigArgs) {
   await hre.run(TASK_MIGRATE, config);
 }
 
-export async function runWithContinue(hre: HardhatRuntimeEnvironment, config: MigrateConfig) {
+export async function runWithContinue(hre: HardhatRuntimeEnvironment, config: MigrateConfigArgs) {
   await hre.run(TASK_MIGRATE, config);
 
   const deployer = await hre.ethers.provider.getSigner();

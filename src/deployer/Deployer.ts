@@ -126,7 +126,7 @@ export class Deployer {
       implementationParameters = parameters;
     }
 
-    let instanceName = adapter.getContractName(implementationFactory, parameters);
+    let instanceName = adapter.getContractName(implementationFactory, implementationParameters);
 
     const implementation = (await this.deploy(implementationFactory, implementationArgs, {
       ...implementationParameters,

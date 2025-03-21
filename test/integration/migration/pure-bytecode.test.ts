@@ -20,11 +20,11 @@ describe("pure-bytecode", () => {
 
   describe("simple migration flow", () => {
     it("should run migration successfully", async function () {
-      await runWithoutContinue(hre, { only: 1 } as any);
+      await runWithoutContinue(hre, { only: 1 });
     });
 
     it("should recover migration successfully", async function () {
-      await runWithContinue(hre, { only: 1 } as any);
+      await runWithContinue(hre, { only: 1 });
     });
   });
 });

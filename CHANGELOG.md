@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 3.0.2
+
+- Added an ability to specify custom path for reporting
+- Refactored ReporterStorage to separate contracts and transactions data structures
+
+## Version 3.0.1
+
+- Added BaseInstance type for better TypeChain interfaces support
+
 ## Version 3.0.0
 
 ### Breaking changes

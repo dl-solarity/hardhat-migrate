@@ -23,7 +23,7 @@ describe("file-reporting", () => {
 
   describe("simple report", () => {
     it("should generate MD report", async function () {
-      await runWithoutContinue(hre, {} as any);
+      await runWithoutContinue(hre, {});
 
       const files = readdirSync(hre.config.paths.cache);
       expect(files.length).to.be.greaterThan(0);

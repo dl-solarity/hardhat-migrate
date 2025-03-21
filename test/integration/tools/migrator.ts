@@ -31,6 +31,7 @@ function getMigratorInstance(
         paths: {
           pathToMigrations: "./deploy-files",
           namespace: "",
+          saveReportPath: "cache",
         },
         execution: {
           force: false,

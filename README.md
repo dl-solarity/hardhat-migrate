@@ -103,6 +103,7 @@ Where:
 - `paths`
   - `pathToMigrations` - The path to the folder with the specified migrations.
   - `namespace` - The path to the subfolder where the migration should be run.
+  - `saveReportPath` - The path to directory where the migration report should be saved
 - `execution`
   - `force` - The flag indicating whether the contracts compilation is forced.
   - `continue` - The flag indicating whether the deployment should restore the state from the previous deployment.
