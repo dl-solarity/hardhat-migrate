@@ -63,6 +63,8 @@ export class Migrator {
     }
 
     TransactionRunner!.summary();
+
+    await Reporter?.completeReport();
   }
 
   private _getMigrationFiles() {

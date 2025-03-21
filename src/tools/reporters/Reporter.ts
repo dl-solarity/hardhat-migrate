@@ -54,6 +54,10 @@ class BaseReporter {
     this._storage = new ReporterStorage(hre);
   }
 
+  public async completeReport() {
+    await this._storage!.finishReport();
+  }
+
   public notifyStorageAboutContracts(contracts: [name: string, address: string][]) {
     this._storage!.storeReportedContracts(contracts);
   }

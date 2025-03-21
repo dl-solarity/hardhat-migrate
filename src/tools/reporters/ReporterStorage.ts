@@ -1,6 +1,6 @@
 import { join } from "path";
 import { format } from "prettier";
-import { existsSync, mkdirSync, writeFile } from "fs";
+import { existsSync, mkdirSync, writeFile, writeFileSync } from "fs";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -353,6 +353,19 @@ export class ReporterStorage {
     });
   }
 
+  public async finishReport() {
+    const reportID = this._getReportID();
+
+    const pathToReportDir = join(this._hre.config.paths.root, this._hre.config.migrate.paths.saveReportPath);
+
+    if (!existsSync(pathToReportDir)) {
+      mkdirSync(pathToReportDir, { recursive: true });
+    }
+
+    const content: string = await this._getReportContent();
+    writeFileSync(join(pathToReportDir, reportID), content, { flag: "w" });
+  }
+
   private _getReportID() {
     if (this._currentReportID !== null) {
       return this._currentReportID;
@@ -370,7 +383,7 @@ export class ReporterStorage {
     return `Migration Report ${date}.md`;
   }
 
-  private _getReportContent() {
+  private _getReportContent(): Promise<string> {
     const { title, generalInfo, reportedContracts } = this._state;
 
     const actualState: any[] = [];
