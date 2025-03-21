@@ -5,7 +5,7 @@ import { ConfigExtender } from "hardhat/types";
 
 import { pluginName } from "./constants";
 
-import { DeepPartial, MigrateConfig, MigrateVerifyConfig } from "./types/migrations";
+import { DeepPartial, MigrateConfig, MigrateConfigArgs, MigrateVerifyConfig } from "./types/migrations";
 
 const defaultConfig: MigrateConfig = {
   filter: {
@@ -23,6 +23,7 @@ const defaultConfig: MigrateConfig = {
   paths: {
     pathToMigrations: "./deploy",
     namespace: "",
+    saveReportPath: "cache",
   },
   execution: {
     force: false,
@@ -59,7 +60,7 @@ export const mergeConfigs = (
   return migrateConfig;
 };
 
-export function convertFlatToNested(flatConfig: any): Partial<MigrateConfig> {
+export function convertFlatToNested(flatConfig: MigrateConfigArgs): Partial<MigrateConfig> {
   const result: Partial<MigrateConfig> = {};
 
   if (flatConfig.from || flatConfig.to || flatConfig.only || flatConfig.skip) {
@@ -80,12 +81,13 @@ export function convertFlatToNested(flatConfig: any): Partial<MigrateConfig> {
   if (flatConfig.verifyParallel) result.verification!.verifyParallel = flatConfig.verifyParallel;
   if (flatConfig.verifyAttempts) result.verification!.verifyAttempts = flatConfig.verifyAttempts;
 
-  if (flatConfig.pathToMigrations || flatConfig.namespace) {
+  if (flatConfig.pathToMigrations || flatConfig.namespace || flatConfig.saveReportPath) {
     result.paths = {} as any;
   }
 
   if (flatConfig.pathToMigrations) result.paths!.pathToMigrations = flatConfig.pathToMigrations;
   if (flatConfig.namespace) result.paths!.namespace = flatConfig.namespace;
+  if (flatConfig.saveReportPath) result.paths!.saveReportPath = flatConfig.saveReportPath;
 
   if (flatConfig.force || flatConfig.continue || flatConfig.wait || flatConfig.transactionStatusCheckInterval) {
     result.execution = {} as any;

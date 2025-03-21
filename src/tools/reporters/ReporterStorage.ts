@@ -337,16 +337,16 @@ export class ReporterStorage {
   private _commitReport() {
     const reportID = this._getReportID();
 
-    const pathToReport = join(this._hre.config.paths.cache, reportID);
+    const pathToReportDir = join(this._hre.config.paths.root, this._hre.config.migrate.paths.saveReportPath);
 
-    if (!existsSync(pathToReport)) {
-      mkdirSync(this._hre.config.paths.cache, { recursive: true });
+    if (!existsSync(pathToReportDir)) {
+      mkdirSync(pathToReportDir, { recursive: true });
     }
 
     this._getReportContent().then((content) => {
-      writeFile(pathToReport, content, { flag: "w" }, (err) => {
+      writeFile(join(pathToReportDir, reportID), content, { flag: "w" }, (err) => {
         if (err) {
-          console.error(`Error writing report to ${pathToReport}`);
+          console.error(`Error writing report to ${pathToReportDir}`);
           console.error(err);
         }
       });
