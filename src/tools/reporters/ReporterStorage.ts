@@ -580,7 +580,7 @@ export class ReporterStorage {
 
     if (this._state.allTransactions.size > 0) {
       actualState.push({ h2: "All Transactions" });
-      actualState.push({ table: { headers: ["Name", "Address"], rows: Array.from(this._state.allTransactions) } });
+      actualState.push({ table: { headers: ["Name", "Hash"], rows: Array.from(this._state.allTransactions) } });
     }
 
     return format(require("json2md")(actualState), {
