@@ -117,7 +117,7 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
   .addOptionalParam("trezorMnemonicIndex", "The mnemonic index for Trezor wallet", undefined, types.int)
 
   .addOptionalParam(
-    "saveReportPath",
+    "reportPath",
     "The path to directory where the migration report should be saved",
     undefined,
     types.string,

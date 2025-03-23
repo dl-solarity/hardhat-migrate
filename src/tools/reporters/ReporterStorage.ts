@@ -337,7 +337,7 @@ export class ReporterStorage {
   private _commitReport() {
     const reportID = this._getReportID();
 
-    const pathToReportDir = join(this._hre.config.paths.root, this._hre.config.migrate.paths.saveReportPath);
+    const pathToReportDir = join(this._hre.config.paths.root, this._hre.config.migrate.paths.reportPath);
 
     if (!existsSync(pathToReportDir)) {
       mkdirSync(pathToReportDir, { recursive: true });
@@ -356,7 +356,7 @@ export class ReporterStorage {
   public async finishReport() {
     const reportID = this._getReportID();
 
-    const pathToReportDir = join(this._hre.config.paths.root, this._hre.config.migrate.paths.saveReportPath);
+    const pathToReportDir = join(this._hre.config.paths.root, this._hre.config.migrate.paths.reportPath);
 
     if (!existsSync(pathToReportDir)) {
       mkdirSync(pathToReportDir, { recursive: true });

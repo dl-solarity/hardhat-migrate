@@ -23,7 +23,7 @@ describe("reporter-path", () => {
 
   describe("custom report paths", () => {
     it("should save report into specified directory", async function () {
-      await runWithoutContinue(hre, { only: 1, saveReportPath: "custom-path" });
+      await runWithoutContinue(hre, { only: 1, reportPath: "custom-path" });
 
       expect(readdirSync(join(hre.config.paths.root, "custom-path")).length).to.be.gte(1);
     });

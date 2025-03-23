@@ -23,7 +23,7 @@ const defaultConfig: MigrateConfig = {
   paths: {
     pathToMigrations: "./deploy",
     namespace: "",
-    saveReportPath: "cache",
+    reportPath: "cache",
   },
   execution: {
     force: false,
@@ -81,13 +81,13 @@ export function convertFlatToNested(flatConfig: MigrateConfigArgs): Partial<Migr
   if (flatConfig.verifyParallel) result.verification!.verifyParallel = flatConfig.verifyParallel;
   if (flatConfig.verifyAttempts) result.verification!.verifyAttempts = flatConfig.verifyAttempts;
 
-  if (flatConfig.pathToMigrations || flatConfig.namespace || flatConfig.saveReportPath) {
+  if (flatConfig.pathToMigrations || flatConfig.namespace || flatConfig.reportPath) {
     result.paths = {} as any;
   }
 
   if (flatConfig.pathToMigrations) result.paths!.pathToMigrations = flatConfig.pathToMigrations;
   if (flatConfig.namespace) result.paths!.namespace = flatConfig.namespace;
-  if (flatConfig.saveReportPath) result.paths!.saveReportPath = flatConfig.saveReportPath;
+  if (flatConfig.reportPath) result.paths!.reportPath = flatConfig.reportPath;
 
   if (flatConfig.force || flatConfig.continue || flatConfig.wait || flatConfig.transactionStatusCheckInterval) {
     result.execution = {} as any;
