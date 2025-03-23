@@ -103,7 +103,7 @@ Where:
 - `paths`
   - `pathToMigrations` - The path to the folder with the specified migrations.
   - `namespace` - The path to the subfolder where the migration should be run.
-  - `reportPath` - The path to directory where the migration report should be saved
+  - `reportPath` - The path to directory where the migration report should be saved (`./cache` by default).
 - `execution`
   - `force` - The flag indicating whether the contracts compilation is forced.
   - `continue` - The flag indicating whether the deployment should restore the state from the previous deployment.
@@ -276,7 +276,7 @@ Total Cost:
 </tr>
 </table>
 
-The detailed migration report with all information about transactions is automatically saved in the `cache` folder.
+The detailed migration report with all information about transactions is automatically saved in the `./cache` folder.
 
 ## Documentation
 
