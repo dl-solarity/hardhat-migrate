@@ -20,11 +20,11 @@ describe.skip("cast integration", () => {
 
   describe("migration flow with namespaces", () => {
     it("should run the core migration", async function () {
-      await runWithoutContinue(hre, { only: 1 } as any);
+      await runWithoutContinue(hre, { only: 1 });
     });
 
     it("should run the migration where from is set to account name", async function () {
-      await runWithoutContinue(hre, { only: 2 } as any);
+      await runWithoutContinue(hre, { only: 2 });
     });
   });
 });

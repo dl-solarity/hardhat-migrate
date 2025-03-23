@@ -35,6 +35,7 @@ describe("config", () => {
         paths: {
           pathToMigrations: "./path-to-deploy",
           namespace: "",
+          reportPath: "cache",
         },
         execution: {
           force: true,
@@ -81,6 +82,7 @@ describe("config", () => {
         paths: {
           pathToMigrations: "./deploy",
           namespace: "",
+          reportPath: "cache",
         },
         execution: {
           force: false,

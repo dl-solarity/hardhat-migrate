@@ -13,7 +13,7 @@ import {
 } from "./config";
 import { TASK_MIGRATE, TASK_MIGRATE_VERIFY } from "./constants";
 
-import { MigrateConfig, MigrateVerifyConfig } from "./types/migrations";
+import { MigrateConfigArgs, MigrateVerifyConfig } from "./types/migrations";
 
 import { DefaultStorage } from "./tools/storage/MigrateStorage";
 import { VerificationProcessor } from "./tools/storage/VerificationProcessor";
@@ -27,7 +27,7 @@ export { UserStorage, TransactionStorage, VerificationStorage, ArtifactStorage }
 
 extendConfig(migrateConfigExtender);
 
-const migrate: ActionType<MigrateConfig> = async (taskArgs, env) => {
+const migrate: ActionType<MigrateConfigArgs> = async (taskArgs, env) => {
   env.config.migrate = mergeConfigs(convertFlatToNested(taskArgs), env.config.migrate);
   validateConfig(env.config.migrate);
 
@@ -115,6 +115,13 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
   // Trezor wallet params
   .addFlag("trezorEnabled", "Enable Trezor hardware wallet for signing transactions")
   .addOptionalParam("trezorMnemonicIndex", "The mnemonic index for Trezor wallet", undefined, types.int)
+
+  .addOptionalParam(
+    "reportPath",
+    "The path to directory where the migration report should be saved",
+    undefined,
+    types.string,
+  )
 
   .setAction(migrate);
 

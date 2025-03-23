@@ -20,7 +20,7 @@ describe.skip("trezor integration", () => {
 
   describe("migration flow with namespaces", () => {
     it("should run the core migration", async function () {
-      await runWithoutContinue(hre, {} as any);
+      await runWithoutContinue(hre, {});
     });
   });
 });

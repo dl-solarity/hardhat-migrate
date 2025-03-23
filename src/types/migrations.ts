@@ -31,6 +31,8 @@ export interface PathConfig {
    * `{hardhat.config.path.root}/{pathToMigrations}/{namespace}`
    */
   namespace: string;
+  /** The path to directory where the migration report should be saved */
+  reportPath: string;
 }
 
 export interface ExecutionConfig {
@@ -81,6 +83,35 @@ export interface VerifyConfig {
 export interface MigrateVerifyConfig extends VerifyConfig {
   /** The path to the file with the verification input */
   inputFile: string | undefined;
+}
+
+export interface MigrateConfigArgs {
+  from?: number;
+  to?: number;
+  only?: number;
+  skip?: number;
+
+  verify?: boolean;
+  verificationDelay?: number;
+  verifyParallel?: number;
+  verifyAttempts?: number;
+
+  pathToMigrations?: string;
+  namespace?: string;
+
+  force?: boolean;
+  continue?: boolean;
+  wait?: number;
+  transactionStatusCheckInterval?: number;
+
+  passwordFile?: string;
+  keystore?: string;
+  account?: string;
+
+  trezorEnabled?: boolean;
+  trezorMnemonicIndex?: number;
+
+  reportPath?: string;
 }
 
 export type DeepPartial<T> = T extends object

@@ -1,6 +1,6 @@
 import { join } from "path";
 import { format } from "prettier";
-import { existsSync, mkdirSync, writeFile } from "fs";
+import { existsSync, mkdirSync, writeFile, writeFileSync } from "fs";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -75,7 +75,8 @@ export type ReportState = {
       newMethodName: string;
     }>;
   };
-  allData: Set<[name: string, address: string]>;
+  allContracts: Set<[name: string, address: string]>;
+  allTransactions: Set<[name: string, hash: string]>;
 };
 
 /**
@@ -128,7 +129,8 @@ export class ReporterStorage {
         transactions: new Set(),
         unknown: new Set(),
       },
-      allData: new Set(),
+      allContracts: new Set(),
+      allTransactions: new Set(),
     };
   }
 
@@ -180,11 +182,11 @@ export class ReporterStorage {
     if (transactionReceipt.contractAddress) {
       this._state.stats.totalContracts += 1;
 
-      this._state.allData.add([this._currentlyDeployingInstance, transactionReceipt.contractAddress]);
+      this._state.allContracts.add([this._currentlyDeployingInstance, transactionReceipt.contractAddress]);
     } else {
       this._state.stats.totalTransactions += 1;
 
-      this._state.allData.add([this._currentlyDeployingInstance, transactionReceipt.hash]);
+      this._state.allTransactions.add([this._currentlyDeployingInstance, transactionReceipt.hash]);
     }
 
     this._state.stats.gasUsed += BigInt(transactionReceipt.gasUsed);
@@ -335,20 +337,33 @@ export class ReporterStorage {
   private _commitReport() {
     const reportID = this._getReportID();
 
-    const pathToReport = join(this._hre.config.paths.cache, reportID);
+    const pathToReportDir = join(this._hre.config.paths.root, this._hre.config.migrate.paths.reportPath);
 
-    if (!existsSync(pathToReport)) {
-      mkdirSync(this._hre.config.paths.cache, { recursive: true });
+    if (!existsSync(pathToReportDir)) {
+      mkdirSync(pathToReportDir, { recursive: true });
     }
 
     this._getReportContent().then((content) => {
-      writeFile(pathToReport, content, { flag: "w" }, (err) => {
+      writeFile(join(pathToReportDir, reportID), content, { flag: "w" }, (err) => {
         if (err) {
-          console.error(`Error writing report to ${pathToReport}`);
+          console.error(`Error writing report to ${pathToReportDir}`);
           console.error(err);
         }
       });
     });
+  }
+
+  public async finishReport() {
+    const reportID = this._getReportID();
+
+    const pathToReportDir = join(this._hre.config.paths.root, this._hre.config.migrate.paths.reportPath);
+
+    if (!existsSync(pathToReportDir)) {
+      mkdirSync(pathToReportDir, { recursive: true });
+    }
+
+    const content: string = await this._getReportContent();
+    writeFileSync(join(pathToReportDir, reportID), content, { flag: "w" });
   }
 
   private _getReportID() {
@@ -368,7 +383,7 @@ export class ReporterStorage {
     return `Migration Report ${date}.md`;
   }
 
-  private _getReportContent() {
+  private _getReportContent(): Promise<string> {
     const { title, generalInfo, reportedContracts } = this._state;
 
     const actualState: any[] = [];
@@ -558,9 +573,14 @@ export class ReporterStorage {
       }
     }
 
-    if (this._state.allData.size > 0) {
-      actualState.push({ h2: "All Data" });
-      actualState.push({ table: { headers: ["Name", "Address"], rows: Array.from(this._state.allData) } });
+    if (this._state.allContracts.size > 0) {
+      actualState.push({ h2: "All Contracts" });
+      actualState.push({ table: { headers: ["Name", "Address"], rows: Array.from(this._state.allContracts) } });
+    }
+
+    if (this._state.allTransactions.size > 0) {
+      actualState.push({ h2: "All Transactions" });
+      actualState.push({ table: { headers: ["Name", "Hash"], rows: Array.from(this._state.allTransactions) } });
     }
 
     return format(require("json2md")(actualState), {

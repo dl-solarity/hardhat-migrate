@@ -30,7 +30,7 @@ export class PublicReporter {
     console.table(table);
     console.log();
 
-    Reporter!.notifyStorageAboutContracts(contracts);
+    Reporter!.notifyStorageAboutContracts(this.normalizeContractInputs(contracts, ""));
   }
 
   public static async reportContractsMD(...contracts: [name: string, address: string][]): Promise<void> {
@@ -54,6 +54,7 @@ export class PublicReporter {
     });
 
     markdownContent = [...headers, ...rows].join("\n");
+    console.log();
     console.log(
       await format(markdownContent, {
         parser: "markdown",
@@ -62,6 +63,18 @@ export class PublicReporter {
       }),
     );
 
-    Reporter!.notifyStorageAboutContracts(contracts);
+    Reporter!.notifyStorageAboutContracts(this.normalizeContractInputs(contracts, explorer));
+  }
+
+  private static normalizeContractInputs(
+    contracts: [name: string, address: string][],
+    explorerLink?: string,
+  ): [name: string, address: string][] {
+    const explorer = explorerLink || "";
+    const normalizedExplorer = explorer !== "" ? new URL("address/", explorer).toString() : ``;
+
+    return contracts.map(([contract, address]) => {
+      return [contract, normalizedExplorer !== "" ? `[${address}](${normalizedExplorer}${address})` : address];
+    });
   }
 }
