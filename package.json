@@ -59,7 +59,7 @@
   "peerDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.0",
-    "@trezor/connect": "9.5.4",
+    "@trezor/connect": "^9.5.0",
     "hardhat": "^2.10.0",
     "typechain": "^8.0.0"
   },
