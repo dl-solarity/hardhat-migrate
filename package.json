@@ -1,6 +1,6 @@
 {
   "name": "@solarity/hardhat-migrate",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "The simplest way to deploy smart contracts",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -50,18 +50,23 @@
     ]
   },
   "dependencies": {
-    "@trezor/connect": "9.5.0",
-    "axios": "1.7.9",
-    "ethers": "6.13.5",
-    "json2md": "2.0.2",
+    "axios": "1.9.0",
+    "ethers": "6.13.7",
+    "json2md": "2.0.3",
     "ora": "5.4.1",
-    "prettier": "3.5.1"
+    "prettier": "3.5.3"
   },
   "peerDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.0",
+    "@trezor/connect": "^9.5.0",
     "hardhat": "^2.10.0",
     "typechain": "^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@trezor/connect": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
