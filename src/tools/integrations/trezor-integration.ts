@@ -1,7 +1,5 @@
 import { Transaction } from "ethers";
 
-import TrezorConnect from "@trezor/connect";
-
 import { MigrateError } from "../../errors";
 
 let trezorInitialized = false;
@@ -24,6 +22,8 @@ export type TrezorTx = {
 
 export async function initTrezor(): Promise<void> {
   if (trezorInitialized) return;
+
+  const TrezorConnect = await getTrezorConnect();
 
   try {
     await TrezorConnect.init({
@@ -86,6 +86,8 @@ export async function signWithTrezor(tx: Transaction, mnemonicIndex: number = 0)
     data: tx.data || "0x",
   };
 
+  const TrezorConnect = await getTrezorConnect();
+
   const result = await TrezorConnect.ethereumSignTransaction({
     transaction: trezorTx,
     path: getKeyPath(mnemonicIndex),
@@ -115,6 +117,8 @@ export async function getTrezorAddress(mnemonicIndex: number = 0): Promise<strin
     return cachedAddress;
   }
 
+  const TrezorConnect = await getTrezorConnect();
+
   try {
     const result = await TrezorConnect.ethereumGetAddress({
       path: getKeyPath(mnemonicIndex),
@@ -136,4 +140,15 @@ export async function getTrezorAddress(mnemonicIndex: number = 0): Promise<strin
 
 function getKeyPath(mnemonicIndex: number): string {
   return `m/44'/60'/0'/0/${mnemonicIndex}`;
+}
+
+async function getTrezorConnect() {
+  try {
+    const mod = await import("@trezor/connect" as any);
+    return mod.default;
+  } catch (error: any) {
+    throw new MigrateError(
+      `An error occurred while importing @trezor/connect (if the module cannot be found, please install it): ${String(error.message || error)}.`,
+    );
+  }
 }

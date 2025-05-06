@@ -59,7 +59,7 @@
   "peerDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.0",
-    "@trezor/connect": "^9.5.0",
+    "@trezor/connect": "9.5.0",
     "hardhat": "^2.10.0",
     "typechain": "^8.0.0"
   },
@@ -72,6 +72,7 @@
     "@eslint/js": "^9.20.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.12",
     "@openzeppelin/contracts": "^5.2.0",
+    "@trezor/connect": "9.5.0",
     "@typechain/ethers-v6": "^0.5.1",
     "@typechain/hardhat": "^9.1.0",
     "@types/chai": "^4.3.20",
