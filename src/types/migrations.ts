@@ -33,6 +33,8 @@ export interface PathConfig {
   namespace: string;
   /** The path to directory where the migration report should be saved */
   reportPath: string;
+  /** The format of the migration report (json or md) */
+  reportFormat: string;
 }
 
 export interface ExecutionConfig {
@@ -112,6 +114,7 @@ export interface MigrateConfigArgs {
   trezorMnemonicIndex?: number;
 
   reportPath?: string;
+  reportFormat?: string;
 }
 
 export type DeepPartial<T> = T extends object

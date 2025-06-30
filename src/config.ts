@@ -24,6 +24,7 @@ const defaultConfig: MigrateConfig = {
     pathToMigrations: "./deploy",
     namespace: "",
     reportPath: "cache",
+    reportFormat: "md",
   },
   execution: {
     force: false,
@@ -81,13 +82,14 @@ export function convertFlatToNested(flatConfig: MigrateConfigArgs): Partial<Migr
   if (flatConfig.verifyParallel) result.verification!.verifyParallel = flatConfig.verifyParallel;
   if (flatConfig.verifyAttempts) result.verification!.verifyAttempts = flatConfig.verifyAttempts;
 
-  if (flatConfig.pathToMigrations || flatConfig.namespace || flatConfig.reportPath) {
+  if (flatConfig.pathToMigrations || flatConfig.namespace || flatConfig.reportPath || flatConfig.reportFormat) {
     result.paths = {} as any;
   }
 
   if (flatConfig.pathToMigrations) result.paths!.pathToMigrations = flatConfig.pathToMigrations;
   if (flatConfig.namespace) result.paths!.namespace = flatConfig.namespace;
   if (flatConfig.reportPath) result.paths!.reportPath = flatConfig.reportPath;
+  if (flatConfig.reportFormat) result.paths!.reportFormat = flatConfig.reportFormat;
 
   if (flatConfig.force || flatConfig.continue || flatConfig.wait || flatConfig.transactionStatusCheckInterval) {
     result.execution = {} as any;
@@ -157,6 +159,10 @@ export const validateConfig = (config: MigrateConfig): void => {
 
   if (config.paths.pathToMigrations !== undefined && !isRelativePath(config.paths.pathToMigrations)) {
     throw new HardhatPluginError(pluginName, "config.migrate.paths.pathToMigrations must be a relative path");
+  }
+
+  if (config.paths.reportFormat !== undefined && !["json", "md"].includes(config.paths.reportFormat)) {
+    throw new HardhatPluginError(pluginName, "config.migrate.paths.reportFormat must be either 'json' or 'md'");
   }
 
   if (config.trezorWallet.enabled && config.castWallet.account) {

@@ -151,7 +151,7 @@ export class Deployer {
       chainId: Number(await getChainId()),
     });
 
-    return this.deployed(implementationFactory, instanceName);
+    return this.deployed(implementationFactory, `${instanceName} proxy`);
   }
 
   public async deployed<A, I = any>(contract: BaseInstance<A, I>, contractIdentifier?: string): Promise<I> {

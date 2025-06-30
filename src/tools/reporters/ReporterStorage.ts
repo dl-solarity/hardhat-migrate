@@ -379,11 +379,22 @@ export class ReporterStorage {
 
   private _getReportName() {
     const date = new Date(Date.now()).toISOString();
+    const extension = this._hre.config.migrate.paths.reportFormat === "json" ? "json" : "md";
 
-    return `Migration Report ${date}.md`;
+    return `Migration Report ${date}.${extension}`;
   }
 
   private _getReportContent(): Promise<string> {
+    const reportFormat = this._hre.config.migrate.paths.reportFormat;
+
+    if (reportFormat === "json") {
+      return Promise.resolve(JSON.stringify(this._state, null, 2));
+    } else {
+      return this._getMarkdownReportContent();
+    }
+  }
+
+  private _getMarkdownReportContent(): Promise<string> {
     const { title, generalInfo, reportedContracts } = this._state;
 
     const actualState: any[] = [];
