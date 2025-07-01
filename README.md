@@ -14,7 +14,7 @@ With sleek UX that doesn't require writing "deployment wrappers", users can:
 - Verify smart contracts source code through seamless integration with [@nomicfoundation/hardhat-verify](https://www.npmjs.com/package/@nomicfoundation/hardhat-verify).
 - Leverage "migration recovery mode" that syncs up deployment from the last failed transaction.
 - Observe real-time status and logging of executing transactions.
-- Check out the generation of markdown (.md) deployment reports.
+- Check out the generation of deployment reports in Markdown (.md) or JSON (.json) format.
 - Simplify Solidity `libraries` usage via auto-linking mechanics.
 - Support multiple wallet types, including [Cast Wallet](https://book.getfoundry.sh/cast/) and [Trezor](https://trezor.io/) hardware wallet.
 - And much more.
@@ -104,6 +104,7 @@ Where:
   - `pathToMigrations` - The path to the folder with the specified migrations.
   - `namespace` - The path to the subfolder where the migration should be run.
   - `reportPath` - The path to directory where the migration report should be saved (`./cache` by default).
+  - `reportFormat` - The format of the migration report (`md` or `json`). Defaults to `md` for Markdown format.
 - `execution`
   - `force` - The flag indicating whether the contracts compilation is forced.
   - `continue` - The flag indicating whether the deployment should restore the state from the previous deployment.
@@ -157,7 +158,7 @@ This command will run the migration script and execute all the specified actions
 <tr>
 <th>Migration Script</th>
 <th>Deployment Output</th>
-<th>Markdown Report</th>
+<th>Migration Report</th>
 </tr>
 <tr>
 <td>
@@ -276,7 +277,7 @@ Total Cost:
 </tr>
 </table>
 
-The detailed migration report with all information about transactions is automatically saved in the `./cache` folder.
+The detailed migration report with all information about transactions is automatically saved in the `./cache` folder in either Markdown (.md) or JSON (.json) format based on the `reportFormat` configuration.
 
 ## Documentation
 
