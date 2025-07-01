@@ -122,6 +122,12 @@ task(TASK_MIGRATE, "Deploy contracts via migration files")
     undefined,
     types.string,
   )
+  .addOptionalParam(
+    "reportFormat",
+    "The format of the migration report (json or md)",
+    "md",
+    types.string,
+  )
 
   .setAction(migrate);
 

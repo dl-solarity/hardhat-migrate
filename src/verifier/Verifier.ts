@@ -3,8 +3,6 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
 
-import { MigrateError } from "../errors";
-
 import { catchError, getChainId, getPossibleImplementationAddress, sleep, suppressLogs } from "../utils";
 
 import { Args } from "../types/deployer";
@@ -158,7 +156,7 @@ export class Verifier {
     const response = await sendGetRequest(url.toString());
 
     if (response.status !== 200) {
-      throw new MigrateError(
+      console.warn(
         `The explorer responded with a status code of ${response.status} for the URL "${url.toString().split("?")[0]}".`,
       );
     }
