@@ -88,6 +88,16 @@ export class ExtendedHardhatEthersSigner {
 
     const voidSigner = new hre.ethers.VoidSigner(await this.getAddress(), this.provider);
     let preparedTx = await voidSigner.populateTransaction(tx);
+
+    if (hre.network.config.gasPrice) {
+      try {
+        preparedTx.gasPrice = hre.ethers.parseUnits(hre.network.config.gasPrice.toString(), "gwei");
+      } catch {}
+    }
+
+    if (hre.network.config.gasMultiplier) {
+      preparedTx.gasLimit = String(BigInt(preparedTx.gasLimit!) * BigInt(hre.network.config.gasMultiplier * 100) / 100n);
+    }
     delete preparedTx.from;
 
     if (this._config.trezorWallet.enabled) {
