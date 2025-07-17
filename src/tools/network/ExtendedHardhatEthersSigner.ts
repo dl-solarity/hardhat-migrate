@@ -1,5 +1,3 @@
-import { ethers } from "hardhat";
-
 import type {
   AddressLike,
   JsonRpcProvider,
@@ -43,8 +41,8 @@ export class ExtendedHardhatEthersSigner {
     try {
       ethersSigner = await networkManager?.getEthersSigner(signerName as any)!;
     } catch {
-      const address = ethers.isAddress(signerName) ? signerName : ethers.ZeroAddress;
-      ethersSigner = new ethers.VoidSigner(address, hre.ethers.provider);
+      const address = hre.ethers.isAddress(signerName) ? signerName : hre.ethers.ZeroAddress;
+      ethersSigner = new hre.ethers.VoidSigner(address, hre.ethers.provider);
     }
 
     return new ExtendedHardhatEthersSigner(hre, ethersSigner, signerName);
@@ -80,13 +78,15 @@ export class ExtendedHardhatEthersSigner {
   }
 
   public async sendTransaction(tx: TransactionRequest): Promise<TransactionResponse> {
+    const hre = await import("hardhat");
+
     await this._ensureInitialized();
 
     if (!this._isCastEnabled() && !this._config.trezorWallet.enabled) {
       return this.ethersSigner.sendTransaction(tx);
     }
 
-    const voidSigner = new ethers.VoidSigner(await this.getAddress(), this.provider);
+    const voidSigner = new hre.ethers.VoidSigner(await this.getAddress(), this.provider);
     let preparedTx = await voidSigner.populateTransaction(tx);
     delete preparedTx.from;
 
@@ -94,7 +94,7 @@ export class ExtendedHardhatEthersSigner {
       preparedTx = await this._prepareTrezorTransaction(preparedTx);
     }
 
-    const signedTx = await this._signTransaction(ethers.Transaction.from(preparedTx));
+    const signedTx = await this._signTransaction(hre.ethers.Transaction.from(preparedTx));
 
     return this.provider.broadcastTransaction(signedTx);
   }
