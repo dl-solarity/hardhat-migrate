@@ -1,12 +1,13 @@
-import {
+import { ethers } from "hardhat";
+
+import type {
   AddressLike,
-  ethers,
-  isAddress,
   JsonRpcProvider,
   Transaction,
+  VoidSigner,
+  TransactionLike,
   TransactionRequest,
   TransactionResponse,
-  VoidSigner,
 } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -42,8 +43,8 @@ export class ExtendedHardhatEthersSigner {
     try {
       ethersSigner = await networkManager?.getEthersSigner(signerName as any)!;
     } catch {
-      const address = isAddress(signerName) ? signerName : ethers.ZeroAddress;
-      ethersSigner = new VoidSigner(address, hre.ethers.provider);
+      const address = ethers.isAddress(signerName) ? signerName : ethers.ZeroAddress;
+      ethersSigner = new ethers.VoidSigner(address, hre.ethers.provider);
     }
 
     return new ExtendedHardhatEthersSigner(hre, ethersSigner, signerName);
@@ -85,7 +86,7 @@ export class ExtendedHardhatEthersSigner {
       return this.ethersSigner.sendTransaction(tx);
     }
 
-    const voidSigner = new VoidSigner(await this.getAddress(), this.provider);
+    const voidSigner = new ethers.VoidSigner(await this.getAddress(), this.provider);
     let preparedTx = await voidSigner.populateTransaction(tx);
     delete preparedTx.from;
 
@@ -93,7 +94,7 @@ export class ExtendedHardhatEthersSigner {
       preparedTx = await this._prepareTrezorTransaction(preparedTx);
     }
 
-    const signedTx = await this._signTransaction(Transaction.from(preparedTx));
+    const signedTx = await this._signTransaction(ethers.Transaction.from(preparedTx));
 
     return this.provider.broadcastTransaction(signedTx);
   }
@@ -128,7 +129,7 @@ export class ExtendedHardhatEthersSigner {
     this._initialized = true;
   }
 
-  private async _prepareTrezorTransaction(tx: ethers.TransactionLike<string>): Promise<ethers.TransactionLike<string>> {
+  private async _prepareTrezorTransaction(tx: TransactionLike): Promise<TransactionLike> {
     delete tx.maxFeePerBlobGas;
     delete tx.maxFeePerGas;
     delete tx.maxPriorityFeePerGas;
