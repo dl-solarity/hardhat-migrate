@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 3.0.3 - 3.1.0
+
+- Accounted for the gasPrice and gasMultiplier in the network config
+- Added an ability to pass constructorCalldata when deploying proxy
+- Bump `@nomicfoundation/hardhat-verify` version
+
 ## Version 3.0.2
 
 - Added an ability to specify custom path for reporting

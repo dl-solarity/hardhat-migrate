@@ -74,7 +74,10 @@ describe("deployer", () => {
     });
 
     it("should deploy ERC1967 proxy contract and set implementation", async function () {
-      const contract = await deployer.deployERC1967Proxy(PayableReceive__factory, PayableReceive__factory.createInterface().encodeFunctionData("pay"));
+      const contract = await deployer.deployERC1967Proxy(
+        PayableReceive__factory,
+        PayableReceive__factory.createInterface().encodeFunctionData("pay"),
+      );
 
       const toPay = 100n;
 

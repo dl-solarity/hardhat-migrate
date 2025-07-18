@@ -163,7 +163,11 @@ export class Deployer {
     return this.deployed(implementationFactory, `${instanceName} proxy`);
   }
 
-  public async validateConstructorCalldata<A, I = any>(implementationFactory: Instance<A, I>, parameters: OverridesAndLibs, constructorCalldata: string) {
+  public async validateConstructorCalldata<A, I = any>(
+    implementationFactory: Instance<A, I>,
+    parameters: OverridesAndLibs,
+    constructorCalldata: string,
+  ) {
     if (!isTypechainFactoryClass(implementationFactory) || constructorCalldata == "0x" || constructorCalldata == "") {
       return;
     }
@@ -176,7 +180,10 @@ export class Deployer {
       throw new MigrateError("Invalid constructor calldata. Correct it and use --continue flag to continue migration.");
     }
 
-    Reporter!.notifyOfProxyConstructorUsage(adapter.getContractName(implementationFactory, parameters), functionFragment.name);
+    Reporter!.notifyOfProxyConstructorUsage(
+      adapter.getContractName(implementationFactory, parameters),
+      functionFragment.name,
+    );
   }
 
   public async deployed<A, I = any>(contract: BaseInstance<A, I>, contractIdentifier?: string): Promise<I> {

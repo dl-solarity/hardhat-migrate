@@ -96,7 +96,9 @@ export class ExtendedHardhatEthersSigner {
     }
 
     if (hre.network.config.gasMultiplier) {
-      preparedTx.gasLimit = String(BigInt(preparedTx.gasLimit!) * BigInt(hre.network.config.gasMultiplier * 100) / 100n);
+      preparedTx.gasLimit = String(
+        (BigInt(preparedTx.gasLimit!) * BigInt(hre.network.config.gasMultiplier * 100)) / 100n,
+      );
     }
     delete preparedTx.from;
 

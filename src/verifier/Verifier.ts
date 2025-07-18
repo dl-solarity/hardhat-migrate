@@ -2,13 +2,14 @@ import { ethers } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
+import { Blockscout } from "@nomicfoundation/hardhat-verify/blockscout";
+import { BlockscoutConfig, EtherscanConfig } from "@nomicfoundation/hardhat-verify/types";
 
 import { catchError, getChainId, getPossibleImplementationAddress, sleep, suppressLogs } from "../utils";
 
 import { Args } from "../types/deployer";
 import { VerifyConfig } from "../types/migrations";
 import { VerifierArgs } from "../types/verifier";
-import { EtherscanConfig } from "../types/etherscan";
 
 import { sendGetRequest } from "../tools/network/requests";
 import { buildNetworkDeps } from "../tools/network/NetworkManager";
@@ -17,6 +18,7 @@ import { callEtherscanApi, RESPONSE_OK } from "../tools/network/etherscan-api";
 
 export class Verifier {
   private readonly _etherscanConfig: EtherscanConfig;
+  private readonly _blockscoutConfig: BlockscoutConfig;
 
   constructor(
     private _hre: HardhatRuntimeEnvironment,
@@ -24,6 +26,7 @@ export class Verifier {
     private _standalone = false,
   ) {
     this._etherscanConfig = (_hre.config as any).etherscan;
+    this._blockscoutConfig = (_hre.config as any).blockscout;
   }
 
   @catchError
@@ -61,9 +64,14 @@ export class Verifier {
   private async _verify(verifierArgs: VerifierArgs): Promise<void> {
     const { contractAddress, contractName, constructorArguments } = verifierArgs;
 
-    const instance = await this._getEtherscanInstance(this._hre);
+    let instance: Etherscan | Blockscout;
+    try {
+      instance = await this._getEtherscanInstance(this._hre);
 
-    await this._validateExplorerConfiguration(instance, contractAddress);
+      await this._validateExplorerConfiguration(instance, contractAddress);
+    } catch {
+      instance = await this._getBlockscoutInstance(this._hre);
+    }
 
     for (let attempts = 0; attempts < this._config.attempts; attempts++) {
       try {
@@ -87,7 +95,7 @@ export class Verifier {
 
   @catchError
   private async _tryVerify(
-    instance: Etherscan,
+    instance: Etherscan | Blockscout,
     contractAddress: string,
     contractName: string,
     constructorArguments: Args,
@@ -125,21 +133,43 @@ export class Verifier {
     return Etherscan.fromChainConfig(this._etherscanConfig.apiKey, chainConfig);
   }
 
+  @catchError
+  private async _getBlockscoutInstance(hre: HardhatRuntimeEnvironment): Promise<Blockscout> {
+    const chainConfig = await Blockscout.getCurrentChainConfig(
+      hre.network.name,
+      hre.network.provider,
+      this._blockscoutConfig.customChains ?? [],
+    );
+
+    return Blockscout.fromChainConfig(chainConfig);
+  }
+
   @suppressLogs
   private async _tryRunVerificationTask(
-    instance: Etherscan,
+    instance: Etherscan | Blockscout,
     contractAddress: string,
     contractName: string,
     args: Args,
   ) {
-    await this._hre.run("verify:verify", {
-      address: contractAddress,
-      constructorArguments: args,
-      contract: contractName,
-      force: true,
-    });
+    if (instance instanceof Etherscan) {
+      await this._hre.run("verify:verify", {
+        address: contractAddress,
+        constructorArguments: args,
+        contract: contractName,
+        force: true,
+      });
 
-    await this._verifyProxy(instance, contractAddress);
+      await this._verifyProxy(instance, contractAddress);
+    }
+
+    if (instance instanceof Blockscout) {
+      await this._hre.run("verify:blockscout", {
+        address: contractAddress,
+        constructorArguments: args,
+        contract: contractName,
+        force: true,
+      });
+    }
   }
 
   private async _validateExplorerConfiguration(instance: Etherscan, contractAddress: string) {
