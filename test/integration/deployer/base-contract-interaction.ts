@@ -89,8 +89,8 @@ describe("deployer", () => {
     it("should deploy TransparentUpgradeableProxy contract and set implementation", async function () {
       const contract = await deployer.deployTransparentUpgradeableProxy(
         PayableReceive__factory,
-        "0x",
         await (await deployer.getSigner()).getAddress(),
+        "0x",
       );
 
       const toPay = 100n;
