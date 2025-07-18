@@ -389,21 +389,25 @@ export class ReporterStorage {
 
     if (reportFormat === "json") {
       return Promise.resolve(
-        JSON.stringify(this._state, (_, value) => {
-          if (typeof value === "bigint") {
-            return value.toString();
-          }
+        JSON.stringify(
+          this._state,
+          (_, value) => {
+            if (typeof value === "bigint") {
+              return value.toString();
+            }
 
-          if (value instanceof Set) {
-            return Array.from(value);
-          }
+            if (value instanceof Set) {
+              return Array.from(value);
+            }
 
-          if (value instanceof Map) {
-            return Object.fromEntries(value);
-          }
+            if (value instanceof Map) {
+              return Object.fromEntries(value);
+            }
 
-          return value;
-        }, 2),
+            return value;
+          },
+          2,
+        ),
       );
     } else {
       return this._getMarkdownReportContent();

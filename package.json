@@ -1,6 +1,6 @@
 {
   "name": "@solarity/hardhat-migrate",
-  "version": "3.0.4",
+  "version": "3.1.0",
   "description": "The simplest way to deploy smart contracts",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -58,9 +58,9 @@
   },
   "peerDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.0",
-    "@nomicfoundation/hardhat-verify": "^2.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.1.0",
     "@trezor/connect": "9.5.0",
-    "hardhat": "^2.10.0",
+    "hardhat": "^2.26.0",
     "typechain": "^8.0.0"
   },
   "peerDependenciesMeta": {
@@ -88,7 +88,7 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-promise": "^7.2.1",
-    "hardhat": "2.22.18",
+    "hardhat": "2.26.0",
     "hardhat-abi-exporter": "^2.10.1",
     "husky": "^9.1.7",
     "mocha": "^11.1.0",

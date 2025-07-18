@@ -392,6 +392,10 @@ class BaseReporter {
     this._storage!.storeFailedProxyLinking(proxyAddress, implementationAddress);
   }
 
+  public notifyOfProxyConstructorUsage(proxyFactoryName: string, constructorName: string) {
+    console.log(`\nProxy constructor ${constructorName} used in ${proxyFactoryName} (proxy)\n`);
+  }
+
   private _parseTransactionTitle(tx: TransactionResponse, instanceName: string): string {
     if (tx.to === null) {
       if (instanceName.split(":").length == 1) {
