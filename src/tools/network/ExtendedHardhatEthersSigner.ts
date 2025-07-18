@@ -92,7 +92,9 @@ export class ExtendedHardhatEthersSigner {
     if (hre.network.config.gasPrice) {
       try {
         preparedTx.gasPrice = hre.ethers.parseUnits(hre.network.config.gasPrice.toString(), "gwei");
-      } catch {}
+      } catch {
+        /* empty */
+      }
     }
 
     if (hre.network.config.gasMultiplier) {
@@ -100,6 +102,7 @@ export class ExtendedHardhatEthersSigner {
         (BigInt(preparedTx.gasLimit!) * BigInt(hre.network.config.gasMultiplier * 100)) / 100n,
       );
     }
+
     delete preparedTx.from;
 
     if (this._config.trezorWallet.enabled) {
