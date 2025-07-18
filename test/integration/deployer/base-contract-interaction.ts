@@ -74,7 +74,7 @@ describe("deployer", () => {
     });
 
     it("should deploy ERC1967 proxy contract and set implementation", async function () {
-      const contract = await deployer.deployERC1967Proxy(PayableReceive__factory);
+      const contract = await deployer.deployERC1967Proxy(PayableReceive__factory, PayableReceive__factory.createInterface().encodeFunctionData("pay"));
 
       const toPay = 100n;
 
@@ -86,6 +86,7 @@ describe("deployer", () => {
     it("should deploy TransparentUpgradeableProxy contract and set implementation", async function () {
       const contract = await deployer.deployTransparentUpgradeableProxy(
         PayableReceive__factory,
+        "0x",
         await (await deployer.getSigner()).getAddress(),
       );
 

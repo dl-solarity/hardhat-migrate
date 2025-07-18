@@ -1,4 +1,4 @@
-import { isAddress, ZeroAddress } from "ethers";
+import { Interface, isAddress, ZeroAddress } from "ethers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -50,13 +50,16 @@ export class Deployer {
 
   public async deployERC1967Proxy<A, I = any>(
     implementationFactory: Instance<A, I>,
+    constructorCalldata: string,
     argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
     parameters: OverridesAndLibs = {},
   ) {
+    await this.validateConstructorCalldata(implementationFactory, parameters, constructorCalldata);
+
     return this.deployProxy(
       implementationFactory,
       "ERC1967Proxy",
-      (implementationAddress) => [implementationAddress, "0x"],
+      (implementationAddress) => [implementationAddress, constructorCalldata],
       argsOrParameters,
       parameters,
     );
@@ -64,13 +67,16 @@ export class Deployer {
 
   public async deployAdminableProxy<A, I = any>(
     implementationFactory: Instance<A, I>,
+    constructorCalldata: string,
     argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
     parameters: OverridesAndLibs = {},
   ) {
+    await this.validateConstructorCalldata(implementationFactory, parameters, constructorCalldata);
+
     return this.deployProxy(
       implementationFactory,
       "AdminableProxy",
-      (implementationAddress) => [implementationAddress, "0x"],
+      (implementationAddress) => [implementationAddress, constructorCalldata],
       argsOrParameters,
       parameters,
     );
@@ -79,9 +85,12 @@ export class Deployer {
   public async deployTransparentUpgradeableProxy<A, I = any>(
     implementationFactory: Instance<A, I>,
     proxyAdmin: string,
+    constructorCalldata: string,
     argsOrParameters: OverridesAndLibs | TypedArgs<A> = [] as TypedArgs<A>,
     parameters: OverridesAndLibs = {},
   ) {
+    await this.validateConstructorCalldata(implementationFactory, parameters, constructorCalldata);
+
     if (proxyAdmin === ZeroAddress) {
       throw new MigrateError("Proxy admin cannot be the zero address");
     }
@@ -89,7 +98,7 @@ export class Deployer {
     return this.deployProxy(
       implementationFactory,
       "TransparentUpgradeableProxy",
-      (implementationAddress) => [implementationAddress, proxyAdmin, "0x"],
+      (implementationAddress) => [implementationAddress, proxyAdmin, constructorCalldata],
       argsOrParameters,
       parameters,
     );
@@ -152,6 +161,22 @@ export class Deployer {
     });
 
     return this.deployed(implementationFactory, `${instanceName} proxy`);
+  }
+
+  public async validateConstructorCalldata<A, I = any>(implementationFactory: Instance<A, I>, parameters: OverridesAndLibs, constructorCalldata: string) {
+    if (!isTypechainFactoryClass(implementationFactory) || constructorCalldata == "0x" || constructorCalldata == "") {
+      return;
+    }
+
+    const adapter = Deployer.resolveAdapter(this._hre, implementationFactory);
+    const contractInterface: Interface = adapter.getInterface(implementationFactory);
+    const functionFragment = contractInterface.parseTransaction({ data: constructorCalldata });
+
+    if (!functionFragment) {
+      throw new MigrateError("Invalid constructor calldata. Correct it and use --continue flag to continue migration.");
+    }
+
+    Reporter!.notifyOfProxyConstructorUsage(adapter.getContractName(implementationFactory, parameters), functionFragment.name);
   }
 
   public async deployed<A, I = any>(contract: BaseInstance<A, I>, contractIdentifier?: string): Promise<I> {
