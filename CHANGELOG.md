@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.1.1
+
+- Fixed verification reporting with Blockscout explorers
+  - Reporter now reads `blockscout.customChains` in addition to `etherscan.customChains` and prefers Blockscout entries when both exist for the same chain
+- Fixed implementation contract verification when using a custom contract name
+
 ## Version 3.0.3 - 3.1.0
 
 - Accounted for the gasPrice and gasMultiplier in the network config
