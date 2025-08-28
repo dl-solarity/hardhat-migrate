@@ -15,6 +15,8 @@ import { MigrateConfig } from "../../types/migrations";
 import { ChainRecord, CustomChainRecord, predefinedChains } from "../../types/verifier";
 import { ContractFieldsToSave, MigrationMetadata, TransactionFieldsToSave } from "../../types/tools";
 
+// TODO: fix verification reporting with blockscout
+
 /**
  * Global error handling for network-related issues is conducted within the NetworkManager class
  */
