@@ -141,9 +141,12 @@ export class Deployer {
       ...implementationParameters,
       name: `${instanceName} implementation`,
     })) as any;
+
+    let implementationArtifact = adapter.getContractName(implementationFactory, {})
+
     VerificationProcessor.saveVerificationFunction({
       contractAddress: await implementation.getAddress(),
-      contractName: instanceName,
+      contractName: implementationArtifact,
       constructorArguments: implementationArgs,
       chainId: Number(await getChainId()),
     });

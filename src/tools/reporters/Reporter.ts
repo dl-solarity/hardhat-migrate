@@ -501,13 +501,18 @@ class BaseReporter {
   }
 
   private _getInfoFromHardhatConfig(chainId: number): CustomChainRecord | undefined {
-    let customChains: CustomChainRecord[] = [];
+    const cfg = this._hre.config as any;
 
-    if ((this._hre.config as any).etherscan && (this._hre.config as any).etherscan.customChains) {
-      customChains = (this._hre.config as any).etherscan.customChains;
-    }
+    const etherscanChains: CustomChainRecord[] = cfg.etherscan?.customChains ?? [];
+    const blockscoutChains: CustomChainRecord[] = cfg.blockscout?.customChains ?? [];
 
-    return customChains.find((chain) => chain.chainId === chainId);
+    const merged: CustomChainRecord[] = [...blockscoutChains, ...etherscanChains];
+
+    const deduped = merged.filter(
+      (chain, index, self) => index === self.findIndex((c) => c.chainId === chain.chainId),
+    );
+
+    return deduped.find((chain) => chain.chainId === chainId);
   }
 
   private async _tryGetAllRecords(): Promise<ChainRecord[]> {
