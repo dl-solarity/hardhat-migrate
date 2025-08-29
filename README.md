@@ -142,6 +142,32 @@ It is **mandatory** to follow this naming convention for migration files:
 - Where **X** is an ordinal number indicating the order in which the migration will be applied.
 - **migration_name** is simply the name of the migration.
 
+## Managing of secret keys
+
+The signing key can be specified in either the `accounts` section of the network configuration or you can use [Foundry Cast](https://getfoundry.sh/cast/overview) to handle the signing of transactions. 
+
+To specify signer account in the networks configuration do the following:
+
+```ts
+const config: HardhatUserConfig = {
+  networks: {
+    /* ... */
+    "network1": {
+      /* ... */
+      accounts: [/* Your private keys */]
+    },
+    /* ... */
+  }
+}
+```
+
+Then, Hardhat Migrate will use the first signing key from the accounts to sign the transactions
+
+> [!WARNING]
+> Do not specify your private key directly in the Hardhat configuration file. This can compromise your secrets and lead to the loss of your funds! Instead, you should store secrets in an .env file and add that file to your .gitignore.
+
+**The recomended way to handle your private keys , is to use [Cast Wallet](https://getfoundry.sh/cast/overview)**. Please refer to the [External Wallets](./docs/ExternalWallets.md) documentation to learn more.
+
 ## Example
 
 After importing the necessary dependencies to the `hardhat.config`, create the file `1_token.migration.ts` in the `deploy` directory.
