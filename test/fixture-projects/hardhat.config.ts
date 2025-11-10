@@ -4,7 +4,7 @@ import "hardhat-abi-exporter";
 
 import "@nomicfoundation/hardhat-ethers";
 
-import "../../src";
+import "../../src/internal";
 
 const config: HardhatUserConfig = {
   networks: {

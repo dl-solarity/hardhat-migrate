@@ -10,12 +10,12 @@ import {
   PayableReceive__factory,
 } from "../../fixture-projects/hardhat-project-typechain-ethers/typechain-types";
 
-import { Deployer } from "../../../src/deployer/Deployer";
-import { Migrator } from "../../../src/migrator/Migrator";
+import { Deployer } from "../../../src/internal/deployer/Deployer";
+import { Migrator } from "../../../src/internal/migrator/Migrator";
 
-import { Reporter } from "../../../src/tools/reporters/Reporter";
-import { ethersProvider } from "../../../src/tools/network/EthersProvider";
-import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
+import { Reporter } from "../../../src/internal/tools/reporters/Reporter";
+import { ethersProvider } from "../../../src/internal/tools/network/EthersProvider";
+import { TransactionStorage } from "../../../src/internal/tools/storage/MigrateStorage";
 
 describe("deployer", () => {
   let deployer: Deployer;

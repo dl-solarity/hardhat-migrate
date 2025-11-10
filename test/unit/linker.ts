@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { Linker } from "../../src/deployer/Linker";
+import { Linker } from "../../src/internal/deployer/Linker";
 
 describe("Linker", () => {
   describe("validateBytecode", () => {

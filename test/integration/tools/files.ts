@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { useEnvironment } from "../../helpers";
-import { resolvePathToFile } from "../../../src/utils";
+import { resolvePathToFile } from "../../../src/internal/utils";
 
 describe("ResolvePathToFile()", () => {
   useEnvironment("typechain-ethers");

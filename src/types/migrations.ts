@@ -75,6 +75,8 @@ export interface MigrateConfig {
   trezorWallet: TrezorWalletConfig;
 }
 
+export type MigrateUserConfig = DeepPartial<MigrateConfig>;
+
 export interface VerifyConfig {
   /** The size of the batch for verification */
   parallel: number;

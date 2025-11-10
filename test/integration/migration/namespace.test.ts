@@ -6,8 +6,8 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { runWithContinue, runWithoutContinue } from "./helper";
 
 import { useEnvironment } from "../../helpers";
-import { resetReporter } from "../../../src/tools/reporters/Reporter";
-import { resetTransactionRunner } from "../../../src/tools/runners/TransactionRunner";
+import { resetReporter } from "../../../src/internal/tools/reporters/Reporter";
+import { resetTransactionRunner } from "../../../src/internal/tools/runners/TransactionRunner";
 
 describe("namespaces", () => {
   useEnvironment("namespace");

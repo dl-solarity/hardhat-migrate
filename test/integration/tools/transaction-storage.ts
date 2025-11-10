@@ -9,14 +9,14 @@ import {
   ConstructorWithArguments__factory,
 } from "../../fixture-projects/hardhat-project-typechain-ethers/typechain-types";
 
-import { Deployer } from "../../../src/deployer/Deployer";
-import { Migrator } from "../../../src/migrator/Migrator";
+import { Deployer } from "../../../src/internal/deployer/Deployer";
+import { Migrator } from "../../../src/internal/migrator/Migrator";
 
-import { UNKNOWN_CONTRACT_NAME } from "../../../src/constants";
+import { UNKNOWN_CONTRACT_NAME } from "../../../src/internal/constants";
 import { ContractDeployTxWithName } from "../../../src/types/deployer";
 
-import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
-import { TransactionProcessor } from "../../../src/tools/storage/TransactionProcessor";
+import { TransactionStorage } from "../../../src/internal/tools/storage/MigrateStorage";
+import { TransactionProcessor } from "../../../src/internal/tools/storage/TransactionProcessor";
 
 describe("TransactionStorage", async () => {
   useEnvironment("typechain-ethers");

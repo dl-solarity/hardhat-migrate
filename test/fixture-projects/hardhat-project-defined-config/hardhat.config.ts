@@ -2,7 +2,7 @@ import { HardhatUserConfig } from "hardhat/config";
 
 import config from "../hardhat.config";
 
-import "../../../src";
+import "../../../src/internal";
 
 const defaultConfig: HardhatUserConfig = {
   ...config,

@@ -1,4 +1,4 @@
-import { Args } from "./deployer";
+import { Args } from "./deployer.js";
 
 export type VerifierArgs = {
   contractAddress: string;

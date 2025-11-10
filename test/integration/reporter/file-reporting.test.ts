@@ -6,8 +6,8 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { runWithoutContinue } from "../migration/helper";
 
 import { useEnvironment } from "../../helpers";
-import { createAndInitReporter } from "../../../src/tools/reporters/Reporter";
-import { resetTransactionRunner } from "../../../src/tools/runners/TransactionRunner";
+import { createAndInitReporter } from "../../../src/internal/tools/reporters/Reporter";
+import { resetTransactionRunner } from "../../../src/internal/tools/runners/TransactionRunner";
 
 describe("file-reporting", () => {
   useEnvironment("typechain-ethers");

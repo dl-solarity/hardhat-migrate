@@ -1,6 +1,9 @@
-export const pluginName = "@solarity/hardhat-migrate";
+export const PLUGIN_ID = "hardhat-migrate";
+
 export const TASK_MIGRATE = "migrate";
 export const TASK_MIGRATE_VERIFY = "migrate:verify";
+
+export const MIGRATE_NPM_PACKAGE = "@solarity/hardhat-migrate";
 
 export const SEND_NATIVE_TX_NAME = "send-native-tx";
 

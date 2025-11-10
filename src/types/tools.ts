@@ -1,6 +1,6 @@
 import { TransactionReceiptParams } from "ethers";
 
-import { TransactionReceipt } from "./deployer";
+import { TransactionReceipt } from "./deployer.js";
 
 export interface BaseTxFields {
   name: string;

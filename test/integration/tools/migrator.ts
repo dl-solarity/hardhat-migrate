@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { useEnvironment } from "../../helpers";
-import { Migrator } from "../../../src/migrator/Migrator";
+import { Migrator } from "../../../src/internal/migrator/Migrator";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 function getMigratorInstance(

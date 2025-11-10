@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 
-import { Deployer } from "../../../../src/deployer/Deployer";
-import { PublicReporter as Reporter } from "../../../../src/tools/reporters/PublicReporter";
+import { Deployer } from "../../../../src/internal/deployer/Deployer";
+import { PublicReporter as Reporter } from "../../../../src/internal/tools/reporters/PublicReporter";
 
 const TOKEN_OWNER = "0x1E3953B6ee74461169A3E346060AE27bD0B5bF2B";
 

@@ -2,7 +2,7 @@ import { expect } from "chai";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { TASK_MIGRATE } from "../../../src/constants";
+import { TASK_MIGRATE } from "../../../src/internal/constants";
 import { MigrateConfig, MigrateConfigArgs } from "../../../src/types/migrations";
 
 export async function runWithoutContinue(hre: HardhatRuntimeEnvironment, config: MigrateConfigArgs) {

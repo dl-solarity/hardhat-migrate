@@ -1,4 +1,4 @@
-import { Deployer } from "../../../../../src/deployer/Deployer";
+import { Deployer } from "../../../../../src/internal/deployer/Deployer";
 
 import { GovToken__factory } from "../../typechain-types";
 

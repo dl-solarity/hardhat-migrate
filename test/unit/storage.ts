@@ -8,7 +8,7 @@ import {
   ArtifactStorage,
   VerificationStorage,
   MigrateStorage,
-} from "../../src/tools/storage/MigrateStorage";
+} from "../../src/internal/tools/storage/MigrateStorage";
 
 import { useEnvironment } from "../helpers";
 

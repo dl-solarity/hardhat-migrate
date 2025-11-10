@@ -1,6 +1,6 @@
 import { BytesLike, ContractDeployTransaction, ContractFactory, Overrides } from "ethers";
 
-import { Artifact, Libraries } from "hardhat/types";
+import { Artifact } from "hardhat/types/artifacts";
 
 export type Bytecode = BytesLike;
 
@@ -8,7 +8,7 @@ export type Args = Parameters<ContractFactory["getDeployTransaction"]>;
 
 export type OverridesAndName = Overrides & { name?: string };
 
-export type OverridesAndLibs = OverridesAndName & { libraries?: Libraries };
+export type OverridesAndLibs = OverridesAndName & { libraries?: any };
 
 export type ContractDeployTxWithName = ContractDeployTransaction & { contractName: string };
 

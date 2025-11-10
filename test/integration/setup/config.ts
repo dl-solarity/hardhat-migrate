@@ -4,7 +4,7 @@ import { extendConfig } from "hardhat/config";
 
 import { useEnvironment } from "../../helpers";
 
-import { migrateConfigExtender } from "../../../src/config";
+import { migrateConfigExtender } from "../../../src/internal/config";
 
 import { MigrateConfig } from "../../../src/types/migrations";
 

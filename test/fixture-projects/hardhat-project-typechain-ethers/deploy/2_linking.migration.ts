@@ -1,7 +1,7 @@
 import { TransactionReceiptParams } from "ethers";
 
-import { Deployer } from "../../../../src/deployer/Deployer";
-import { PublicReporter as Reporter } from "../../../../src/tools/reporters/PublicReporter";
+import { Deployer } from "../../../../src/internal/deployer/Deployer";
+import { PublicReporter as Reporter } from "../../../../src/internal/tools/reporters/PublicReporter";
 
 import { GovToken__factory, TimestampClockLib__factory, VotingPowerLib__factory } from "../typechain-types";
 

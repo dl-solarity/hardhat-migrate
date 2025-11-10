@@ -2,9 +2,9 @@ import { expect } from "chai";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { PublicReporter } from "../../../src/tools/reporters/PublicReporter";
-import { createAndInitReporter } from "../../../src/tools/reporters/Reporter";
-import { resetTransactionRunner } from "../../../src/tools/runners/TransactionRunner";
+import { PublicReporter } from "../../../src/internal/tools/reporters/PublicReporter";
+import { createAndInitReporter } from "../../../src/internal/tools/reporters/Reporter";
+import { resetTransactionRunner } from "../../../src/internal/tools/runners/TransactionRunner";
 
 import { useEnvironment } from "../../helpers";
 
