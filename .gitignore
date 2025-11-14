@@ -3,6 +3,7 @@ node_modules
 .idea
 .eslintcache
 ref-example
+archive
 
 # Hardhat files
 cache

@@ -3,8 +3,8 @@ import { ethers } from "ethers";
 
 import { useEnvironment } from "../../helpers.js";
 
+import type { ConstructorWithArguments } from "../../fixture-projects/hardhat-project-typechain-ethers/typechain-types/index.js";
 import {
-  ConstructorWithArguments,
   ConstructorWithArguments__factory,
   IConstructorWithArguments__factory,
 } from "../../fixture-projects/hardhat-project-typechain-ethers/typechain-types/index.js";
@@ -28,7 +28,7 @@ describe("deployer", () => {
 
       deployer = new Deployer();
 
-      const ContractFactory = new ConstructorWithArguments__factory(await ethersProvider!.getSigner());
+      const ContractFactory = new ConstructorWithArguments__factory(await ethersProvider!.provider.getSigner());
       contract = await ContractFactory.deploy(2);
 
       TransactionStorage.clear();

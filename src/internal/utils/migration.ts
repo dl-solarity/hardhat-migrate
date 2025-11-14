@@ -17,8 +17,8 @@ import { deepCopy, toJSON } from "./common.js";
 import { MigrateError } from "./MigrateError.js";
 import { UNKNOWN_CONTRACT_NAME } from "../../constants.js";
 
-import { Bytecode } from "../../types/deployer.js";
-import { KeyDeploymentFields, KeyTransactionFields } from "../../types/tools.js";
+import type { Bytecode } from "../../types/deployer.js";
+import type { KeyDeploymentFields, KeyTransactionFields } from "../../types/tools.js";
 
 export async function fillParameters(parameters: Overrides): Promise<Overrides> {
   if (parameters.chainId === undefined) {

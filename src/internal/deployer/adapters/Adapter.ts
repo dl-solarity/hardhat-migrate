@@ -4,8 +4,8 @@ import { MinimalContract } from "../MinimalContract.js";
 
 import { CatchClassError } from "../../utils/index.js";
 
-import { BaseInstance, Instance } from "../../../types/adapter.js";
-import { OverridesAndLibs, OverridesAndName } from "../../../types/deployer.js";
+import type { BaseInstance, Instance } from "../../../types/adapter.js";
+import type { OverridesAndLibs, OverridesAndName } from "../../../types/deployer.js";
 
 @CatchClassError
 export abstract class Adapter {

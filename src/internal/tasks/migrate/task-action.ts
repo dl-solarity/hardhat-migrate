@@ -1,11 +1,6 @@
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
-import {
-  convertFlatToNested,
-  extendVerifyConfigs,
-  mergeConfigs,
-  validateConfig,
-} from "../../../config.js";
+import { convertFlatToNested, extendVerifyConfigs, mergeConfigs, validateConfig } from "../../../config.js";
 
 import { Migrator } from "../../migrator/Migrator.js";
 import { Verifier } from "../../verifier/Verifier.js";
@@ -38,4 +33,3 @@ const migrateAction: NewTaskActionFunction<MigrateConfigArgs> = async (taskArgs,
 };
 
 export default migrateAction;
-

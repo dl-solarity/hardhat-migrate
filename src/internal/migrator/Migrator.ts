@@ -8,11 +8,9 @@ import { PLUGIN_ID } from "../../constants.js";
 
 import { MigrateError } from "../utils/index.js";
 
-import { MigrateConfig } from "../../types/index.js";
+import type { MigrateConfig } from "../../types/index.js";
 
 import { Deployer } from "../deployer/Deployer.js";
-
-import { createLinker } from "../deployer/Linker.js";
 
 import { Stats } from "../tools/Stats.js";
 
@@ -32,7 +30,7 @@ export class Migrator {
 
   constructor(
     private _hre: HardhatRuntimeEnvironment,
-    private _config: MigrateConfig = _hre.config.migrate,
+    public config: MigrateConfig = _hre.config.migrate,
   ) {
     this._deployer = new Deployer();
 
@@ -83,10 +81,10 @@ export class Migrator {
         if (
           isNaN(migrationNumber) ||
           migrationNumber <= 0 ||
-          this._config.filter.from > migrationNumber ||
-          (this._config.filter.to < migrationNumber && this._config.filter.to !== -1) ||
-          (this._config.filter.only !== migrationNumber && this._config.filter.only !== -1) ||
-          this._config.filter.skip === migrationNumber
+          this.config.filter.from > migrationNumber ||
+          (this.config.filter.to < migrationNumber && this.config.filter.to !== -1) ||
+          (this.config.filter.only !== migrationNumber && this.config.filter.only !== -1) ||
+          this.config.filter.skip === migrationNumber
         ) {
           return false;
         }
@@ -109,11 +107,10 @@ export class Migrator {
   }
 
   private _getMigrationDir() {
-    return join(this._hre.config.paths.root, this._config.paths.pathToMigrations, this._config.paths.namespace);
+    return join(this._hre.config.paths.root, this.config.paths.pathToMigrations, this.config.paths.namespace);
   }
 
   public static async buildMigrateTaskDeps(hre: HardhatRuntimeEnvironment): Promise<void> {
-    createLinker();
     createTransactionProcessor(hre.config.migrate);
 
     await buildNetworkDeps(hre);

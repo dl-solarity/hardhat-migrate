@@ -136,4 +136,3 @@ const migrateTask: NewTaskDefinition = task([TASK_MIGRATE], "Deploy contracts vi
   .build();
 
 export default migrateTask;
-

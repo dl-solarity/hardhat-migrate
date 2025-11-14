@@ -9,7 +9,8 @@ import { MigrateError } from "../../utils/index.js";
 
 import { bytecodeHash, CatchClassError } from "../../utils/index.js";
 
-import { ArtifactExtended, NeededLibrary } from "../../../types/index.js";
+import type { ArtifactExtended, NeededLibrary } from "../../../types/index.js";
+import { removeHardhatNamespacePrefix } from "./utils.js";
 
 @CatchClassError
 class BaseArtifactProcessor {
@@ -35,16 +36,12 @@ class BaseArtifactProcessor {
     }
   }
 
-  public async saveArtifactIfNotExist(
-    contractName: string,
-    bytecode?: string,
-  ): Promise<void> {
-    const hre = await import("hardhat")
-
+  public async saveArtifactIfNotExist(contractName: string, bytecode?: string): Promise<void> {
     if (!isFullyQualifiedName(contractName) || (bytecode ? true : ArtifactStorage.get(bytecodeHash(bytecode!)))) {
       return;
     }
 
+    const hre = await import("hardhat");
     const artifact = await hre.artifacts.readArtifact(contractName);
 
     const contract: ArtifactExtended = { ...artifact, neededLibraries: this._parseLibrariesOfArtifact(artifact) };
@@ -53,7 +50,7 @@ class BaseArtifactProcessor {
   }
 
   public tryGetArtifactByName(contractName: string): ArtifactExtended {
-    const artifact = ArtifactStorage.get(contractName);
+    const artifact = ArtifactStorage.get(removeHardhatNamespacePrefix(contractName));
 
     if (!artifact) {
       throw new MigrateError(`Artifact not found`);

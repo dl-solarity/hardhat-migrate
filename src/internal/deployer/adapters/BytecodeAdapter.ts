@@ -4,7 +4,7 @@ import { BaseAdapter } from "./BaseAdapter.js";
 
 import { CatchClassError } from "../../utils/index.js";
 
-import { BytecodeFactory } from "../../../types/adapter.js";
+import type { BytecodeFactory } from "../../../types/adapter.js";
 
 @CatchClassError
 export class BytecodeAdapter extends BaseAdapter {

@@ -14,14 +14,15 @@ import {
   MigrateError,
 } from "../../utils/index.js";
 
-import {
+import type {
   ContractFieldsToSave,
   KeyTransactionFields,
   MigrationMetadata,
   TransactionFieldsToSave,
 } from "../../../types/tools.js";
-import { MigrateConfig, ValidateKeyDeploymentFields, ValidateKeyTxFields } from "../../../types/index.js";
-import { ContractDeployTxWithName, TransactionReceipt } from "../../../types/deployer.js";
+import { ValidateKeyDeploymentFields, ValidateKeyTxFields } from "../../../types/index.js";
+import type { MigrateConfig } from "../../../types/index.js";
+import type { ContractDeployTxWithName, TransactionReceipt } from "../../../types/deployer.js";
 
 @CatchClassError
 export class BaseTransactionProcessor {

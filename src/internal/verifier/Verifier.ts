@@ -5,8 +5,8 @@ import { verifyContract } from "@nomicfoundation/hardhat-verify/verify";
 
 import { CatchMethodError, getChainId, getPossibleImplementationAddress, sleep, SuppressLogs } from "../utils/index.js";
 
-import { Args } from "../../types/deployer.js";
-import { VerifierArgs, VerifyConfig } from "../../types/index.js";
+import type { Args } from "../../types/deployer.js";
+import type { VerifierArgs, VerifyConfig } from "../../types/index.js";
 
 import { buildNetworkDeps } from "../tools/network/NetworkManager.js";
 import { createAndInitReporter, Reporter } from "../tools/reporters/Reporter.js";
@@ -17,8 +17,7 @@ export class Verifier {
     private _hre: HardhatRuntimeEnvironment,
     private _config: VerifyConfig,
     private _standalone = false,
-  ) {
-  }
+  ) {}
 
   @CatchMethodError
   public async verifyBatch(verifierBatchArgs: VerifierArgs[]) {
@@ -76,11 +75,7 @@ export class Verifier {
   }
 
   @CatchMethodError
-  private async _tryVerify(
-    contractAddress: string,
-    contractName: string,
-    constructorArguments: Args,
-  ) {
+  private async _tryVerify(contractAddress: string, contractName: string, constructorArguments: Args) {
     const verified =
       (await this._tryVerifyWithProvider("etherscan", contractAddress, contractName, constructorArguments)) ||
       (await this._tryVerifyWithProvider("blockscout", contractAddress, contractName, constructorArguments));

@@ -12,8 +12,8 @@ import {
 import { Deployer } from "../../../src/internal/deployer/Deployer.js";
 import { Migrator } from "../../../src/internal/migrator/Migrator.js";
 
-// import { UNKNOWN_CONTRACT_NAME } from "../../../src/internal/constants.js";
-import { ContractDeployTxWithName } from "../../../src/types/deployer.js";
+import { UNKNOWN_CONTRACT_NAME } from "../../../src/constants.js";
+import type { ContractDeployTxWithName } from "../../../src/types/deployer.js";
 
 import { TransactionStorage } from "../../../src/internal/tools/storage/MigrateStorage.js";
 import { TransactionProcessor } from "../../../src/internal/tools/storage/TransactionProcessor.js";

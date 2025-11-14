@@ -4,8 +4,8 @@ import { BaseAdapter } from "./BaseAdapter.js";
 
 import { CatchClassError, getInstanceNameFromClass } from "../../utils/index.js";
 
-import { OverridesAndName } from "../../../types/deployer.js";
-import { TypechainFactoryClass } from "../../../types/adapter.js";
+import type { OverridesAndName } from "../../../types/deployer.js";
+import type { TypechainFactoryClass } from "../../../types/adapter.js";
 
 import { ArtifactProcessor } from "../../tools/storage/ArtifactProcessor.js";
 

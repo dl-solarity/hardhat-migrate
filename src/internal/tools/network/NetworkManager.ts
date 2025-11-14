@@ -11,8 +11,6 @@ import { createEthersProvider, ethersProvider } from "./EthersProvider.js";
 
 import { toJSON } from "../../utils/index.js";
 import { createTransactionRunner } from "../runners/TransactionRunner.js";
-import { HardhatPluginError } from "hardhat/plugins";
-import { PLUGIN_ID } from "../../../constants.js";
 
 class StateMiddleware {
   private static pendingRequests: Record<string, any> = {};
@@ -57,13 +55,10 @@ class NetworkManager {
 
   public async getEthersSigner(from?: null | AddressLike): Promise<HardhatEthersSigner> {
     if (!from) {
-      if (!this._currentFrom) throw new HardhatPluginError(PLUGIN_ID, "Expected _currentFrom to be defined.");
-
-      return this.provider.getSigner(this._currentFrom);
+      return this.provider.provider.getSigner(this._currentFrom);
     }
 
-    const address = await ethers.resolveAddress(from);
-    return this.provider.getSigner(address);
+    return this.provider.getSigner(await ethers.resolveAddress(from));
   }
 
   async getSigner(from?: null | AddressLike): Promise<ExtendedHardhatEthersSigner> {

@@ -19,9 +19,8 @@ import {
   getCastWalletAddress,
   getSignedTxViaCast,
 } from "../integrations/cast-integration.js";
-import { MigrateConfig } from "../../../types/index.js";
 import { networkManager } from "./NetworkManager.js";
-import { connection } from "./EthersProvider.js";
+import { connection, migratorConfig } from "./EthersProvider.js";
 
 export class ExtendedHardhatEthersSigner {
   public readonly provider: JsonRpcProvider | HardhatEthersProvider;
@@ -29,19 +28,14 @@ export class ExtendedHardhatEthersSigner {
   public readonly signerIdentifier: AddressLike;
   private _initialized: boolean = false;
 
-  constructor(
-    private _config: MigrateConfig,
-    ethersSigner: VoidSigner | HardhatEthersSigner,
-    signerName?: AddressLike,
-  ) {
+  constructor(ethersSigner: VoidSigner | HardhatEthersSigner, signerName?: AddressLike) {
     this.ethersSigner = ethersSigner;
-    this.provider = connection!.ethers.provider
+    this.provider = connection!.ethers.provider;
 
     this.signerIdentifier = this._determineSignerIdentifier(signerName);
   }
 
   static async fromSignerName(signerName?: AddressLike): Promise<ExtendedHardhatEthersSigner> {
-    const hre = await import("hardhat");
     let ethersSigner: VoidSigner | HardhatEthersSigner;
 
     try {
@@ -50,10 +44,10 @@ export class ExtendedHardhatEthersSigner {
       const ethers = await import("ethers");
 
       const address = ethers.isAddress(signerName) ? signerName : ethers.ZeroAddress;
-      ethersSigner = new ethers.VoidSigner(address, null);
+      ethersSigner = new ethers.VoidSigner(address, connection!.ethers.provider);
     }
 
-    return new ExtendedHardhatEthersSigner(hre.config.migrate, ethersSigner, signerName);
+    return new ExtendedHardhatEthersSigner(ethersSigner, signerName);
   }
 
   public async getAddress(): Promise<string> {
@@ -61,8 +55,8 @@ export class ExtendedHardhatEthersSigner {
       return getCastWalletAddress(this._getCastOptions());
     }
 
-    if (this._config.trezorWallet.enabled) {
-      return getTrezorAddress(this._config.trezorWallet.mnemonicIndex || 0);
+    if (migratorConfig!.trezorWallet.enabled) {
+      return getTrezorAddress(migratorConfig!.trezorWallet.mnemonicIndex || 0);
     }
 
     if ("getAddress" in this.ethersSigner) {
@@ -75,7 +69,7 @@ export class ExtendedHardhatEthersSigner {
   public async sendTransaction(tx: TransactionRequest): Promise<TransactionResponse> {
     await this._ensureInitialized();
 
-    if (!this._isCastEnabled() && !this._config.trezorWallet.enabled) {
+    if (!this._isCastEnabled() && !migratorConfig!.trezorWallet.enabled) {
       return this.ethersSigner.sendTransaction(tx);
     }
 
@@ -98,7 +92,7 @@ export class ExtendedHardhatEthersSigner {
 
     delete preparedTx.from;
 
-    if (this._config.trezorWallet.enabled) {
+    if (migratorConfig!.trezorWallet.enabled) {
       preparedTx = await this._prepareTrezorTransaction(preparedTx);
     }
 
@@ -113,10 +107,10 @@ export class ExtendedHardhatEthersSigner {
     }
 
     if (this._isCastEnabled()) {
-      return (this._config.castWallet.account || this._config.castWallet.keystore)!;
+      return (migratorConfig!.castWallet.account || migratorConfig!.castWallet.keystore)!;
     }
 
-    if (this._config.trezorWallet.enabled) {
+    if (migratorConfig!.trezorWallet.enabled) {
       return "trezor";
     }
 
@@ -126,7 +120,7 @@ export class ExtendedHardhatEthersSigner {
   private async _ensureInitialized(): Promise<void> {
     if (this._initialized) return;
 
-    if (this._config.trezorWallet.enabled) {
+    if (migratorConfig!.trezorWallet.enabled) {
       await initTrezor();
     }
 
@@ -153,8 +147,8 @@ export class ExtendedHardhatEthersSigner {
       return getSignedTxViaCast(tx, this._getCastOptions());
     }
 
-    if (this._config.trezorWallet.enabled) {
-      const mnemonicIndex = this._config.trezorWallet.mnemonicIndex || 0;
+    if (migratorConfig!.trezorWallet.enabled) {
+      const mnemonicIndex = migratorConfig!.trezorWallet.mnemonicIndex || 0;
       return signWithTrezor(tx, mnemonicIndex);
     }
 
@@ -162,7 +156,7 @@ export class ExtendedHardhatEthersSigner {
   }
 
   private _getCastOptions(): CastSignOptions {
-    const config = this._config.castWallet;
+    const config = migratorConfig!.castWallet;
     return {
       keystore: config.keystore,
       passwordFile: config.passwordFile,
@@ -171,6 +165,6 @@ export class ExtendedHardhatEthersSigner {
   }
 
   private _isCastEnabled(): boolean {
-    return this._config.castWallet.account !== undefined || this._config.castWallet.keystore !== undefined;
+    return migratorConfig!.castWallet.account !== undefined || migratorConfig!.castWallet.keystore !== undefined;
   }
 }

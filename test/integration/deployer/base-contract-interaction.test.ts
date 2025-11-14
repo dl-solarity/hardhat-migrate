@@ -1,5 +1,3 @@
-import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
-
 import { expect } from "chai";
 
 import { useEnvironment } from "../../helpers.js";
@@ -23,14 +21,10 @@ describe("deployer", () => {
   describe("default interaction with contracts (Ethers)", () => {
     useEnvironment("typechain-ethers");
 
-    let hre: HardhatRuntimeEnvironment;
-
     beforeEach("setup", async function () {
       await Migrator.buildMigrateTaskDeps(this.hre);
 
       deployer = new Deployer();
-
-      hre = this.hre;
 
       TransactionStorage.clear();
     });
@@ -114,7 +108,7 @@ describe("deployer", () => {
     });
 
     it("should connect to different signer and send transaction", async function () {
-      const [signer1, signer2] = await hre.ethers.getSigners();
+      const [signer1, signer2] = await ethersProvider!.getSigners();
 
       const contract = await deployer.deploy(PayableReceive__factory);
 

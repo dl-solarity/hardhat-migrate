@@ -1,12 +1,15 @@
 import { MigrateError } from "./MigrateError.js";
 
+const WRAPPED_METHOD = Symbol("CatchClassErrorWrapped");
+
 export function CatchClassError<T extends abstract new (...args: any) => any>(
   value: T,
   context: ClassDecoratorContext<T>,
 ) {
   const name = context.name?.toString?.() ?? value.name;
+  const BaseClass = value as any;
 
-  return class extends (value as any) {
+  return class extends BaseClass {
     constructor(...args: any[]) {
       super(...args);
       _wrapAllMethods(this, name);
@@ -15,29 +18,41 @@ export function CatchClassError<T extends abstract new (...args: any) => any>(
 }
 
 function _wrapAllMethods(instance: any, className: string) {
-  const proto = Object.getPrototypeOf(instance);
-  for (const key of Reflect.ownKeys(proto)) {
-    if (key === "constructor") continue;
+  let proto = Object.getPrototypeOf(instance);
 
-    const desc = Object.getOwnPropertyDescriptor(proto, key);
-    if (!desc || typeof desc.value !== "function") continue;
+  while (proto && proto !== Object.prototype) {
+    for (const key of Reflect.ownKeys(proto)) {
+      if (key === "constructor") continue;
 
-    const original = desc.value;
-    Object.defineProperty(proto, key, {
-      ...desc,
-      value: function ___ErrorCatcher(...args: any[]) {
-        try {
-          const result = original.apply(this, args);
-          if (result && typeof result.then === "function") {
-            return result.catch((e: any) => _handleError(`${className}.${String(key)}`, e));
-          }
-          return result;
-        } catch (e: any) {
-          _handleError(`${className}.${String(key)}`, e);
-        }
-      },
-    });
+      const desc = Object.getOwnPropertyDescriptor(proto, key);
+      if (!desc || typeof desc.value !== "function") continue;
+      if ((desc.value as any)[WRAPPED_METHOD]) continue;
+
+      const wrapped = _wrapMethod(desc.value, `${className}.${String(key)}`);
+      (wrapped as any)[WRAPPED_METHOD] = true;
+
+      Object.defineProperty(proto, key, {
+        ...desc,
+        value: wrapped,
+      });
+    }
+
+    proto = Object.getPrototypeOf(proto);
   }
+}
+
+function _wrapMethod(original: (...args: any[]) => any, propertyName: string) {
+  return function ___ErrorCatcher(this: unknown, ...args: any[]) {
+    try {
+      const result = original.apply(this, args);
+      if (result && typeof result.then === "function") {
+        return result.catch((e: any) => _handleError(propertyName, e));
+      }
+      return result;
+    } catch (e: any) {
+      _handleError(propertyName, e);
+    }
+  };
 }
 
 export function CatchMethodError(value: Function, context: ClassMethodDecoratorContext): (...args: any[]) => any {

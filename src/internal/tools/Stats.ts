@@ -1,4 +1,4 @@
-import { MigrationStats } from "../../types/index.js";
+import type { MigrationStats } from "../../types/index.js";
 
 class BaseStats {
   private _stats: MigrationStats = {

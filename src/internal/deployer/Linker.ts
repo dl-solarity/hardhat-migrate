@@ -1,7 +1,6 @@
 import { AddressLike, Interface, isAddress, resolveAddress } from "ethers";
 
 import { Artifact } from "hardhat/types/artifacts";
-import { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import { MinimalContract } from "./MinimalContract.js";
 
@@ -9,7 +8,7 @@ import { MigrateError } from "../utils/index.js";
 
 import { CatchClassError } from "../utils/index.js";
 
-import { ArtifactExtended, Link, NeededLibrary } from "../../types/deployer.js";
+import type { ArtifactExtended, Link, NeededLibrary } from "../../types/deployer.js";
 
 import { Reporter } from "../tools/reporters/Reporter.js";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor.js";
@@ -249,12 +248,4 @@ class LinkerHelper {
   }
 }
 
-export let Linker: LinkerHelper | null = null;
-
-export function createLinker() {
-  if (Linker) {
-    return;
-  }
-
-  Linker = new LinkerHelper();
-}
+export let Linker: LinkerHelper = new LinkerHelper();

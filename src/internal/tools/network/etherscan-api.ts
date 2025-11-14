@@ -20,7 +20,10 @@ export const RESPONSE_OK = "1";
 /**
  * Call the configured Etherscan API with the given parameters.
  */
-export async function callEtherscanApi(instance: { apiUrl: string, apiKey: string }, params: any): Promise<EtherscanResponseBody> {
+export async function callEtherscanApi(
+  instance: { apiUrl: string; apiKey: string },
+  params: any,
+): Promise<EtherscanResponseBody> {
   const parameters = new URLSearchParams({ ...params, apikey: instance.apiKey });
 
   const response = await networkManager!.axios.post(instance.apiUrl, parameters.toString(), {

@@ -21,7 +21,6 @@ const hardhatPlugin: HardhatPlugin = {
     overrideTask("clean")
       .setAction(async () => ({
         default: async (args, _hre, runSuper) => {
-          
           DefaultStorage!.deleteStateFile();
 
           await runSuper(args);

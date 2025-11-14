@@ -7,9 +7,9 @@ import { SEND_NATIVE_TX_NAME } from "../../constants.js";
 import { Adapter } from "./adapters/Adapter.js";
 import { BytecodeAdapter } from "./adapters/BytecodeAdapter.js";
 
-import { OverridesAndLibs } from "../../types/deployer.js";
-import { BaseInstance, Instance, TypedArgs } from "../../types/adapter.js";
-import { KeyTransactionFields, MigrationMetadata, TransactionFieldsToSave } from "../../types/tools.js";
+import type { OverridesAndLibs } from "../../types/deployer.js";
+import type { BaseInstance, Instance, TypedArgs } from "../../types/adapter.js";
+import type { KeyTransactionFields, MigrationMetadata, TransactionFieldsToSave } from "../../types/tools.js";
 import { isBytecodeFactory, isEthersContractFactory, isTypechainFactoryClass } from "../../types/index.js";
 
 import { Stats } from "../tools/Stats.js";
@@ -21,7 +21,7 @@ import { VerificationProcessor } from "../tools/storage/VerificationProcessor.js
 import { EthersContractFactoryAdapter } from "./adapters/EthersContractFactoryAdapter.js";
 import { TypechainContractFactoryAdapter } from "./adapters/TypechainContractFactoryAdapter.js";
 import { ExtendedHardhatEthersSigner } from "../tools/network/ExtendedHardhatEthersSigner.js";
-import { connection } from "../tools/network/EthersProvider.js";
+import { connection, migratorConfig } from "../tools/network/EthersProvider.js";
 import { NetworkConnection } from "hardhat/types/network";
 
 @CatchClassError
@@ -265,9 +265,7 @@ export class Deployer {
 
     const methodString = "sendNative";
 
-    const hre = await import("hardhat")
-
-    if (hre.config.migrate.execution.continue) {
+    if (migratorConfig!.execution.continue) {
       try {
         const savedTx = TransactionProcessor?.tryRestoreSavedTransaction(tx);
 
@@ -282,7 +280,7 @@ export class Deployer {
     const txResponse = await signer.sendTransaction(tx);
 
     const [receipt] = await Promise.all([
-      txResponse.wait(hre.config.migrate.execution.wait),
+      txResponse.wait(migratorConfig!.execution.wait),
       TransactionRunner!.reportTransactionResponse(txResponse, methodString),
     ]);
 

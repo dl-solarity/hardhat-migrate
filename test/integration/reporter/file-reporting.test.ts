@@ -8,6 +8,7 @@ import { runWithoutContinue } from "../migration/helper.js";
 import { useEnvironment } from "../../helpers.js";
 import { createAndInitReporter } from "../../../src/internal/tools/reporters/Reporter.js";
 import { resetTransactionRunner } from "../../../src/internal/tools/runners/TransactionRunner.js";
+import { createEthersProvider } from "../../../src/internal/tools/network/EthersProvider.js";
 
 describe("file-reporting", () => {
   useEnvironment("typechain-ethers");
@@ -19,6 +20,7 @@ describe("file-reporting", () => {
 
     resetTransactionRunner();
     await createAndInitReporter(hre);
+    await createEthersProvider(hre);
   });
 
   describe("simple report", () => {

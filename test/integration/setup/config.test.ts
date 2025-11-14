@@ -1,12 +1,8 @@
 import { expect } from "chai";
 
-// import { extendConfig } from "hardhat/config";
-
 import { useEnvironment } from "../../helpers.js";
 
-// import { migrateConfigExtender } from "../../../src/internal/config.js";
-
-import { MigrateConfig } from "../../../src/types/migrations.js";
+import type { MigrateConfig } from "../../../src/types/index.js";
 
 describe("config", () => {
   describe("loading", () => {
@@ -62,7 +58,6 @@ describe("config", () => {
     let loadedOptions: MigrateConfig;
 
     beforeEach(function () {
-      extendConfig(migrateConfigExtender);
       loadedOptions = this.hre.config.migrate;
     });
 

@@ -2,9 +2,7 @@ import "ethers";
 import "hardhat/types/config";
 import "hardhat/types/hre";
 
-import {HardhatEthers} from "@nomicfoundation/hardhat-ethers/types"
-
-import { MigrateUserConfig, MigrateConfig } from "./types/index.js";
+import type { MigrateUserConfig, MigrateConfig } from "./types/index.js";
 
 declare module "hardhat/types/config" {
   interface HardhatUserConfig {

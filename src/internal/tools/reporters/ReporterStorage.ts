@@ -10,7 +10,7 @@ import { Reporter } from "./Reporter.js";
 
 import { Stats } from "../Stats.js";
 
-import { ContractFieldsToSave, MigrationMetadata, TransactionFieldsToSave } from "../../../types/index.js";
+import type { ContractFieldsToSave, MigrationMetadata, TransactionFieldsToSave } from "../../../types/index.js";
 
 import { castAmount, CatchClassError } from "../../utils/index.js";
 
@@ -414,7 +414,7 @@ export class ReporterStorage {
     }
   }
 
-  private _getMarkdownReportContent(): Promise<string> {
+  private async _getMarkdownReportContent(): Promise<string> {
     const { title, generalInfo, reportedContracts } = this._state;
 
     const actualState: any[] = [];
@@ -614,7 +614,7 @@ export class ReporterStorage {
       actualState.push({ table: { headers: ["Name", "Hash"], rows: Array.from(this._state.allTransactions) } });
     }
 
-    return format(require("json2md")(actualState), {
+    return format((await import("json2md")).default(actualState), {
       parser: "markdown",
       printWidth: 80,
       proseWrap: "always",

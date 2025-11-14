@@ -28,4 +28,3 @@ const migrateVerifyTask: NewTaskDefinition = task([TASK_MIGRATE_VERIFY], "Verify
   .build();
 
 export default migrateVerifyTask;
-

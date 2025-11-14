@@ -17,15 +17,16 @@ import { UNKNOWN_TRANSACTION_NAME } from "../../../constants.js";
 
 import { bytecodeToString, fillParameters, getMethodString } from "../../utils/index.js";
 
-import { Instance } from "../../../types/adapter.js";
-import { OverridesAndLibs, OverridesAndName } from "../../../types/deployer.js";
-import { KeyTransactionFields, MigrationMetadata, TransactionFieldsToSave } from "../../../types/tools.js";
+import type { Instance } from "../../../types/adapter.js";
+import type { OverridesAndLibs, OverridesAndName } from "../../../types/deployer.js";
+import type { KeyTransactionFields, MigrationMetadata, TransactionFieldsToSave } from "../../../types/tools.js";
 
 import { Stats } from "../../tools/Stats.js";
 import { Reporter } from "../../tools/reporters/Reporter.js";
 import { networkManager } from "../../tools/network/NetworkManager.js";
 import { TransactionRunner } from "../../tools/runners/TransactionRunner.js";
 import { TransactionProcessor } from "../../tools/storage/TransactionProcessor.js";
+import { migratorConfig } from "../../tools/network/EthersProvider.js";
 
 export abstract class BaseAdapter extends Adapter {
   public getRawBytecode<A, I>(instance: Instance<A, I>): string {
@@ -141,8 +142,7 @@ export abstract class BaseAdapter extends Adapter {
 
       const keyFields = this._getKeyFieldsFromTransaction(tx);
 
-      const hre = await import("hardhat");
-      if (hre.config.migrate.execution.continue) {
+      if (migratorConfig!.execution.continue) {
         return this._recoverTransaction(methodString, keyFields, oldMethod, args);
       }
 

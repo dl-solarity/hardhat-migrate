@@ -8,8 +8,8 @@ import { CatchClassError, fillParameters, getChainId, getInterfaceOnlyWithConstr
 
 import { MigrateError } from "../utils/index.js";
 
-import { MigrationMetadata } from "../../types/tools.js";
-import { ContractDeployTxWithName, OverridesAndLibs } from "../../types/deployer.js";
+import type { MigrationMetadata } from "../../types/tools.js";
+import type { ContractDeployTxWithName, OverridesAndLibs } from "../../types/deployer.js";
 
 import { Stats } from "../tools/Stats.js";
 import { Reporter } from "../tools/reporters/Reporter.js";
@@ -18,6 +18,7 @@ import { TransactionRunner } from "../tools/runners/TransactionRunner.js";
 import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor.js";
 import { TransactionProcessor } from "../tools/storage/TransactionProcessor.js";
 import { VerificationProcessor } from "../tools/storage/VerificationProcessor.js";
+import { migratorConfig } from "../tools/network/EthersProvider.js";
 
 @CatchClassError
 export class MinimalContract {
@@ -48,8 +49,7 @@ export class MinimalContract {
 
     const tx = await this._createDeployTransaction(args, parameters);
 
-    const hre = await import("hardhat");
-    if (hre.config.migrate.execution.continue) {
+    if (migratorConfig!.execution.continue) {
       return this._recoverContractAddress(tx, args);
     } else {
       return this._processContractDeploymentTransaction(tx, args);
@@ -58,11 +58,11 @@ export class MinimalContract {
 
   private async _tryLinkLibraries(parameters: OverridesAndLibs): Promise<void> {
     try {
-      if (Linker?.isBytecodeNeedsLinking(this._bytecode)) {
+      if (Linker.isBytecodeNeedsLinking(this._bytecode)) {
         return;
       }
 
-      this._bytecode = (await Linker?.tryLinkBytecode(this._contractName, this._bytecode, parameters.libraries || {}))!;
+      this._bytecode = (await Linker.tryLinkBytecode(this._contractName, this._bytecode, parameters.libraries || {}))!;
     } catch (e: any) {
       throw new MigrateError(
         `Unable to link libraries for ${this._contractName}! Try manually deploy the libraries and link them.\n Error: ${e.message}`,

@@ -10,7 +10,7 @@ import { CatchClassError } from "../../utils/index.js";
 
 import { MigrateError } from "../../utils/index.js";
 
-import { MigrateConfig } from "../../../types/index.js";
+import type { MigrateConfig } from "../../../types/index.js";
 
 @CatchClassError
 class BaseTransactionRunner {
@@ -26,7 +26,7 @@ class BaseTransactionRunner {
   public async reportTransactionResponse(tx: TransactionResponse, instanceName: string) {
     // Switch the default provider to the Wrapped provider, incorporating network error handling
     Object.defineProperty(tx, "provider", {
-      value: networkManager!.provider,
+      value: networkManager!.provider.provider,
       writable: true,
       configurable: true,
     });

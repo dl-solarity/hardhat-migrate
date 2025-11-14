@@ -11,9 +11,10 @@ import { networkManager } from "../network/NetworkManager.js";
 
 import { castAmount, CatchClassError, underline } from "../../utils/index.js";
 
-import { MigrateConfig } from "../../../types/index.js";
-import { ChainRecord, CustomChainRecord, predefinedChains } from "../../../types/verifier.js";
-import { ContractFieldsToSave, MigrationMetadata, TransactionFieldsToSave } from "../../../types/tools.js";
+import type { MigrateConfig } from "../../../types/index.js";
+import type { ChainRecord, CustomChainRecord } from "../../../types/verifier.js";
+import { predefinedChains } from "../../../types/verifier.js";
+import type { ContractFieldsToSave, MigrationMetadata, TransactionFieldsToSave } from "../../../types/tools.js";
 
 /**
  * Global error handling for network-related issues is conducted within the NetworkManager class
@@ -508,9 +509,7 @@ class BaseReporter {
 
     const merged: CustomChainRecord[] = [...blockscoutChains, ...etherscanChains];
 
-    const deduped = merged.filter(
-      (chain, index, self) => index === self.findIndex((c) => c.chainId === chain.chainId),
-    );
+    const deduped = merged.filter((chain, index, self) => index === self.findIndex((c) => c.chainId === chain.chainId));
 
     return deduped.find((chain) => chain.chainId === chainId);
   }

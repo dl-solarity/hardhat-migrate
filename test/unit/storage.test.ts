@@ -12,10 +12,10 @@ import {
 
 import { useEnvironment } from "../helpers.js";
 
-describe.only("Migrator Storage", function () {
+describe("Migrator Storage", function () {
   useEnvironment("defined-config");
 
-  it("should save and restore state", function () {
+  it("should save and restore state", () => {
     UserStorage.set("test-key", "test-value");
 
     expect(UserStorage.get("test-key")).to.equal("test-value");
@@ -27,7 +27,7 @@ describe.only("Migrator Storage", function () {
     expect(UserStorage.has("test-key")).to.be.false;
   });
 
-  it("should set state without file", function () {
+  it("should set state without file", () => {
     const manuallyDefinedStorage = new MigrateStorage("test-storage");
 
     manuallyDefinedStorage.set("test-key", "test-value");
@@ -35,14 +35,14 @@ describe.only("Migrator Storage", function () {
     expect(manuallyDefinedStorage.get("test-key")).to.equal("test-value");
   });
 
-  it("should throw error if key already exist/not found", function () {
+  it("should throw error if key already exist/not found", () => {
     UserStorage.set("test-key", "test-value");
 
     expect(() => UserStorage.set("test-key", "test-value")).to.throw("Key already exists");
     expect(() => UserStorage.delete("test-key-2")).to.throw("Key not found");
   });
 
-  it("should get all keys", function () {
+  it("should get all keys", () => {
     UserStorage.set("test-key", "test-value");
     UserStorage.set("test-key-2", "test-value-2");
 
@@ -52,7 +52,7 @@ describe.only("Migrator Storage", function () {
     });
   });
 
-  it("should clear state", function () {
+  it("should clear state", () => {
     UserStorage.set("test-key", "test-value");
 
     UserStorage.clear();
@@ -60,7 +60,7 @@ describe.only("Migrator Storage", function () {
     expect(UserStorage.get("test-key")).to.be.undefined;
   });
 
-  it("should delete state file", function () {
+  it("should delete state file", () => {
     UserStorage.set("test-key", "test-value");
 
     expect(DefaultStorage.stateExistsInFile()).to.be.true;
@@ -72,7 +72,7 @@ describe.only("Migrator Storage", function () {
     expect(DefaultStorage.deleteStateFile()).to.not.throw;
   });
 
-  it("should manage different storages", function () {
+  it("should manage different storages", () => {
     UserStorage.set("user-key", "user-value");
     ArtifactStorage.set("artifact-key", "artifact-value");
     TransactionStorage.set("transaction-key", "transaction-value");
@@ -92,7 +92,7 @@ describe.only("Migrator Storage", function () {
     expect(fullState).to.deep.equal(expectedState);
   });
 
-  afterEach("Clean up", function () {
+  afterEach("Clean up", () => {
     clearAllStorage();
   });
 });

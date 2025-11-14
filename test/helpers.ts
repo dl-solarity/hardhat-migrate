@@ -7,6 +7,10 @@ import "../src/type-extensions.js";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+import { resetReporter } from "../src/internal/tools/reporters/Reporter.js";
+import { resetEthersProvider } from "../src/internal/tools/network/EthersProvider.js";
+import { resetNetworkManager } from "../src/internal/tools/network/NetworkManager.js";
+import { resetTransactionRunner } from "../src/internal/tools/runners/TransactionRunner.js";
 
 declare module "mocha" {
   interface Context {
@@ -20,10 +24,16 @@ const __dirname = path.dirname(__filename);
 
 export function useEnvironment(fixtureProjectName: string, networkName = "hardhat") {
   beforeEach("Loading hardhat environment", async function () {
+    resetReporter();
+    resetEthersProvider();
+    resetNetworkManager();
+    resetTransactionRunner();
+
     this._cwd = process.cwd();
 
-    const projectPath = path.join(__dirname, "fixture-projects", fixtureProjectName);
-    const configPath = path.join(__dirname, "fixture-projects", fixtureProjectName, "hardhat.config.ts");
+    const prefix = "hardhat-project-";
+    const projectPath = path.join(__dirname, "fixture-projects", prefix + fixtureProjectName);
+    const configPath = path.join(__dirname, "fixture-projects", prefix + fixtureProjectName, "hardhat.config.ts");
 
     process.chdir(projectPath);
     process.env.HARDHAT_NETWORK = networkName;
@@ -34,10 +44,10 @@ export function useEnvironment(fixtureProjectName: string, networkName = "hardha
       projectPath,
     );
 
-    await this.hre.tasks.getTask("compile").run({ quite: true });
+    await this.hre.tasks.getTask("compile").run({ quiet: true });
   });
 
   afterEach("Resetting hardhat", async function () {
-    await this.hre.tasks.getTask("clean").run({});
+    // await this.hre.tasks.getTask("clean").run({});
   });
 }

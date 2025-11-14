@@ -21,6 +21,12 @@ const config: HardhatUserConfig = {
       pathToMigrations: "./deploy",
     },
   },
+  networks: {
+    hardhat: {
+      type: "edr-simulated",
+      chainType: "l1",
+    },
+  },
   plugins: [migratePlugin, hardhatEthersPlugin, hardhatTypechainPlugin],
 };
 

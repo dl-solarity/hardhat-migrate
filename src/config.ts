@@ -162,7 +162,9 @@ async function resolveMigrateConfig(
     if (typeof p.pathToMigrations === "string") resolved.paths.pathToMigrations = p.pathToMigrations;
     if (typeof p.namespace === "string") resolved.paths.namespace = p.namespace;
     if (typeof p.reportPath === "string") resolved.paths.reportPath = p.reportPath;
-    resolved.paths.reportFormat = p.reportFormat as "json" | "md";
+    if (typeof p.reportFormat === "string") {
+      resolved.paths.reportFormat = p.reportFormat;
+    }
   }
 
   // Execution
@@ -178,9 +180,15 @@ async function resolveMigrateConfig(
 
   // Cast wallet
   if (externalConfig.castWallet) {
-    resolved.castWallet.passwordFile = externalConfig.castWallet.passwordFile;
-    resolved.castWallet.keystore = externalConfig.castWallet.keystore;
-    resolved.castWallet.account = externalConfig.castWallet.account;
+    if (typeof externalConfig.castWallet.passwordFile === "string") {
+      resolved.castWallet.passwordFile = externalConfig.castWallet.passwordFile;
+    }
+    if (typeof externalConfig.castWallet.keystore === "string") {
+      resolved.castWallet.keystore = externalConfig.castWallet.keystore;
+    }
+    if (typeof externalConfig.castWallet.account === "string") {
+      resolved.castWallet.account = externalConfig.castWallet.account;
+    }
   }
 
   // Trezor wallet
