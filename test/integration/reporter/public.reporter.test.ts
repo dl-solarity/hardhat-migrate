@@ -1,12 +1,12 @@
 import { expect } from "chai";
 
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
-import { PublicReporter } from "../../../src/internal/tools/reporters/PublicReporter";
-import { createAndInitReporter } from "../../../src/internal/tools/reporters/Reporter";
-import { resetTransactionRunner } from "../../../src/internal/tools/runners/TransactionRunner";
+import { PublicReporter } from "../../../src/internal/tools/reporters/PublicReporter.js";
+import { createAndInitReporter } from "../../../src/internal/tools/reporters/Reporter.js";
+import { resetTransactionRunner } from "../../../src/internal/tools/runners/TransactionRunner.js";
 
-import { useEnvironment } from "../../helpers";
+import { useEnvironment } from "../../helpers.js";
 
 describe("Public Reporter", () => {
   useEnvironment("namespace");

@@ -2,21 +2,21 @@ import { assert, expect } from "chai";
 
 import { ContractFactory, ZeroAddress } from "ethers";
 
-import { useEnvironment } from "../../helpers";
+import { useEnvironment } from "../../helpers.js";
 
 import {
   PayableConstructor__factory,
   ConstructorWithArguments__factory,
-} from "../../fixture-projects/hardhat-project-typechain-ethers/typechain-types";
+} from "../../fixture-projects/hardhat-project-typechain-ethers/typechain-types/index.js";
 
-import { Deployer } from "../../../src/internal/deployer/Deployer";
-import { Migrator } from "../../../src/internal/migrator/Migrator";
+import { Deployer } from "../../../src/internal/deployer/Deployer.js";
+import { Migrator } from "../../../src/internal/migrator/Migrator.js";
 
-import { UNKNOWN_CONTRACT_NAME } from "../../../src/internal/constants";
-import { ContractDeployTxWithName } from "../../../src/types/deployer";
+// import { UNKNOWN_CONTRACT_NAME } from "../../../src/internal/constants.js";
+import { ContractDeployTxWithName } from "../../../src/types/deployer.js";
 
-import { TransactionStorage } from "../../../src/internal/tools/storage/MigrateStorage";
-import { TransactionProcessor } from "../../../src/internal/tools/storage/TransactionProcessor";
+import { TransactionStorage } from "../../../src/internal/tools/storage/MigrateStorage.js";
+import { TransactionProcessor } from "../../../src/internal/tools/storage/TransactionProcessor.js";
 
 describe("TransactionStorage", async () => {
   useEnvironment("typechain-ethers");
@@ -33,7 +33,7 @@ describe("TransactionStorage", async () => {
     let deployer: Deployer;
 
     beforeEach(function () {
-      deployer = new Deployer(this.hre);
+      deployer = new Deployer();
     });
 
     it("should save deployment transaction", async function () {

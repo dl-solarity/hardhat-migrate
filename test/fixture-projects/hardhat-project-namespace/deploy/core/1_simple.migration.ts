@@ -1,7 +1,7 @@
-import { Deployer } from "../../../../../src/internal/deployer/Deployer";
+import { Deployer } from "../../../../../src/internal/deployer/Deployer.js";
 
-import { GovToken__factory } from "../../typechain-types";
+import { GovToken__factory } from "../../typechain-types/index.js";
 
-export = async (deployer: Deployer) => {
+export default async (deployer: Deployer) => {
   await deployer.deploy(GovToken__factory, ["Token", "TKN"]);
 };

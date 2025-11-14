@@ -1,11 +1,11 @@
-import { Deployer } from "../../../../src/internal/deployer/Deployer";
-import { PublicReporter as Reporter } from "../../../../src/internal/tools/reporters/PublicReporter";
+import { Deployer } from "../../../../src/internal/deployer/Deployer.js";
+import { PublicReporter as Reporter } from "../../../../src/internal/tools/reporters/PublicReporter.js";
 
-import { GovToken__factory } from "../typechain-types";
+import { GovToken__factory } from "../typechain-types/index.js";
 
 const TOKEN_OWNER = "0x1E3953B6ee74461169A3E346060AE27bD0B5bF2B";
 
-export = async (deployer: Deployer) => {
+export default async (deployer: Deployer) => {
   const govToken = await deployer.deploy(GovToken__factory, ["Token", "TKN"]);
 
   const transferOwnershipTx = (await (await govToken.transferOwnership(TOKEN_OWNER)).wait())!;

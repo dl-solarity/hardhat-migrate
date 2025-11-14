@@ -1,14 +1,12 @@
-import type {
+import {
   AddressLike,
   JsonRpcProvider,
   Transaction,
   TransactionLike,
   TransactionRequest,
   TransactionResponse,
-  VoidSigner
+  VoidSigner,
 } from "ethers";
-
-import { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import { HardhatEthersProvider, HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/types";
 
@@ -19,27 +17,25 @@ import {
   CastSignOptions,
   getCastVersion,
   getCastWalletAddress,
-  getSignedTxViaCast
+  getSignedTxViaCast,
 } from "../integrations/cast-integration.js";
 import { MigrateConfig } from "../../../types/index.js";
 import { networkManager } from "./NetworkManager.js";
+import { connection } from "./EthersProvider.js";
 
 export class ExtendedHardhatEthersSigner {
   public readonly provider: JsonRpcProvider | HardhatEthersProvider;
   public readonly ethersSigner: VoidSigner | HardhatEthersSigner;
   public readonly signerIdentifier: AddressLike;
-  private readonly _config: MigrateConfig;
   private _initialized: boolean = false;
 
   constructor(
-    private readonly _hre: HardhatRuntimeEnvironment,
+    private _config: MigrateConfig,
     ethersSigner: VoidSigner | HardhatEthersSigner,
     signerName?: AddressLike,
   ) {
     this.ethersSigner = ethersSigner;
-
-    this._config = this._hre.config.migrate;
-    this.provider = this._hre.ethers.provider;
+    this.provider = connection!.ethers.provider
 
     this.signerIdentifier = this._determineSignerIdentifier(signerName);
   }
@@ -51,11 +47,13 @@ export class ExtendedHardhatEthersSigner {
     try {
       ethersSigner = await networkManager?.getEthersSigner(signerName as any)!;
     } catch {
-      const address = hre.ethers.isAddress(signerName) ? signerName : hre.ethers.ZeroAddress;
-      ethersSigner = new hre.ethers.VoidSigner(address, hre.ethers.provider);
+      const ethers = await import("ethers");
+
+      const address = ethers.isAddress(signerName) ? signerName : ethers.ZeroAddress;
+      ethersSigner = new ethers.VoidSigner(address, null);
     }
 
-    return new ExtendedHardhatEthersSigner(hre, ethersSigner, signerName);
+    return new ExtendedHardhatEthersSigner(hre.config.migrate, ethersSigner, signerName);
   }
 
   public async getAddress(): Promise<string> {
@@ -75,28 +73,26 @@ export class ExtendedHardhatEthersSigner {
   }
 
   public async sendTransaction(tx: TransactionRequest): Promise<TransactionResponse> {
-    const hre = await import("hardhat");
-
     await this._ensureInitialized();
 
     if (!this._isCastEnabled() && !this._config.trezorWallet.enabled) {
       return this.ethersSigner.sendTransaction(tx);
     }
 
-    const voidSigner = new hre.ethers.VoidSigner(await this.getAddress(), this.provider);
+    const voidSigner = new connection!.ethers.VoidSigner(await this.getAddress(), connection!.ethers.provider);
     let preparedTx = await voidSigner.populateTransaction(tx);
 
-    if (hre.network.config.gasPrice) {
+    if (connection!.networkConfig.gasPrice) {
       try {
-        preparedTx.gasPrice = hre.ethers.parseUnits(hre.network.config.gasPrice.toString(), "gwei");
+        preparedTx.gasPrice = connection?.ethers.parseUnits(connection!.networkConfig.gasPrice.toString(), "gwei");
       } catch {
         /* empty */
       }
     }
 
-    if (hre.network.config.gasMultiplier) {
+    if (connection!.networkConfig.gasMultiplier) {
       preparedTx.gasLimit = String(
-        (BigInt(preparedTx.gasLimit!) * BigInt(hre.network.config.gasMultiplier * 100)) / 100n,
+        (BigInt(preparedTx.gasLimit!) * BigInt(connection!.networkConfig.gasMultiplier * 100)) / 100n,
       );
     }
 
@@ -106,9 +102,9 @@ export class ExtendedHardhatEthersSigner {
       preparedTx = await this._prepareTrezorTransaction(preparedTx);
     }
 
-    const signedTx = await this._signTransaction(hre.ethers.Transaction.from(preparedTx));
+    const signedTx = await this._signTransaction(connection!.ethers.Transaction.from(preparedTx));
 
-    return this.provider.broadcastTransaction(signedTx);
+    return connection!.ethers.provider.broadcastTransaction(signedTx);
   }
 
   private _determineSignerIdentifier(signerName?: AddressLike): AddressLike {
@@ -147,7 +143,7 @@ export class ExtendedHardhatEthersSigner {
     delete tx.maxPriorityFeePerGas;
 
     tx.type = 1;
-    tx.gasPrice = await this.provider.send("eth_gasPrice", []);
+    tx.gasPrice = await connection!.ethers.provider.send("eth_gasPrice", []);
 
     return tx;
   }

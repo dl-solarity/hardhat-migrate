@@ -14,13 +14,15 @@ const hardhatPlugin: HardhatPlugin = {
   hookHandlers: {
     config: () => import("./config.js"),
   },
+  dependencies: () => [import("@nomicfoundation/hardhat-ethers"), import("@nomicfoundation/hardhat-verify")],
   tasks: [
     migrateTask,
     migrateVerifyTask,
     overrideTask("clean")
       .setAction(async () => ({
         default: async (args, _hre, runSuper) => {
-          DefaultStorage.deleteStateFile();
+          
+          DefaultStorage!.deleteStateFile();
 
           await runSuper(args);
         },

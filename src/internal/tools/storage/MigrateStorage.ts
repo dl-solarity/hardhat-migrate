@@ -1,7 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "fs";
 
-import { HardhatRuntimeEnvironment } from "hardhat/types/hre";
-
 import { CatchClassError, MigrateError, resolvePathToFile, toJSON } from "../../utils/index.js";
 
 import { StorageNamespaces } from "../../../types/index.js";
@@ -12,10 +10,7 @@ class BaseStorage {
   private readonly _directory = "cache";
   private readonly _fileName = ".migrate.storage.json";
 
-  constructor(
-    private _hre: HardhatRuntimeEnvironment,
-    private _namespace: string = StorageNamespaces.Storage,
-  ) {
+  constructor(private _namespace: string = StorageNamespaces.Storage) {
     this._state = this.readFullStateFromFile()[this._namespace] || {};
 
     if (!existsSync(this.filePath())) {
@@ -46,7 +41,7 @@ class BaseStorage {
   }
 
   public filePath(): string {
-    return resolvePathToFile(this._hre, "cache", this._fileName);
+    return resolvePathToFile("cache", this._fileName);
   }
 
   protected _saveStateToFile() {
@@ -106,15 +101,15 @@ export class MigrateStorage extends BaseStorage {
   }
 }
 
-export const DefaultStorage = new BaseStorage(require("hardhat"));
-export const UserStorage = new MigrateStorage(require("hardhat"), StorageNamespaces.Storage);
-export const TransactionStorage = new MigrateStorage(require("hardhat"), StorageNamespaces.Transactions);
-export const ArtifactStorage = new MigrateStorage(require("hardhat"), StorageNamespaces.Artifacts);
-export const VerificationStorage = new MigrateStorage(require("hardhat"), StorageNamespaces.Verification);
+export const DefaultStorage = new BaseStorage();
+export const UserStorage = new MigrateStorage(StorageNamespaces.Storage);
+export const TransactionStorage = new MigrateStorage(StorageNamespaces.Transactions);
+export const ArtifactStorage = new MigrateStorage(StorageNamespaces.Artifacts);
+export const VerificationStorage = new MigrateStorage(StorageNamespaces.Verification);
 
 export function clearAllStorage(): void {
-  UserStorage.clear();
-  TransactionStorage.clear();
-  ArtifactStorage.clear();
-  VerificationStorage.clear();
+  UserStorage!.clear();
+  TransactionStorage!.clear();
+  ArtifactStorage!.clear();
+  VerificationStorage!.clear();
 }

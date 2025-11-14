@@ -212,7 +212,7 @@ export class Verifier {
   }
 
   public static async buildVerifierTaskDeps(hre: HardhatRuntimeEnvironment): Promise<void> {
-    buildNetworkDeps(hre);
+    await buildNetworkDeps(hre);
     await createAndInitReporter(hre);
   }
 }

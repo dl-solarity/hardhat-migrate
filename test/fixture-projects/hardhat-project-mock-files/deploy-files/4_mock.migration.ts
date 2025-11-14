@@ -1,3 +1,3 @@
-import { Deployer } from "../../../../src/internal/deployer/Deployer";
+import { Deployer } from "../../../../src/internal/deployer/Deployer.js";
 
-export = async (deployer: Deployer) => {};
+export default async (deployer: Deployer) => {};

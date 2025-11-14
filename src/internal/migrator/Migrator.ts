@@ -34,7 +34,7 @@ export class Migrator {
     private _hre: HardhatRuntimeEnvironment,
     private _config: MigrateConfig = _hre.config.migrate,
   ) {
-    this._deployer = new Deployer(_hre);
+    this._deployer = new Deployer();
 
     this._migrationFiles = this._getMigrationFiles();
   }
@@ -113,10 +113,10 @@ export class Migrator {
   }
 
   public static async buildMigrateTaskDeps(hre: HardhatRuntimeEnvironment): Promise<void> {
-    createLinker(hre);
+    createLinker();
     createTransactionProcessor(hre.config.migrate);
 
-    buildNetworkDeps(hre);
+    await buildNetworkDeps(hre);
     await createAndInitReporter(hre);
 
     if (!hre.config.migrate.execution.continue) {

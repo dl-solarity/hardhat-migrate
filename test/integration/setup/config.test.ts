@@ -1,12 +1,12 @@
 import { expect } from "chai";
 
-import { extendConfig } from "hardhat/config";
+// import { extendConfig } from "hardhat/config";
 
-import { useEnvironment } from "../../helpers";
+import { useEnvironment } from "../../helpers.js";
 
-import { migrateConfigExtender } from "../../../src/internal/config";
+// import { migrateConfigExtender } from "../../../src/internal/config.js";
 
-import { MigrateConfig } from "../../../src/types/migrations";
+import { MigrateConfig } from "../../../src/types/migrations.js";
 
 describe("config", () => {
   describe("loading", () => {

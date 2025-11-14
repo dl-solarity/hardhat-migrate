@@ -1,10 +1,10 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
-import { runWithContinue, runWithoutContinue } from "./helper";
+import { runWithContinue, runWithoutContinue } from "./helper.js";
 
-import { useEnvironment } from "../../helpers";
-import { resetReporter } from "../../../src/internal/tools/reporters/Reporter";
-import { resetTransactionRunner } from "../../../src/internal/tools/runners/TransactionRunner";
+import { useEnvironment } from "../../helpers.js";
+import { resetReporter } from "../../../src/internal/tools/reporters/Reporter.js";
+import { resetTransactionRunner } from "../../../src/internal/tools/runners/TransactionRunner.js";
 
 describe("ethers", () => {
   useEnvironment("ethers");

@@ -1,8 +1,9 @@
 import { assert } from "chai";
 
-import { useEnvironment } from "../../helpers";
-import { Migrator } from "../../../src/internal/migrator/Migrator";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { useEnvironment } from "../../helpers.js";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+
+import { Migrator } from "../../../src/internal/migrator/Migrator.js";
 
 function getMigratorInstance(
   hre: HardhatRuntimeEnvironment,
@@ -57,7 +58,7 @@ describe("Migrator", function () {
       useEnvironment("mock-files");
 
       it("should correctly return specified migrations", function () {
-        const instance = getMigratorInstance(require("hardhat"), 3, 5, -1, -1);
+        const instance = getMigratorInstance(this.hre, 3, 5, -1, -1);
         const migrationFiles = instance._migrationFiles;
 
         const expectedFiles = ["3_mock.migration.ts", "4_mock.migration.ts", "5_mock.migration.ts"];
@@ -66,26 +67,27 @@ describe("Migrator", function () {
       });
     });
 
-    describe("from/to/only", () => {
+    describe("from/to/only", function () {
       useEnvironment("mock-files");
 
-      it("should return only one migration", () => {
-        const instance = getMigratorInstance(require("hardhat"), 3, 5, 4, -1);
+      it("should return only one migration", function () {
+        const instance = getMigratorInstance(this.hre, 3, 5, 4, -1);
         const migrationFiles = instance._migrationFiles;
 
         assert.deepStrictEqual(migrationFiles, ["4_mock.migration.ts"]);
       });
 
-      it("should return no migration if only specified out of from/to range", () => {
-        assert.throw(() => getMigratorInstance(require("hardhat"), 3, 5, 1, -1), "No migration files were found.");
+      it("should return no migration if only specified out of from/to range", function () {
+        const hre = this.hre;
+        assert.throw(() => getMigratorInstance(hre, 3, 5, 1, -1), "No migration files were found.");
       });
     });
 
-    describe("from/to/only/skip", () => {
+    describe("from/to/only/skip", function () {
       useEnvironment("mock-files");
 
-      it("should skip migrations", () => {
-        const instance = getMigratorInstance(require("hardhat"), -1, 5, -1, 2);
+      it("should skip migrations", function () {
+        const instance = getMigratorInstance(this.hre, -1, 5, -1, 2);
         const migrationFiles = instance._migrationFiles;
 
         const expectedFiles = [
@@ -98,19 +100,21 @@ describe("Migrator", function () {
         assert.deepStrictEqual(migrationFiles, expectedFiles);
       });
 
-      it("should return only migration if there is a no collision between them", () => {
-        const instance = getMigratorInstance(require("hardhat"), 3, 4, 4, 3);
+      it("should return only migration if there is a no collision between them", function () {
+        const instance = getMigratorInstance(this.hre, 3, 4, 4, 3);
         const migrationFiles = instance._migrationFiles;
 
         assert.deepStrictEqual(migrationFiles, ["4_mock.migration.ts"]);
       });
 
-      it("should skip all migrations with only parameter specified", () => {
-        assert.throw(() => getMigratorInstance(require("hardhat"), 1, 5, 2, 2), "No migration files were found.");
+      it("should skip all migrations with only parameter specified", function () {
+        const hre = this.hre;
+        assert.throw(() => getMigratorInstance(hre, 1, 5, 2, 2), "No migration files were found.");
       });
 
-      it("should skip all migrations without only parameter specified", () => {
-        assert.throw(() => getMigratorInstance(require("hardhat"), 3, 3, -1, 3), "No migration files were found.");
+      it("should skip all migrations without only parameter specified", function () {
+        const hre = this.hre;
+        assert.throw(() => getMigratorInstance(hre, 3, 3, -1, 3), "No migration files were found.");
       });
     });
   });

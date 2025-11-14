@@ -1,9 +1,9 @@
 import { expect } from "chai";
 
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
-import { TASK_MIGRATE } from "../../../src/internal/constants";
-import { MigrateConfig, MigrateConfigArgs } from "../../../src/types/migrations";
+// import { TASK_MIGRATE } from "../../../src/internal/constants/index.js";
+import { MigrateConfig, MigrateConfigArgs } from "../../../src/types/migrations.js";
 
 export async function runWithoutContinue(hre: HardhatRuntimeEnvironment, config: MigrateConfigArgs) {
   await hre.run(TASK_MIGRATE, config);

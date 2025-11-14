@@ -36,15 +36,16 @@ class BaseArtifactProcessor {
   }
 
   public async saveArtifactIfNotExist(
-    _hre: HardhatRuntimeEnvironment,
     contractName: string,
     bytecode?: string,
   ): Promise<void> {
+    const hre = await import("hardhat")
+
     if (!isFullyQualifiedName(contractName) || (bytecode ? true : ArtifactStorage.get(bytecodeHash(bytecode!)))) {
       return;
     }
 
-    const artifact = await _hre.artifacts.readArtifact(contractName);
+    const artifact = await hre.artifacts.readArtifact(contractName);
 
     const contract: ArtifactExtended = { ...artifact, neededLibraries: this._parseLibrariesOfArtifact(artifact) };
 

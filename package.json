@@ -38,8 +38,8 @@
     "compile": "npm run clean-tests && npm run prepare-tests && npm run build",
     "build": "tsc --build .",
     "prepare-tests": "npm run compile --workspaces",
-    "test": "mocha --recursive 'test/**/*.ts' --exit",
-    "coverage": "nyc mocha --recursive 'test/**/*.ts' --exit",
+    "test": "node --enable-source-maps --import ./test/loader-bootstrap.mjs --no-deprecation ./node_modules/mocha/bin/mocha.js --config .mocharc.json --recursive \"test/**/*.test.ts\" --exit",
+    "coverage": "nyc node --stack_size=8192 --enable-source-maps --import ./test/loader-bootstrap.mjs --no-deprecation ./node_modules/mocha/bin/mocha.js --config .mocharc.json --recursive \"test/**/*.test.ts\" --exit",
     "clean-tests": "npm run clean --workspaces",
     "lint-fix": "prettier --write \"./**/*.ts\" && eslint \"src/**/*.{js,ts}\" --cache --fix",
     "publish-to-npm": "npm run compile && npm run lint-fix && npm publish ./ --access public"
@@ -73,7 +73,9 @@
     }
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-network-helpers": "^3.0.3",
     "@nomicfoundation/hardhat-toolbox-mocha-ethers": "^3.0.0",
+    "@nomicfoundation/hardhat-typechain": "^3.0.0",
     "@openzeppelin/contracts": "^5.2.0",
     "@trezor/connect": "9.5.0",
     "@tsconfig/node22": "^22.0.2",

@@ -12,7 +12,7 @@ import { MigrateError } from "../../utils/index.js";
 
 export class PublicReporter {
   public static async reportTransactionByHash(txHash: string, name?: string) {
-    const tx = await networkManager!.provider.getTransaction(txHash);
+    const tx = await networkManager!.provider.provider.getTransaction(txHash);
 
     if (!tx) {
       throw new MigrateError("Transaction not found.");

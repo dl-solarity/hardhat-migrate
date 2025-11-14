@@ -94,7 +94,7 @@ class BaseReporter {
     }
 
     const timeStart = Date.now();
-    const blockStart = await networkManager!.provider.getBlockNumber();
+    const blockStart = await networkManager!.provider.provider.getBlockNumber();
 
     const formatPendingTimeTask = async () => this._formatPendingTime(tx, timeStart, blockStart);
 
@@ -414,7 +414,7 @@ class BaseReporter {
     }
 
     return `Confirmations: ${await tx.confirmations()}; Blocks: ${
-      (await networkManager!.provider.getBlockNumber()) - blockStart
+      (await networkManager!.provider.provider.getBlockNumber()) - blockStart
     }; Seconds: ${((Date.now() - startTime) / 1000).toFixed(0)}`;
   }
 
@@ -448,7 +448,7 @@ class BaseReporter {
 
   private async _getNetwork(): Promise<Network> {
     try {
-      return networkManager!.provider.getNetwork();
+      return networkManager!.provider.provider.getNetwork();
     } catch {
       return new Network("Local Ethereum", 1337);
     }

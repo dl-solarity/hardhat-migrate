@@ -1,6 +1,7 @@
 {
   "name": "hardhat-project-ethers",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "compile": "hardhat compile --force",
     "clean": "hardhat clean && rm -rf artifacts && rm -rf cache"

@@ -1,7 +1,5 @@
 import { ethers, Interface, Overrides } from "ethers";
 
-import { HardhatRuntimeEnvironment } from "hardhat/types/hre";
-
 import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 
 import { Linker } from "./Linker.js";
@@ -27,7 +25,6 @@ export class MinimalContract {
   private readonly _interfaceOnlyWithConstructor;
 
   constructor(
-    private readonly _hre: HardhatRuntimeEnvironment,
     private _bytecode: string,
     private readonly _interface: Interface,
     private readonly _contractName: string = "",
@@ -51,7 +48,8 @@ export class MinimalContract {
 
     const tx = await this._createDeployTransaction(args, parameters);
 
-    if (this._hre.config.migrate.execution.continue) {
+    const hre = await import("hardhat");
+    if (hre.config.migrate.execution.continue) {
       return this._recoverContractAddress(tx, args);
     } else {
       return this._processContractDeploymentTransaction(tx, args);
@@ -147,7 +145,7 @@ export class MinimalContract {
       chainId: Number(await getChainId()),
     });
 
-    await ArtifactProcessor.saveArtifactIfNotExist(this._hre, contractName, this._rawBytecode);
+    await ArtifactProcessor.saveArtifactIfNotExist(contractName, this._rawBytecode);
   }
 
   private _getFullyQualifiedName(tx: ContractDeployTxWithName): string | null {

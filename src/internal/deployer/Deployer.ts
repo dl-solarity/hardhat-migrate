@@ -1,7 +1,5 @@
 import { Interface, isAddress, ZeroAddress } from "ethers";
 
-import { HardhatRuntimeEnvironment } from "hardhat/types/hre";
-
 import { CatchClassError, getChainId, isDeployedContractAddress, MigrateError } from "../utils/index.js";
 
 import { SEND_NATIVE_TX_NAME } from "../../constants.js";
@@ -23,25 +21,31 @@ import { VerificationProcessor } from "../tools/storage/VerificationProcessor.js
 import { EthersContractFactoryAdapter } from "./adapters/EthersContractFactoryAdapter.js";
 import { TypechainContractFactoryAdapter } from "./adapters/TypechainContractFactoryAdapter.js";
 import { ExtendedHardhatEthersSigner } from "../tools/network/ExtendedHardhatEthersSigner.js";
+import { connection } from "../tools/network/EthersProvider.js";
+import { NetworkConnection } from "hardhat/types/network";
 
 @CatchClassError
 export class Deployer {
-  constructor(private _hre: HardhatRuntimeEnvironment) {}
+  constructor() {}
 
-  public static resolveAdapter<A, I = any>(hre: HardhatRuntimeEnvironment, contract: BaseInstance<A, I>): Adapter {
+  public static resolveAdapter<A, I = any>(contract: BaseInstance<A, I>): Adapter {
     if (isTypechainFactoryClass(contract)) {
-      return new TypechainContractFactoryAdapter(hre);
+      return new TypechainContractFactoryAdapter();
     }
 
     if (isEthersContractFactory(contract)) {
-      return new EthersContractFactoryAdapter(hre);
+      return new EthersContractFactoryAdapter();
     }
 
     if (isBytecodeFactory(contract)) {
-      return new BytecodeAdapter(hre);
+      return new BytecodeAdapter();
     }
 
     throw new MigrateError("Unknown Contract Factory Type");
+  }
+
+  public connection(): NetworkConnection<"generic"> {
+    return connection!;
   }
 
   public async deploy<A, I = any>(
@@ -54,7 +58,7 @@ export class Deployer {
       argsOrParameters = [] as TypedArgs<A>;
     }
 
-    const adapter = Deployer.resolveAdapter(this._hre, contract);
+    const adapter = Deployer.resolveAdapter(contract);
 
     const minimalContract = await adapter.fromInstance(contract, parameters);
     const contractAddress = await minimalContract.deploy(argsOrParameters as TypedArgs<A>, parameters);
@@ -128,14 +132,14 @@ export class Deployer {
     let proxyFactory;
 
     try {
-      proxyFactory = await this._hre.ethers.getContractFactory(proxyFactoryName);
+      proxyFactory = await connection!.ethers.getContractFactory(proxyFactoryName);
     } catch {
       throw new MigrateError(
         `Contract factory for ${proxyFactoryName} not found. Please add import of the proxy to one of the contracts in the project.`,
       );
     }
 
-    const adapter = Deployer.resolveAdapter(this._hre, implementationFactory);
+    const adapter = Deployer.resolveAdapter(implementationFactory);
 
     let implementationArgs: TypedArgs<A> = [] as any;
     let implementationParameters: OverridesAndLibs = {};
@@ -164,7 +168,9 @@ export class Deployer {
       chainId: Number(await getChainId()),
     });
 
-    let artifact = await this._hre.artifacts.readArtifact(proxyFactoryName);
+    const hre = await import("hardhat");
+
+    let artifact = await hre.artifacts.readArtifact(proxyFactoryName);
 
     const proxy = await this.deploy(proxyFactory, proxyArgs(await implementation.getAddress()), {
       name: `${instanceName} proxy`,
@@ -188,7 +194,7 @@ export class Deployer {
       return;
     }
 
-    const adapter = Deployer.resolveAdapter(this._hre, implementationFactory);
+    const adapter = Deployer.resolveAdapter(implementationFactory);
     const contractInterface: Interface = adapter.getInterface(implementationFactory);
     const functionFragment = contractInterface.parseTransaction({ data: constructorCalldata });
 
@@ -203,7 +209,7 @@ export class Deployer {
   }
 
   public async deployed<A, I = any>(contract: BaseInstance<A, I>, contractIdentifier?: string): Promise<I> {
-    const adapter = Deployer.resolveAdapter(this._hre, contract);
+    const adapter = Deployer.resolveAdapter(contract);
     const defaultContractName = adapter.getContractName(contract, {});
 
     let contractAddress;
@@ -242,7 +248,7 @@ export class Deployer {
       return;
     }
 
-    const adapter = Deployer.resolveAdapter(this._hre, contract);
+    const adapter = Deployer.resolveAdapter(contract);
     const defaultContractName = adapter.getContractName(contract, {});
 
     TransactionProcessor?.saveContractAddress(defaultContractName, contractAddress, saveMetadata);
@@ -259,7 +265,9 @@ export class Deployer {
 
     const methodString = "sendNative";
 
-    if (this._hre.config.migrate.execution.continue) {
+    const hre = await import("hardhat")
+
+    if (hre.config.migrate.execution.continue) {
       try {
         const savedTx = TransactionProcessor?.tryRestoreSavedTransaction(tx);
 
@@ -274,7 +282,7 @@ export class Deployer {
     const txResponse = await signer.sendTransaction(tx);
 
     const [receipt] = await Promise.all([
-      txResponse.wait(this._hre.config.migrate.execution.wait),
+      txResponse.wait(hre.config.migrate.execution.wait),
       TransactionRunner!.reportTransactionResponse(txResponse, methodString),
     ]);
 

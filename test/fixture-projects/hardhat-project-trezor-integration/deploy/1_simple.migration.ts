@@ -1,16 +1,14 @@
 import { ethers } from "ethers";
 
-import { Deployer } from "../../../../src/internal/deployer/Deployer";
-import { PublicReporter as Reporter } from "../../../../src/internal/tools/reporters/PublicReporter";
+import { Deployer } from "../../../../src/internal/deployer/Deployer.js";
+import { PublicReporter as Reporter } from "../../../../src/internal/tools/reporters/PublicReporter.js";
 
-import { GovToken__factory } from "../typechain-types";
+import { GovToken__factory } from "../typechain-types/index.js";
 
-import { setBalance } from "@nomicfoundation/hardhat-network-helpers";
-
-export = async (deployer: Deployer) => {
+export default async (deployer: Deployer) => {
   const signer = await deployer.getSigner();
 
-  await setBalance(await signer.getAddress(), ethers.parseEther("10000"));
+  await deployer.connection().networkHelpers.setBalance(await signer.getAddress(), ethers.parseEther("10000"));
 
   const govToken = await deployer.deploy(GovToken__factory, ["Token", "TKN"]);
 

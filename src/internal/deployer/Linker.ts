@@ -17,7 +17,7 @@ import { TransactionProcessor } from "../tools/storage/TransactionProcessor.js";
 
 @CatchClassError
 class LinkerHelper {
-  constructor(private _hre: HardhatRuntimeEnvironment) {}
+  constructor() {}
 
   public isBytecodeNeedsLinking(bytecode: string): boolean {
     return bytecode.indexOf("__") === -1;
@@ -194,7 +194,7 @@ class LinkerHelper {
 
       // https://github.com/ethers-io/ethers.js/issues/2431
       // https://github.com/ethers-io/ethers.js/issues/1126
-      const core = new MinimalContract(this._hre, artifact.bytecode, new Interface(artifact.abi), libraryName);
+      const core = new MinimalContract(artifact.bytecode, new Interface(artifact.abi), libraryName);
 
       Reporter!.notifyDeploymentOfMissingLibrary(libraryName);
 
@@ -251,10 +251,10 @@ class LinkerHelper {
 
 export let Linker: LinkerHelper | null = null;
 
-export function createLinker(hre: HardhatRuntimeEnvironment) {
+export function createLinker() {
   if (Linker) {
     return;
   }
 
-  Linker = new LinkerHelper(hre);
+  Linker = new LinkerHelper();
 }

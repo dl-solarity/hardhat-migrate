@@ -1,9 +1,13 @@
-import { Deployer } from "../../../../src/internal/deployer/Deployer";
-import { PublicReporter as Reporter } from "../../../../src/internal/tools/reporters/PublicReporter";
+import { Deployer } from "../../../../src/internal/deployer/Deployer.js";
+import { PublicReporter as Reporter } from "../../../../src/internal/tools/reporters/PublicReporter.js";
+
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
 
 const TOKEN_OWNER = "0x1E3953B6ee74461169A3E346060AE27bD0B5bF2B";
 
-export = async (deployer: Deployer) => {
+export default async (deployer: Deployer) => {
   const votingPowerLibData = require("../artifacts/contracts/libs/VotingPowerLib.sol/VotingPowerLib.json");
   const timestampClockLibData = require("../artifacts/contracts/libs/TimestampClockLib.sol/TimestampClockLib.json");
   const govTokenData = require("../artifacts/contracts/GovToken.sol/GovToken.json");

@@ -1,29 +1,43 @@
-import { join } from "path";
+import path from "path";
 
-import { resetHardhatContext } from "hardhat/plugins-testing";
+import { fileURLToPath } from "url";
 
-import { resetReporter } from "../src/internal/tools/reporters/Reporter";
-import { resetNetworkManager } from "../src/internal/tools/network/NetworkManager";
-import { resetEthersProvider } from "../src/internal/tools/network/EthersProvider";
-import { resetTransactionRunner } from "../src/internal/tools/runners/TransactionRunner";
+import "../src/type-extensions.js";
+
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+
+declare module "mocha" {
+  interface Context {
+    hre: HardhatRuntimeEnvironment;
+    _cwd?: string;
+  }
+}
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export function useEnvironment(fixtureProjectName: string, networkName = "hardhat") {
   beforeEach("Loading hardhat environment", async function () {
-    resetReporter();
-    resetEthersProvider();
-    resetNetworkManager();
-    resetTransactionRunner();
+    this._cwd = process.cwd();
 
-    const prefix = "hardhat-project-";
-    process.chdir(join(__dirname, "fixture-projects", prefix + fixtureProjectName));
+    const projectPath = path.join(__dirname, "fixture-projects", fixtureProjectName);
+    const configPath = path.join(__dirname, "fixture-projects", fixtureProjectName, "hardhat.config.ts");
+
+    process.chdir(projectPath);
     process.env.HARDHAT_NETWORK = networkName;
 
-    this.hre = require("hardhat");
+    this.hre = await createHardhatRuntimeEnvironment(
+      (await import(configPath)).default,
+      { config: configPath },
+      projectPath,
+    );
 
-    await this.hre.run("compile", { quiet: true });
+    await this.hre.tasks.getTask("compile").run({ quite: true });
   });
 
-  afterEach("Resetting hardhat", function () {
-    resetHardhatContext();
+  afterEach("Resetting hardhat", async function () {
+    await this.hre.tasks.getTask("clean").run({});
   });
 }

@@ -1,14 +1,13 @@
-import { join, sep } from "path";
-import { toBeHex, formatEther, formatUnits, ethers } from "ethers";
+import path, { join, sep } from "path";
+import { ethers, formatEther, formatUnits, toBeHex } from "ethers";
 
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { BEACON_IMPLEMENTATION_SLOT, DEFAULT_IMPLEMENTATION_SLOT, UNKNOWN_CONTRACT_NAME } from "../../constants.js";
 
-import { BEACON_IMPLEMENTATION_SLOT, DEFAULT_IMPLEMENTATION_SLOT, UNKNOWN_CONTRACT_NAME } from "../constants";
-
-import { networkManager } from "../tools/network/NetworkManager";
+import { networkManager } from "../tools/network/NetworkManager.js";
+import { readdirSync } from "fs";
 
 export async function getPossibleImplementationAddress(proxyAddress: string): Promise<string> {
-  const provider = (await networkManager!.getSigner()).provider;
+  const provider = networkManager!.provider.provider;
 
   let implementationAddress = toBeHex(await provider!.getStorage(proxyAddress, DEFAULT_IMPLEMENTATION_SLOT), 20);
   if (implementationAddress !== ethers.ZeroAddress) {
@@ -35,10 +34,24 @@ export function toGWei(value: bigint): string {
   return formatUnits(value, "gwei");
 }
 
-export function resolvePathToFile(hre: HardhatRuntimeEnvironment, path: string, file: string = ""): string {
-  const pathToMigration = join(hre.config.paths.root, path, file);
+export function resolvePathToFile(path: string, file: string = ""): string {
+  const pathToMigration = join(findRootDirectory(process.cwd()), path, file);
 
   return pathToMigration.endsWith(sep) ? pathToMigration.slice(0, -1) : pathToMigration;
+}
+
+function findRootDirectory(startDirectory: string): string {
+  const listOfFiles = readdirSync(startDirectory);
+
+  if (listOfFiles.includes("package.json")) {
+    return path.resolve(startDirectory);
+  }
+
+  if (startDirectory === "/") {
+    throw new Error("Root directory not found");
+  }
+
+  return findRootDirectory(join(startDirectory, ".."));
 }
 
 export function getInstanceNameFromClass(instance: any): string {

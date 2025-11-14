@@ -1,21 +1,21 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import { expect } from "chai";
 
-import { useEnvironment } from "../../helpers";
+import { useEnvironment } from "../../helpers.js";
 
 import {
   ConstructorWithArguments__factory,
   PayableConstructor__factory,
   PayableReceive__factory,
-} from "../../fixture-projects/hardhat-project-typechain-ethers/typechain-types";
+} from "../../fixture-projects/hardhat-project-typechain-ethers/typechain-types/index.js";
 
-import { Deployer } from "../../../src/internal/deployer/Deployer";
-import { Migrator } from "../../../src/internal/migrator/Migrator";
+import { Deployer } from "../../../src/internal/deployer/Deployer.js";
+import { Migrator } from "../../../src/internal/migrator/Migrator.js";
 
-import { Reporter } from "../../../src/internal/tools/reporters/Reporter";
-import { ethersProvider } from "../../../src/internal/tools/network/EthersProvider";
-import { TransactionStorage } from "../../../src/internal/tools/storage/MigrateStorage";
+import { Reporter } from "../../../src/internal/tools/reporters/Reporter.js";
+import { ethersProvider } from "../../../src/internal/tools/network/EthersProvider.js";
+import { TransactionStorage } from "../../../src/internal/tools/storage/MigrateStorage.js";
 
 describe("deployer", () => {
   let deployer: Deployer;
@@ -28,7 +28,7 @@ describe("deployer", () => {
     beforeEach("setup", async function () {
       await Migrator.buildMigrateTaskDeps(this.hre);
 
-      deployer = new Deployer(this.hre);
+      deployer = new Deployer();
 
       hre = this.hre;
 

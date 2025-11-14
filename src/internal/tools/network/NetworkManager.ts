@@ -1,10 +1,7 @@
 import axios, { Axios } from "axios";
 import { AddressLike, ethers } from "ethers";
 
-import type {
-  HardhatEthersProvider as HardhatEthersProviderT,
-  HardhatEthersSigner,
-} from "@nomicfoundation/hardhat-ethers/types";
+import type { HardhatEthers, HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/types";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
@@ -14,6 +11,8 @@ import { createEthersProvider, ethersProvider } from "./EthersProvider.js";
 
 import { toJSON } from "../../utils/index.js";
 import { createTransactionRunner } from "../runners/TransactionRunner.js";
+import { HardhatPluginError } from "hardhat/plugins";
+import { PLUGIN_ID } from "../../../constants.js";
 
 class StateMiddleware {
   private static pendingRequests: Record<string, any> = {};
@@ -41,7 +40,7 @@ class StateMiddleware {
 
 class NetworkManager {
   public axios: Axios;
-  public provider: HardhatEthersProviderT;
+  public provider: HardhatEthers;
 
   private _currentFrom: string | undefined = undefined;
 
@@ -52,12 +51,18 @@ class NetworkManager {
     this.provider = this.withRetry(ethersProvider!);
   }
 
+  public getProvider(): HardhatEthers {
+    return this.provider;
+  }
+
   public async getEthersSigner(from?: null | AddressLike): Promise<HardhatEthersSigner> {
     if (!from) {
+      if (!this._currentFrom) throw new HardhatPluginError(PLUGIN_ID, "Expected _currentFrom to be defined.");
+
       return this.provider.getSigner(this._currentFrom);
     }
 
-    const address = await ethers.resolveAddress(from, this.provider);
+    const address = await ethers.resolveAddress(from);
     return this.provider.getSigner(address);
   }
 
@@ -77,7 +82,7 @@ class NetworkManager {
   }
 
   public async setSigner(from?: AddressLike): Promise<void> {
-    this._currentFrom = from ? await ethers.resolveAddress(from, this.provider) : from;
+    this._currentFrom = from ? await ethers.resolveAddress(from) : from;
   }
 
   public withRetry<T extends { [key: string]: any }>(instance: T): T {
@@ -107,15 +112,15 @@ class NetworkManager {
     }
 
     // From specified as address. HardhatEthersProvider branch.
-    const address = await ethers.resolveAddress(from, this.provider);
+    const address = await ethers.resolveAddress(from);
     return ExtendedHardhatEthersSigner.fromSignerName(address);
   }
 }
 
 export let networkManager: NetworkManager | null = null;
 
-export function buildNetworkDeps(hre: HardhatRuntimeEnvironment) {
-  createEthersProvider(hre);
+export async function buildNetworkDeps(hre: HardhatRuntimeEnvironment) {
+  await createEthersProvider(hre);
   createTransactionRunner(hre);
 
   if (networkManager) {

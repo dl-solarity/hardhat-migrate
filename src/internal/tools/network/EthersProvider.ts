@@ -1,24 +1,25 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
-import type { HardhatEthersProvider as HardhatEthersProviderT } from "@nomicfoundation/hardhat-ethers/types";
+import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
+import { NetworkConnection } from "hardhat/types/network";
+import { HardhatConfig } from "hardhat/types/config";
 
-export let ethersProvider: HardhatEthersProviderT | null = null;
+export let ethersProvider:  HardhatEthers | null = null;
+export let connection:  NetworkConnection<"generic"> | null = null;
 
-export function createEthersProvider(hre: HardhatRuntimeEnvironment): void {
+export async function createEthersProvider(hre: HardhatRuntimeEnvironment): Promise<void> {
   if (ethersProvider) {
     return;
   }
 
-  const { HardhatEthersProvider } = require("@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider") as {
-    HardhatEthersProvider: typeof HardhatEthersProviderT;
-  };
-
-  ethersProvider = new HardhatEthersProvider(hre.network.provider, hre.network.name);
+  connection = await hre.network.connect();
+  ethersProvider = connection.ethers;
 }
 
 /**
  * Used only in test environments to ensure test atomicity
  */
 export function resetEthersProvider(): void {
+  connection = null;
   ethersProvider = null;
 }

@@ -1,7 +1,5 @@
 import { Interface } from "ethers";
 
-import { HardhatRuntimeEnvironment } from "hardhat/types/hre";
-
 import { MinimalContract } from "../MinimalContract.js";
 
 import { CatchClassError } from "../../utils/index.js";
@@ -11,7 +9,7 @@ import { OverridesAndLibs, OverridesAndName } from "../../../types/deployer.js";
 
 @CatchClassError
 export abstract class Adapter {
-  public constructor(protected _hre: HardhatRuntimeEnvironment) {}
+  public constructor() {}
 
   public abstract fromInstance<A, I>(instance: Instance<A, I>, parameters: OverridesAndName): Promise<MinimalContract>;
 

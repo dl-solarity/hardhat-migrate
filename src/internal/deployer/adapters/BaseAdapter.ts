@@ -34,7 +34,6 @@ export abstract class BaseAdapter extends Adapter {
 
   public async fromInstance<A, I>(instance: Instance<A, I>, parameters: OverridesAndName): Promise<MinimalContract> {
     return new MinimalContract(
-      this._hre,
       this.getRawBytecode(instance),
       this.getInterface(instance),
       this.getContractName(instance, parameters),
@@ -142,7 +141,8 @@ export abstract class BaseAdapter extends Adapter {
 
       const keyFields = this._getKeyFieldsFromTransaction(tx);
 
-      if (this._hre.config.migrate.execution.continue) {
+      const hre = await import("hardhat");
+      if (hre.config.migrate.execution.continue) {
         return this._recoverTransaction(methodString, keyFields, oldMethod, args);
       }
 

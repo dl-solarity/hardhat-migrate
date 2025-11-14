@@ -8,11 +8,11 @@ import {
   ArtifactStorage,
   VerificationStorage,
   MigrateStorage,
-} from "../../src/internal/tools/storage/MigrateStorage";
+} from "../../src/internal/tools/storage/MigrateStorage.js";
 
-import { useEnvironment } from "../helpers";
+import { useEnvironment } from "../helpers.js";
 
-describe("Migrator Storage", function () {
+describe.only("Migrator Storage", function () {
   useEnvironment("defined-config");
 
   it("should save and restore state", function () {
@@ -28,7 +28,7 @@ describe("Migrator Storage", function () {
   });
 
   it("should set state without file", function () {
-    const manuallyDefinedStorage = new MigrateStorage(require("hardhat"), "test-storage");
+    const manuallyDefinedStorage = new MigrateStorage("test-storage");
 
     manuallyDefinedStorage.set("test-key", "test-value");
 
