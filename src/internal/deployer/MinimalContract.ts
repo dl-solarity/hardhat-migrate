@@ -58,7 +58,7 @@ export class MinimalContract {
 
   private async _tryLinkLibraries(parameters: OverridesAndLibs): Promise<void> {
     try {
-      if (Linker.isBytecodeNeedsLinking(this._bytecode)) {
+      if (!Linker.isBytecodeNeedsLinking(this._bytecode)) {
         return;
       }
 

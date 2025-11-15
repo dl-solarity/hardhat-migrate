@@ -37,7 +37,7 @@ export type ReportState = {
     totalContracts: number;
     totalTransactions: number;
     gasUsed: bigint;
-    averageGasPrice: bigint;
+    totalGasPrice: bigint;
     feePayed: bigint;
     nativeCurrencySent: bigint;
   };
@@ -108,7 +108,7 @@ export class ReporterStorage {
         totalContracts: 0,
         totalTransactions: 0,
         gasUsed: 0n,
-        averageGasPrice: 0n,
+        totalGasPrice: 0n,
         feePayed: 0n,
         nativeCurrencySent: 0n,
       },
@@ -190,9 +190,8 @@ export class ReporterStorage {
     }
 
     this._state.stats.gasUsed += BigInt(transactionReceipt.gasUsed);
-    this._state.stats.averageGasPrice =
-      (BigInt(transactionReceipt.gasPrice) + this._state.stats.averageGasPrice) /
-      BigInt(this._state.stats.totalTransactions + this._state.stats.totalContracts);
+    const gasPrice = transactionReceipt.gasPrice ?? 0n;
+    this._state.stats.totalGasPrice += BigInt(gasPrice);
     this._state.stats.feePayed += BigInt(transactionReceipt.fee);
     this._state.stats.nativeCurrencySent += BigInt(value);
 
@@ -388,9 +387,11 @@ export class ReporterStorage {
     const reportFormat = this._hre.config.migrate.paths.reportFormat;
 
     if (reportFormat === "json") {
+      const serializableState = this._getSerializableState();
+
       return Promise.resolve(
         JSON.stringify(
-          this._state,
+          serializableState,
           (_, value) => {
             if (typeof value === "bigint") {
               return value.toString();
@@ -412,6 +413,28 @@ export class ReporterStorage {
     } else {
       return this._getMarkdownReportContent();
     }
+  }
+
+  private _getAverageGasPrice(): bigint {
+    const totalExecutions = this._state.stats.totalContracts + this._state.stats.totalTransactions;
+
+    if (totalExecutions === 0) {
+      return 0n;
+    }
+
+    return this._state.stats.totalGasPrice / BigInt(totalExecutions);
+  }
+
+  private _getSerializableState(): Omit<ReportState, "stats"> & {
+    stats: ReportState["stats"] & { averageGasPrice: bigint };
+  } {
+    return {
+      ...this._state,
+      stats: {
+        ...this._state.stats,
+        averageGasPrice: this._getAverageGasPrice(),
+      },
+    };
   }
 
   private async _getMarkdownReportContent(): Promise<string> {
@@ -453,6 +476,8 @@ export class ReporterStorage {
     }
 
     actualState.push({ h2: "Stats" });
+
+    const averageGasPrice = this._getAverageGasPrice();
     actualState.push({
       table: {
         headers: [
@@ -468,7 +493,7 @@ export class ReporterStorage {
             this._state.stats.totalContracts,
             this._state.stats.totalTransactions,
             String(this._state.stats.gasUsed),
-            castAmount(this._state.stats.averageGasPrice),
+            castAmount(averageGasPrice),
             castAmount(this._state.stats.feePayed),
             castAmount(this._state.stats.nativeCurrencySent),
           ],

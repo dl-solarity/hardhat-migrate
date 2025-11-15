@@ -92,6 +92,9 @@ const config: HardhatUserConfig = {
 - **execution** — manage compilation forcing, `--continue` mode, confirmation depth (`wait`), spinner refresh rate, and opt-out of CLI reporting.
 - **castWallet / trezorWallet** — opt into external signers via config or CLI flags (see [External Wallets](./docs/ExternalWallets.md)).
 
+> [!NOTE]
+> Cast-based signing is only enabled once you provide `account`, `keystore`, or the matching CLI flags/environment variables.
+
 Every CLI flag maps 1:1 to these settings (kebab-cased). For example, `npx hardhat migrate --verify --verify-parallel 3 --namespace l2` 
 overrides the corresponding config fields for that run.
 

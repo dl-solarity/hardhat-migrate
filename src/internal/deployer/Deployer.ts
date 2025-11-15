@@ -144,10 +144,11 @@ export class Deployer {
     let implementationArgs: TypedArgs<A> = [] as any;
     let implementationParameters: OverridesAndLibs = {};
 
-    if (argsOrParameters && Array.isArray(argsOrParameters)) {
+    if (Array.isArray(argsOrParameters)) {
       implementationArgs = argsOrParameters;
+      implementationParameters = parameters;
     } else if (argsOrParameters && typeof argsOrParameters === "object") {
-      implementationParameters = argsOrParameters;
+      implementationParameters = { ...parameters, ...argsOrParameters };
     } else {
       implementationParameters = parameters;
     }

@@ -1,29 +1,27 @@
 # Detailed Example
 
-Below is a sample migration file (1_simple.migration.ts):
+Below is a sample migration file (`1_simple.migration.ts`) written in ESM, which is the default for Hardhat 3 projects:
 
-```ts 
-import { Deployer, Reporter } from "@solarity/hardhat-migrate";
+```ts
+import type { Deployer } from "@solarity/hardhat-migrate/dist/src/internal/deployer/Deployer.js";
+import { PublicReporter as Reporter } from "@solarity/hardhat-migrate/dist/src/internal/tools/reporters/PublicReporter.js";
 
-import { GovToken__factory } from "../typechain-types";
+import { ERC20Mock__factory } from "../typechain-types";
+import { ethers } from "ethers";
 
 const TOKEN_OWNER = "0x1E3953B6ee74461169A3E346060AE27bD0B5bF2B";
 
-export = async (deployer: Deployer) => {
-  const govToken = await deployer.deploy(GovToken__factory, ["Token", "TKN"]);
-  
-  const transferOwnershipTx = (await (await govToken.transferOwnership(TOKEN_OWNER)).wait())!;
-  
-  await Reporter.reportTransactionByHash(
-    transferOwnershipTx.hash,
-    "Transfer Ownership of Governance Token to Token Owner",
-  );
-  
-  Reporter.reportContracts([
-    `Governance Token ${await govToken.name()} (${await govToken.symbol()}) Address`,
-    await govToken.getAddress(),
-  ]);
-};
+export default async function (deployer: Deployer) {
+  const token = await deployer.deploy(ERC20Mock__factory, ["Example Token", "ET", 18]);
+
+  await (
+    await token.mint(TOKEN_OWNER, ethers.parseEther("1000"), {
+      customData: { txName: "Mint allocation" },
+    })
+  ).wait();
+
+  await Reporter.reportContractsMD(["Example Token", await token.getAddress()]);
+}
 ```
 
 This example illustrates the basic principles of how migrations operate:
@@ -36,4 +34,4 @@ library, facilitating the deployment and processing of contracts.
 5. The migration file's main body grants access to the deployer object, allowing for contract deployment and supporting 
 recovery from failures in previous migration runs.
 6. Standard transaction-sending processes are used without special wrappers.
-7. The migration concludes with the `Reporter` class summarizing the migration details.
+7. The migration concludes with the `PublicReporter` helper summarizing the migration details.

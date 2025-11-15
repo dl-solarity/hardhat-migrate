@@ -48,6 +48,6 @@ npx hardhat migrate --namespace l1-deployment
 
 # Verifier
 
-For a list of parameters that affect the verification process, see [Parameter Explanation](https://github.com/dl-solarity/hardhat-migrate#parameter-explanation).
+Configuration options that influence verification are documented in the [README configuration section](../README.md#configuration).
 
-If verification fails, the `verification.verifyAttempts` parameter indicates how many additional requests will be made before the migration process is terminated.
+If verification fails, the `verification.verifyAttempts` parameter only governs how many times the plugin retries contacting the explorer after migrations finish—it does not roll back or halt the deployment step itself.

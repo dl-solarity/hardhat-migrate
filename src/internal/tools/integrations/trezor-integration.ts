@@ -144,8 +144,20 @@ function getKeyPath(mnemonicIndex: number): string {
 
 async function getTrezorConnect() {
   try {
-    const mod = await import("@trezor/connect" as any);
-    return mod.default;
+    const trezorModule = await import("@trezor/connect" as any);
+
+    // `@trezor/connect` is published as CommonJS with a synthetic `default`
+    // export, so when it is pulled in through Node's ESM bridge we end up with
+    // a namespace shaped like `{ default: { default: TrezorConnect } }`.
+    // The helper below unwraps both layers (and gracefully falls back in case
+    // this packaging detail changes in the future).
+    const trezorConnect = trezorModule?.default?.default ?? trezorModule?.default ?? trezorModule;
+
+    if (!trezorConnect) {
+      throw new MigrateError("Unable to load Trezor Connect: unexpected module shape.");
+    }
+
+    return trezorConnect;
   } catch (error: any) {
     throw new MigrateError(
       `An error occurred while importing @trezor/connect (if the module cannot be found, please install it): ${String(error.message || error)}.`,

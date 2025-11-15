@@ -19,7 +19,7 @@ class LinkerHelper {
   constructor() {}
 
   public isBytecodeNeedsLinking(bytecode: string): boolean {
-    return bytecode.indexOf("__") === -1;
+    return bytecode.indexOf("__") !== -1;
   }
 
   public async tryLinkBytecode(contractName: string, bytecode: string, libraries: any): Promise<string> {

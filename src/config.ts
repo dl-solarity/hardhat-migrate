@@ -214,6 +214,9 @@ export const mergeConfigs = (
 export function convertFlatToNested(flatConfig: MigrateConfigArgs): Partial<MigrateConfig> {
   const result: Partial<MigrateConfig> = {};
 
+  // NOTE: Using truthy checks here means CLI flags that explicitly set `0` (e.g. `--from 0`)
+  // will be ignored because `0` is falsy. If zero should be a valid override we need
+  // to switch to `"key" in flatConfig` style checks.
   if (flatConfig.from || flatConfig.to || flatConfig.only || flatConfig.skip) {
     result.filter = {} as any;
   }
@@ -315,9 +318,9 @@ export const validateConfig = (config: MigrateConfig): void => {
     throw new Error(`[${PLUGIN_ID}] config.migrate.paths.reportFormat must be either 'json' or 'md'`);
   }
 
-  if (config.trezorWallet.enabled && config.castWallet.account) {
+  if (config.trezorWallet.enabled && (config.castWallet.account || config.castWallet.keystore)) {
     throw new Error(
-      `[${PLUGIN_ID}] config.migrate.trezorWallet.enabled and config.migrate.castWallet.account cannot be enabled at the same time`,
+      `[${PLUGIN_ID}] config.migrate.trezorWallet.enabled cannot be used with config.migrate.castWallet.account or config.migrate.castWallet.keystore at the same time`,
     );
   }
 
