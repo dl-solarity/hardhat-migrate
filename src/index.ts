@@ -9,6 +9,10 @@ import migrateVerifyTask from "./internal/tasks/migrate-verify/index.js";
 import { MIGRATE_NPM_PACKAGE, PLUGIN_ID } from "./constants.js";
 import { DefaultStorage } from "./internal/tools/storage/MigrateStorage.js";
 
+export { Deployer } from "./internal/deployer/Deployer.js";
+export { PublicReporter as Reporter } from "./internal/tools/reporters/PublicReporter.js";
+export { UserStorage, TransactionStorage, VerificationStorage, ArtifactStorage } from "./internal/tools/storage/MigrateStorage.js";
+
 const hardhatPlugin: HardhatPlugin = {
   id: PLUGIN_ID,
   hookHandlers: {

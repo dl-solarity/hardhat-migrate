@@ -4,6 +4,18 @@
   "description": "The simplest way to deploy smart contracts",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js",
+      "default": "./dist/src/index.js"
+    },
+    "./internal/*.d.ts": {
+      "default": "./dist/src/internal/*.d.ts"
+    },
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
+  },
   "type": "module",
   "files": [
     "dist/src/",
