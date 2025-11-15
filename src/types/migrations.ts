@@ -27,8 +27,8 @@ export interface PathConfig {
   /**
    * The path to the folder where the migration should be done.
    * This parameter is used together with the `pathToMigrations` parameter.
-   * If the following parameter specified, the migrations will be retrieved from following path:
-   * `{hardhat.config.path.root}/{pathToMigrations}/{namespace}`
+   * If the following parameter specified, the migrations will be retrieved from:
+   * `{hardhat.config.paths.root}/{pathToMigrations}/{namespace}`
    */
   namespace: string;
   /** The path to directory where the migration report should be saved */

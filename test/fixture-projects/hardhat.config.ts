@@ -1,5 +1,4 @@
-import hardhatEthersPlugin from "@nomicfoundation/hardhat-ethers";
-import hardhatTypechainPlugin from "@nomicfoundation/hardhat-typechain";
+import hardhatToolboxMochaEthers from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
 
 import migratePlugin from "../../src/index.js";
 
@@ -27,7 +26,7 @@ const config: HardhatUserConfig = {
       chainType: "l1",
     },
   },
-  plugins: [migratePlugin, hardhatEthersPlugin, hardhatTypechainPlugin],
+  plugins: [migratePlugin, hardhatToolboxMochaEthers],
 };
 
 export default config;
