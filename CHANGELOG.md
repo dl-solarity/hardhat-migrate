@@ -1,5 +1,22 @@
 # Changelog
 
+## 4.0.0-rc.0
+
+### Breaking changes
+
+- Rebuilt the plugin on top of Hardhat 3's hook-based plugin API and dropped Hardhat 2 support. Register it through `plugins`
+  in `hardhat.config.ts`, and update your project to Hardhat `^3.0.8`.
+- The package now ships as native ESM (`"type": "module"`).
+
+### New features
+
+- Added first-class `migrate` and `migrate:verify` tasks with fully typed CLI options, automatic compilation, optional
+  post-run verification batches, and a Hardhat `clean` override that wipes cached migration storage.
+- Added strict Zod-powered config validation/resolution plus automatic merging of CLI overrides, so misconfigurations are
+  caught before migrations start.
+- Updated the README, API docs, and fixture projects to document the new Hardhat 3 workflow, CLI flags, wallet guides, and
+  reporting UX.
+
 ## 3.1.1
 
 - Fixed verification reporting with Blockscout explorers
