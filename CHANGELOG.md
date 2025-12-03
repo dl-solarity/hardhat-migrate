@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.2
+
+* Modified reporting to avoid `TODO` error on getting block from the provider in ethers
+
 ## 3.1.1
 
 - Fixed verification reporting with Blockscout explorers
