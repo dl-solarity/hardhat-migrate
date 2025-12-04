@@ -11,7 +11,12 @@ import { DefaultStorage } from "./internal/tools/storage/MigrateStorage.js";
 
 export { Deployer } from "./internal/deployer/Deployer.js";
 export { PublicReporter as Reporter } from "./internal/tools/reporters/PublicReporter.js";
-export { UserStorage, TransactionStorage, VerificationStorage, ArtifactStorage } from "./internal/tools/storage/MigrateStorage.js";
+export {
+  UserStorage,
+  TransactionStorage,
+  VerificationStorage,
+  ArtifactStorage,
+} from "./internal/tools/storage/MigrateStorage.js";
 
 const hardhatPlugin: HardhatPlugin = {
   id: PLUGIN_ID,

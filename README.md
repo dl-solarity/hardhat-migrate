@@ -24,7 +24,7 @@ With sleek UX that doesn't require writing "deployment wrappers", users can:
 ### 1. Install the dependencies
 
 ```bash
-npm install --save-dev hardhat @solarity/hardhat-migrate @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-verify
+npm install --save-dev @solarity/hardhat-migrate @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-verify
 ```
 
 ### 2. Register the plugin in `hardhat.config.ts`
@@ -106,8 +106,9 @@ of `Deployer` into the default-exported async function so you can focus on contr
 ```ts
 // ./deploy/1_token.migration.ts
 import { ethers } from "ethers";
-import type { Deployer } from "@solarity/hardhat-migrate/dist/src/internal/deployer/Deployer.js";
-import { PublicReporter as Reporter } from "@solarity/hardhat-migrate/dist/src/internal/tools/reporters/PublicReporter.js";
+import type { Deployer } from "@solarity/hardhat-migrate";
+import { Reporter } from "@solarity/hardhat-migrate";
+
 import { ERC20Mock__factory } from "../generated-types/ethers";
 
 export default async function (deployer: Deployer) {
@@ -150,7 +151,7 @@ Enable `execution.continue` (or pass `--continue`) to resume from the first fail
 rerunning the same contract method, set `txName` via `overrides.customData`:
 
 ```ts
-await contract.someMethodCall(value, { customData: { txName: "configure:v1" } });
+await contract.someMethod(value, { customData: { txName: "configure:v1" } });
 ```
 
 Recovered transactions/contracts are logged so you can confirm what was reused versus redeployed. 
@@ -190,8 +191,8 @@ The snippet below shows the structure of a simple migration alongside the corres
 // file location: ./deploy/1_token.migration.ts
 
 import { ethers } from "ethers";
-import type { Deployer } from "@solarity/hardhat-migrate/dist/src/internal/deployer/Deployer.js";
-import { PublicReporter as Reporter } from "@solarity/hardhat-migrate/dist/src/internal/tools/reporters/PublicReporter.js";
+import type { Deployer } from "@solarity/hardhat-migrate";
+import { PublicReporter as Reporter } from "@solarity/hardhat-migrate";
 
 import { ERC20Mock__factory } from "../generated-types/ethers";
 
