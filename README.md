@@ -192,7 +192,7 @@ The snippet below shows the structure of a simple migration alongside the corres
 
 import { ethers } from "ethers";
 import type { Deployer } from "@solarity/hardhat-migrate";
-import { PublicReporter as Reporter } from "@solarity/hardhat-migrate";
+import { Reporter } from "@solarity/hardhat-migrate";
 
 import { ERC20Mock__factory } from "../generated-types/ethers";
 
