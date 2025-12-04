@@ -1,9 +1,9 @@
-import { Deployer } from "../../../../src/deployer/Deployer";
-import { PublicReporter as Reporter } from "../../../../src/tools/reporters/PublicReporter";
+import { Deployer } from "../../../../src/internal/deployer/Deployer.js";
+import { PublicReporter as Reporter } from "../../../../src/internal/tools/reporters/PublicReporter.js";
 
-import { GovToken__factory } from "../typechain-types";
+import { GovToken__factory } from "../typechain-types/index.js";
 
-export = async (deployer: Deployer) => {
+export default async (deployer: Deployer) => {
   const govToken = await deployer.deploy(GovToken__factory, ["Token", "TKN"]);
 
   const signer = await deployer.getSigner("test-0");

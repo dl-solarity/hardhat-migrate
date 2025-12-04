@@ -1,14 +1,11 @@
-import { HardhatUserConfig } from "hardhat/config";
+import type { HardhatUserConfig } from "hardhat/config";
 
-import "@typechain/hardhat";
-
-import config from "../hardhat.config";
+import config from "../hardhat.config.js";
 
 const defaultConfig: HardhatUserConfig = {
   ...config,
   typechain: {
     outDir: `typechain-types`,
-    target: "ethers-v6",
   },
   migrate: {
     trezorWallet: {

@@ -1,6 +1,7 @@
 {
   "name": "hardhat-project-mock-files",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "compile": "",
     "clean": ""

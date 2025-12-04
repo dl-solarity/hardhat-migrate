@@ -1,22 +1,22 @@
 # Reporter
 
-The Reporter provides various methods for logging deployment information, automatically saving transactions data to the deployment report.
+Use the `PublicReporter` helper (exported from `@solarity/hardhat-migrate/dist/src/internal/tools/reporters/PublicReporter.js`) to log deployment information while keeping the internal reporter state in sync.
 
 ---
 
-- **reportTransactionByHash(hash, name <- optional)**:
+- **PublicReporter.reportTransactionByHash(hash, name <- optional)**:
 
 Retrieves and displays transaction receipts with standard formatting.
 
 ---
 
-- **reportContracts(...contracts: [string, string][])**: 
+- **PublicReporter.reportContracts(...contracts: [string, string][])**: 
 
 Displays a list of contract names and addresses in a table format.
 
 ---
 
-- **reportContractsMD(...contracts: [string, string][])**: 
+- **PublicReporter.reportContractsMD(...contracts: [string, string][])**: 
 
 Displays a list of contract names and addresses in Markdown format with links to the block explorer.
 

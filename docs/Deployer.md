@@ -23,15 +23,21 @@ Returns the deployed contract instance, inferring types and enhancing functional
 
 ---
 
-- **deployERC1967Proxy(implementationFactory, argsOrParameters, parameters)**:
+- **deployERC1967Proxy(implementationFactory, constructorCalldata, argsOrParameters, parameters)**:
 
-Deploys an implementation contract and an ERC1967 proxy pointing to it. The implementation is deployed first, and then the proxy is deployed with the implementation's address. Returns a contract instance representing the proxied implementation.
+Deploys an implementation contract and an ERC1967 proxy pointing to it. The implementation is deployed first, and then the proxy is deployed with the implementation's address. You must provide the encoded initializer calldata. Returns a contract instance representing the proxied implementation.
 
 ---
 
-- **deployTransparentUpgradeableProxy(implementationFactory, proxyAdmin, argsOrParameters, parameters)**:
+- **deployAdminableProxy(implementationFactory, constructorCalldata, argsOrParameters, parameters)**:
 
-Deploys an implementation contract and a Transparent Upgradeable Proxy pointing to it. Requires a valid proxy admin address. Returns a contract instance representing the proxied implementation.
+Deploys an implementation contract and an Adminable proxy pointing to it. Similar to the ERC1967 helper, the encoded initializer calldata is required.
+
+---
+
+- **deployTransparentUpgradeableProxy(implementationFactory, proxyAdmin, constructorCalldata, argsOrParameters, parameters)**:
+
+Deploys an implementation contract and a Transparent Upgradeable Proxy pointing to it. Requires a valid proxy admin address and the encoded initializer calldata. Returns a contract instance representing the proxied implementation.
 
 ---
 

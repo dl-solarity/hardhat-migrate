@@ -1,28 +1,28 @@
 import { ContractFactory } from "ethers";
 
-import { BytecodeFactory, TypechainFactoryClass } from "./adapter";
-import { BaseTxFields, KeyDeploymentFields, KeyTransactionFields } from "./tools";
+import { BytecodeFactory, TypechainFactoryClass } from "./adapter.js";
+import { BaseTxFields, KeyDeploymentFields, KeyTransactionFields } from "./tools.js";
 
-import { MigrateError } from "../errors";
+import { MigrateError } from "../internal/utils/index.js";
 
-export function validateKeyDeploymentFields(_target: any, _propertyKey: string, descriptor: PropertyDescriptor) {
-  const originalMethod = descriptor.value;
-
-  descriptor.value = function (...args: any[]) {
+export function ValidateKeyDeploymentFields<This, F extends (this: This, ...args: any[]) => any>(
+  value: F,
+  _context: ClassMethodDecoratorContext<This, F>,
+) {
+  return function (this: This, ...args: Parameters<F>): ReturnType<F> {
     const key = args[0] as KeyDeploymentFields;
 
     baseTxValidation(key, "KeyDeploymentFields");
 
-    return originalMethod.apply(this, args);
-  };
-
-  return descriptor;
+    return value.apply(this, args) as ReturnType<F>;
+  } as F;
 }
 
-export function validateKeyTxFields(_target: any, _propertyKey: string, descriptor: PropertyDescriptor) {
-  const originalMethod = descriptor.value;
-
-  descriptor.value = function (...args: any[]) {
+export function ValidateKeyTxFields<This, F extends (this: This, ...args: any[]) => any>(
+  value: F,
+  _context: ClassMethodDecoratorContext<This, F>,
+) {
+  return function (this: This, ...args: Parameters<F>): ReturnType<F> {
     const key = args[0] as KeyTransactionFields;
 
     baseTxValidation(key, "KeyTransactionFields");
@@ -35,10 +35,8 @@ export function validateKeyTxFields(_target: any, _propertyKey: string, descript
       throw new MigrateError(`KeyTransactionFields.name is not valid`);
     }
 
-    return originalMethod.apply(this, args);
-  };
-
-  return descriptor;
+    return value.apply(this, args) as ReturnType<F>;
+  } as F;
 }
 
 export function isTypechainFactoryClass<A, I>(instance: any): instance is TypechainFactoryClass<A, I> {

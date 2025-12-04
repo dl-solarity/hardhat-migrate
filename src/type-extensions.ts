@@ -1,16 +1,16 @@
 import "ethers";
 import "hardhat/types/config";
-import "hardhat/types/runtime";
+import "hardhat/types/hre";
 
-import { DeepPartial, MigrateConfig } from "./types/migrations";
+import type { MigrateUserConfig, MigrateConfig } from "./types/index.js";
 
 declare module "hardhat/types/config" {
-  interface HardhatConfig {
-    migrate: MigrateConfig;
+  interface HardhatUserConfig {
+    migrate?: MigrateUserConfig;
   }
 
-  interface HardhatUserConfig {
-    migrate?: DeepPartial<MigrateConfig>;
+  interface HardhatConfig {
+    migrate: MigrateConfig;
   }
 }
 

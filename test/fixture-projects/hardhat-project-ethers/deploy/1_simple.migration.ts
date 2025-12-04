@@ -1,11 +1,11 @@
-import { ethers } from "hardhat";
-
-import { Deployer } from "../../../../src/deployer/Deployer";
-import { PublicReporter as Reporter } from "../../../../src/tools/reporters/PublicReporter";
+import { Deployer } from "../../../../src/internal/deployer/Deployer.js";
+import { PublicReporter as Reporter } from "../../../../src/internal/tools/reporters/PublicReporter.js";
 
 const TOKEN_OWNER = "0x1E3953B6ee74461169A3E346060AE27bD0B5bF2B";
 
-export = async (deployer: Deployer) => {
+export default async (deployer: Deployer) => {
+  const { ethers } = deployer.connection();
+
   const votingPowerLibFactory = await ethers.getContractFactory("VotingPowerLib");
   const timestampClockLibFactory = await ethers.getContractFactory("TimestampClockLib");
 

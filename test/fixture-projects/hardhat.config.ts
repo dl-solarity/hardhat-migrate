@@ -1,17 +1,10 @@
-import { HardhatUserConfig } from "hardhat/config";
+import hardhatToolboxMochaEthers from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
 
-import "hardhat-abi-exporter";
+import migratePlugin from "../../src/index.js";
 
-import "@nomicfoundation/hardhat-ethers";
-
-import "../../src";
+import type { HardhatUserConfig } from "hardhat/config";
 
 const config: HardhatUserConfig = {
-  networks: {
-    hardhat: {
-      initialDate: "1970-01-01T00:00:00Z",
-    },
-  },
   solidity: {
     version: "0.8.22",
     settings: {
@@ -22,14 +15,18 @@ const config: HardhatUserConfig = {
       evmVersion: "paris",
     },
   },
-  abiExporter: {
-    flat: true,
-  },
   migrate: {
     paths: {
       pathToMigrations: "./deploy",
     },
   },
+  networks: {
+    hardhat: {
+      type: "edr-simulated",
+      chainType: "l1",
+    },
+  },
+  plugins: [migratePlugin, hardhatToolboxMochaEthers],
 };
 
 export default config;

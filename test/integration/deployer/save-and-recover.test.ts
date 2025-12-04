@@ -1,19 +1,19 @@
 import { expect } from "chai";
 import { ethers } from "ethers";
 
-import { useEnvironment } from "../../helpers";
+import { useEnvironment } from "../../helpers.js";
 
+import type { ConstructorWithArguments } from "../../fixture-projects/hardhat-project-typechain-ethers/typechain-types/index.js";
 import {
-  ConstructorWithArguments,
   ConstructorWithArguments__factory,
   IConstructorWithArguments__factory,
-} from "../../fixture-projects/hardhat-project-typechain-ethers/typechain-types";
+} from "../../fixture-projects/hardhat-project-typechain-ethers/typechain-types/index.js";
 
-import { Deployer } from "../../../src/deployer/Deployer";
-import { Migrator } from "../../../src/migrator/Migrator";
+import { Deployer } from "../../../src/internal/deployer/Deployer.js";
+import { Migrator } from "../../../src/internal/migrator/Migrator.js";
 
-import { ethersProvider } from "../../../src/tools/network/EthersProvider";
-import { TransactionStorage } from "../../../src/tools/storage/MigrateStorage";
+import { ethersProvider } from "../../../src/internal/tools/network/EthersProvider.js";
+import { TransactionStorage } from "../../../src/internal/tools/storage/MigrateStorage.js";
 
 describe("deployer", () => {
   let deployer: Deployer;
@@ -26,9 +26,9 @@ describe("deployer", () => {
     beforeEach("setup", async function () {
       await Migrator.buildMigrateTaskDeps(this.hre);
 
-      deployer = new Deployer(this.hre);
+      deployer = new Deployer();
 
-      const ContractFactory = new ConstructorWithArguments__factory(await ethersProvider!.getSigner());
+      const ContractFactory = new ConstructorWithArguments__factory(await ethersProvider!.provider.getSigner());
       contract = await ContractFactory.deploy(2);
 
       TransactionStorage.clear();

@@ -1,9 +1,13 @@
 {
   "name": "@solarity/hardhat-migrate",
-  "version": "3.1.2",
+  "version": "4.0.0-rc.0",
   "description": "The simplest way to deploy smart contracts",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": "./dist/src/index.js"
+  },
+  "type": "module",
   "files": [
     "dist/src/",
     "src/",
@@ -37,8 +41,8 @@
     "compile": "npm run clean-tests && npm run prepare-tests && npm run build",
     "build": "tsc --build .",
     "prepare-tests": "npm run compile --workspaces",
-    "test": "mocha --recursive 'test/**/*.ts' --exit",
-    "coverage": "nyc mocha --recursive 'test/**/*.ts' --exit",
+    "test": "node --enable-source-maps --import ./test/loader-bootstrap.mjs --no-deprecation ./node_modules/mocha/bin/mocha.js --config .mocharc.json --recursive \"test/**/*.test.ts\" --exit",
+    "coverage": "nyc node --stack_size=8192 --enable-source-maps --import ./test/loader-bootstrap.mjs --no-deprecation ./node_modules/mocha/bin/mocha.js --config .mocharc.json --recursive \"test/**/*.test.ts\" --exit",
     "clean-tests": "npm run clean --workspaces",
     "lint-fix": "prettier --write \"./**/*.ts\" && eslint \"src/**/*.{js,ts}\" --cache --fix",
     "publish-to-npm": "npm run compile && npm run lint-fix && npm publish ./ --access public"
@@ -50,17 +54,20 @@
     ]
   },
   "dependencies": {
+    "@nomicfoundation/hardhat-utils": "3.0.0",
+    "@nomicfoundation/hardhat-zod-utils": "3.0.0",
     "axios": "1.9.0",
-    "ethers": "6.13.7",
+    "ethers": "6.15.0",
     "json2md": "2.0.3",
     "ora": "5.4.1",
-    "prettier": "3.5.3"
+    "prettier": "3.6.2",
+    "zod": "3.25.76"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-ethers": "^3.0.0",
-    "@nomicfoundation/hardhat-verify": "^2.1.0",
+    "@nomicfoundation/hardhat-ethers": "^4.0.0",
+    "@nomicfoundation/hardhat-verify": "^3.0.7",
     "@trezor/connect": "9.5.0",
-    "hardhat": "^2.26.0",
+    "hardhat": "^3.0.8",
     "typechain": "^8.0.0"
   },
   "peerDependenciesMeta": {
@@ -69,32 +76,32 @@
     }
   },
   "devDependencies": {
-    "@eslint/js": "^9.20.0",
-    "@nomicfoundation/hardhat-network-helpers": "^1.0.12",
+    "@nomicfoundation/hardhat-network-helpers": "^3.0.3",
+    "@nomicfoundation/hardhat-toolbox-mocha-ethers": "^3.0.0",
+    "@nomicfoundation/hardhat-typechain": "^3.0.0",
     "@openzeppelin/contracts": "^5.2.0",
     "@trezor/connect": "9.5.0",
-    "@typechain/ethers-v6": "^0.5.1",
-    "@typechain/hardhat": "^9.1.0",
+    "@tsconfig/node22": "^22.0.2",
     "@types/chai": "^4.3.20",
-    "@types/chai-as-promised": "^7.1.8",
     "@types/debug": "^4.1.12",
+    "@types/json2md": "^1.5.4",
     "@types/mocha": "^10.0.10",
-    "@typescript-eslint/eslint-plugin": "^8.24.1",
-    "@typescript-eslint/parser": "^8.24.1",
-    "chai": "^4.5.0",
-    "chai-as-promised": "^7.1.2",
+    "@typescript-eslint/eslint-plugin": "^8.44.1",
+    "chai": "^5.1.2",
     "dotenv": "^16.4.7",
-    "eslint": "^9.20.1",
+    "eslint": "^9.36.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-promise": "^7.2.1",
-    "hardhat": "2.26.0",
-    "hardhat-abi-exporter": "^2.10.1",
+    "hardhat": "^3.0.8",
     "husky": "^9.1.7",
-    "mocha": "^11.1.0",
+    "jiti": "^2.6.0",
+    "mocha": "^11.2.2",
     "nyc": "^17.1.0",
+    "prettier": "^3.5.3",
+    "prettier-plugin-solidity": "^2.0.0",
     "ts-node": "^10.9.2",
-    "typechain": "^8.3.2",
-    "typescript": "5.7.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.44.1"
   }
 }

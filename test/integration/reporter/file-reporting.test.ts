@@ -1,13 +1,14 @@
 import { expect } from "chai";
 import { readdirSync } from "fs";
 
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
-import { runWithoutContinue } from "../migration/helper";
+import { runWithoutContinue } from "../migration/helper.js";
 
-import { useEnvironment } from "../../helpers";
-import { createAndInitReporter } from "../../../src/tools/reporters/Reporter";
-import { resetTransactionRunner } from "../../../src/tools/runners/TransactionRunner";
+import { useEnvironment } from "../../helpers.js";
+import { createAndInitReporter } from "../../../src/internal/tools/reporters/Reporter.js";
+import { resetTransactionRunner } from "../../../src/internal/tools/runners/TransactionRunner.js";
+import { createEthersProvider } from "../../../src/internal/tools/network/EthersProvider.js";
 
 describe("file-reporting", () => {
   useEnvironment("typechain-ethers");
@@ -19,6 +20,7 @@ describe("file-reporting", () => {
 
     resetTransactionRunner();
     await createAndInitReporter(hre);
+    await createEthersProvider(hre);
   });
 
   describe("simple report", () => {

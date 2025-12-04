@@ -2,7 +2,12 @@
 
 ## Cast Wallet Integration
 
-The Cast integration allows you to use Foundry's cast tool to sign transactions.
+The Cast integration allows you to use [Foundry's](Foundry) cast tool to sign transactions. 
+
+**Prerequisites**:
+
+1. [Foundry] installed and [Cast] is available
+2. You need to have keystore created with Cast. Please, refer to the [official documentation](https://getfoundry.sh/cast/reference/wallet). 
 
 ### Available Options
 
@@ -13,6 +18,8 @@ The following configuration options are available for Cast wallet:
 | `passwordFile`  | Path to a file containing the keystore password        |
 | `keystore`      | Path to a keystore file or directory                   |
 | `account`       | Account name when using the default keystore directory |
+
+These options can be set either from CLI or hardhat config. If `account` is provided, keystore can be omitted.
 
 ### Usage
 
@@ -37,6 +44,9 @@ npx hardhat migrate --network sepolia --account test-0 --password-file ./passwor
 
 > [!NOTE]
 > If an account or keystore is provided, the plugin will try to use cast to sign transactions.
+
+> [!NOTE]
+> If you don't specify password-file, the plugin will invoke prompt, and the user have to enter the password for each transaction, which requires signature.
 
 ### Managing Passwords for Deployment
 
@@ -81,7 +91,7 @@ The Trezor integration allows signing transactions with a Trezor hardware wallet
 
 ### Important Notes
 
-- The integration uses the standard Ethereum derivation path: `m/44'/60'/0'/0'/{index}`
+- The integration uses the standard Ethereum derivation path: `m/44'/60'/0'/0/{index}`
 - Initial connection requires user interaction with the device to confirm access
 
 ### Usage
@@ -117,3 +127,6 @@ npx hardhat migrate --network sepolia --trezor-enabled --trezor-mnemonic-index 5
 
 - Uses the official `@trezor/connect` library
 - Provides initialization, address retrieval, and transaction signing
+
+[Foundry]: https://getfoundry.sh/
+[Cast]: https://getfoundry.sh/cast/overview

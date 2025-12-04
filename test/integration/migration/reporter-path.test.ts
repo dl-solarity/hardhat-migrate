@@ -1,10 +1,10 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
-import { runWithContinue, runWithoutContinue } from "./helper";
+import { runWithContinue, runWithoutContinue } from "./helper.js";
 
-import { useEnvironment } from "../../helpers";
-import { createAndInitReporter } from "../../../src/tools/reporters/Reporter";
-import { resetTransactionRunner } from "../../../src/tools/runners/TransactionRunner";
+import { useEnvironment } from "../../helpers.js";
+import { createAndInitReporter } from "../../../src/internal/tools/reporters/Reporter.js";
+import { resetTransactionRunner } from "../../../src/internal/tools/runners/TransactionRunner.js";
 import { expect } from "chai";
 import { existsSync, readdirSync, rmSync, statSync } from "fs";
 import { join } from "path";

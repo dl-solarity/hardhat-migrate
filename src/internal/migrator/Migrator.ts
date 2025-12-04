@@ -1,0 +1,125 @@
+import { basename, join } from "path";
+import { existsSync, readdirSync, statSync } from "fs";
+
+import { HardhatPluginError } from "hardhat/plugins";
+import { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+
+import { PLUGIN_ID } from "../../constants.js";
+
+import { MigrateError } from "../utils/index.js";
+
+import type { MigrateConfig } from "../../types/index.js";
+
+import { Deployer } from "../deployer/Deployer.js";
+
+import { Stats } from "../tools/Stats.js";
+
+import { TransactionRunner } from "../tools/runners/TransactionRunner.js";
+import { createAndInitReporter, Reporter } from "../tools/reporters/Reporter.js";
+
+import { buildNetworkDeps } from "../tools/network/NetworkManager.js";
+
+import { clearAllStorage } from "../tools/storage/MigrateStorage.js";
+import { ArtifactProcessor } from "../tools/storage/ArtifactProcessor.js";
+import { createTransactionProcessor } from "../tools/storage/TransactionProcessor.js";
+
+export class Migrator {
+  private readonly _deployer: Deployer;
+
+  private readonly _migrationFiles: string[];
+
+  constructor(
+    private _hre: HardhatRuntimeEnvironment,
+    public config: MigrateConfig = _hre.config.migrate,
+  ) {
+    this._deployer = new Deployer();
+
+    this._migrationFiles = this._getMigrationFiles();
+  }
+
+  public async migrate() {
+    Reporter!.reportMigrationBegin(this._migrationFiles);
+
+    const migrationsDir = this._getMigrationDir();
+
+    for (const element of this._migrationFiles) {
+      Stats.currentMigration = this._getMigrationNumber(element);
+
+      Reporter!.reportMigrationFileBegin(element);
+
+      try {
+        const migration = await import(join(migrationsDir, element));
+
+        await migration.default(this._deployer);
+      } catch (e: unknown) {
+        if (e instanceof MigrateError) {
+          throw new HardhatPluginError(PLUGIN_ID, e.message, e);
+        }
+
+        throw e;
+      }
+    }
+
+    TransactionRunner!.summary();
+
+    await Reporter?.completeReport();
+  }
+
+  private _getMigrationFiles() {
+    const migrationsDir = this._getMigrationDir();
+
+    if (!existsSync(migrationsDir)) {
+      throw new HardhatPluginError(PLUGIN_ID, `Migrations directory not found at ${migrationsDir}`);
+    }
+
+    const directoryContents = readdirSync(migrationsDir);
+
+    const files = directoryContents
+      .filter((file) => {
+        const migrationNumber = this._getMigrationNumber(file);
+
+        if (
+          isNaN(migrationNumber) ||
+          migrationNumber <= 0 ||
+          this.config.filter.from > migrationNumber ||
+          (this.config.filter.to < migrationNumber && this.config.filter.to !== -1) ||
+          (this.config.filter.only !== migrationNumber && this.config.filter.only !== -1) ||
+          this.config.filter.skip === migrationNumber
+        ) {
+          return false;
+        }
+
+        return statSync(join(migrationsDir, file)).isFile();
+      })
+      .sort((a, b) => {
+        return this._getMigrationNumber(a) - this._getMigrationNumber(b);
+      });
+
+    if (files.length === 0) {
+      throw new HardhatPluginError(PLUGIN_ID, "No migration files were found.");
+    }
+
+    return files;
+  }
+
+  private _getMigrationNumber(file: string) {
+    return parseInt(basename(file));
+  }
+
+  private _getMigrationDir() {
+    return join(this._hre.config.paths.root, this.config.paths.pathToMigrations, this.config.paths.namespace);
+  }
+
+  public static async buildMigrateTaskDeps(hre: HardhatRuntimeEnvironment): Promise<void> {
+    createTransactionProcessor(hre.config.migrate);
+
+    await buildNetworkDeps(hre);
+    await createAndInitReporter(hre);
+
+    if (!hre.config.migrate.execution.continue) {
+      clearAllStorage();
+    }
+
+    await ArtifactProcessor.parseArtifacts(hre);
+  }
+}

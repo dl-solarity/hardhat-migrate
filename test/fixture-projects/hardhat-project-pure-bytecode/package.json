@@ -1,8 +1,9 @@
 {
   "name": "hardhat-project-pure-bytecode",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "compile": "hardhat compile --force && hardhat export-abi",
+    "compile": "hardhat compile --force",
     "clean": "hardhat clean && rm -rf artifacts && rm -rf cache"
   }
 }

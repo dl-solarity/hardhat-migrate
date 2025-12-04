@@ -1,0 +1,15 @@
+import { expect } from "chai";
+
+import { Linker } from "../../src/internal/deployer/Linker.js";
+
+describe("Linker", () => {
+  describe("validateBytecode", () => {
+    it("should not throw error if bytecode does not contain unresolved libraries", () => {
+      expect(Linker.isBytecodeNeedsLinking("0x12345678")).to.be.false;
+    });
+
+    it("should throw error if bytecode contains unresolved libraries", () => {
+      expect(Linker.isBytecodeNeedsLinking("0x1234__LibraryName__5678")).to.be.true;
+    });
+  });
+});

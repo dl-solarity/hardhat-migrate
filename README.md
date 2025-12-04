@@ -1,6 +1,6 @@
 [![npm](https://img.shields.io/npm/v/@solarity/hardhat-migrate.svg)](https://www.npmjs.com/package/@solarity/hardhat-migrate) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
-# Hardhat migrate
+# Hardhat Migrate
 
 The simplest way to deploy smart contracts.
 
@@ -21,53 +21,51 @@ With sleek UX that doesn't require writing "deployment wrappers", users can:
 
 ## Installation
 
+### 1. Install the dependencies
+
 ```bash
-npm install --save-dev @solarity/hardhat-migrate
+npm install --save-dev @solarity/hardhat-migrate @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-verify
 ```
 
-Add the following statement to your `hardhat.config.js`:
-
-```js
-require("@solarity/hardhat-migrate");
-require("@nomicfoundation/hardhat-ethers");
-require("@nomicfoundation/hardhat-verify"); // If you want to verify contracts
-```
-
-Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
+### 2. Register the plugin in `hardhat.config.ts`
 
 ```ts
-import "@solarity/hardhat-migrate";
-import "@nomicfoundation/hardhat-ethers";
-import "@typechain/hardhat"; // For typization of Ethers
-import "@nomicfoundation/hardhat-verify"; // If you want to verify contracts
+import { HardhatUserConfig } from "hardhat/config";
+import hardhatEthers from "@nomicfoundation/hardhat-ethers";
+import hardhatVerify from "@nomicfoundation/hardhat-verify";
+import hardhatMigrate from "@solarity/hardhat-migrate";
+
+const config: HardhatUserConfig = {
+  plugins: [hardhatEthers, hardhatVerify, hardhatMigrate],
+  // networks, solidity, ...
+};
+
+export default config;
 ```
 
 > [!NOTE]
-> The `@nomicfoundation/hardhat-ethers` import is obligatory as it is used to determine the deployment account.
+> `@nomicfoundation/hardhat-ethers` must be available so the deployer can resolve the active signer.
 
-## Usage
+### Environment extensions
 
-You may add the following `migrate` config to your `hardhat.config` file:
+## Tasks
 
-```js
-module.exports = {
+- `migrate` — compiles, runs numbered migration files, reports progress, and (optionally) verifies contracts.
+- `migrate:verify` — reuses `.migrate.storage` data to verify previously deployed contracts in batch mode.
+
+Run `npx hardhat help migrate` (or `migrate:verify`) to inspect every flag.
+
+## Configuration
+
+Add a `migrate` section to `HardhatUserConfig`. The snippet below shows all defaults:
+
+```ts
+const config: HardhatUserConfig = {
+  plugins: [hardhatEthers, hardhatVerify, hardhatMigrate],
   migrate: {
-    filter: {
-      from: -1,
-      to: -1,
-      only: -1,
-      skip: -1,
-    },
-    verification: {
-      verify: false,
-      verificationDelay: 5000,
-      verifyParallel: 1,
-      verifyAttempts: 3,
-    },
-    paths: {
-      pathToMigrations: "./deploy",
-      namespace: "",
-    },
+    filter: { from: -1, to: -1, only: -1, skip: -1 },
+    verification: { verify: false, verificationDelay: 5000, verifyParallel: 1, verifyAttempts: 3 },
+    paths: { pathToMigrations: "./deploy", namespace: "", reportPath: "cache", reportFormat: "md" },
     execution: {
       force: false,
       continue: false,
@@ -88,71 +86,97 @@ module.exports = {
 };
 ```
 
-Where:
+- **filter** — choose which migration numbers run (`only` overrides `from`/`to`; `skip` overrides `only`).
+- **verification** — toggle automatic verification and control retries, delays, and parallelism.
+- **paths** — point to the folder that stores migrations (`pathToMigrations` + optional `namespace`), and configure where/how reports are written (`cache`/`md` by default).
+- **execution** — manage compilation forcing, `--continue` mode, confirmation depth (`wait`), spinner refresh rate, and opt-out of CLI reporting.
+- **castWallet / trezorWallet** — opt into external signers via config or CLI flags (see [External Wallets](./docs/ExternalWallets.md)).
 
-- `filter`
-  - `from` - The migration number from which the migration will be applied.
-  - `to` - The migration number up to which the migration will be applied.
-  - `only` - The number of the migration that will be applied. **Overrides from and to parameters.**
-  - `skip`- The number of migration to skip. **Overrides only parameter.**
-- `verification`
-  - `verify` - The flag indicating whether the contracts have to be verified after all migrations.
-  - `verificationDelay` - The delay in milliseconds between the deployment and verification of the contract.
-  - `verifyParallel` - The size of the batch for verification.
-  - `verifyAttempts` - The number of attempts to verify the contract.
-- `paths`
-  - `pathToMigrations` - The path to the folder with the specified migrations.
-  - `namespace` - The path to the subfolder where the migration should be run.
-  - `reportPath` - The path to directory where the migration report should be saved (`./cache` by default).
-  - `reportFormat` - The format of the migration report (`md` or `json`). Defaults to `md` for Markdown format.
-- `execution`
-  - `force` - The flag indicating whether the contracts compilation is forced.
-  - `continue` - The flag indicating whether the deployment should restore the state from the previous deployment.
-  - `wait` - The number of block confirmations to wait for after the transaction is mined.
-  - `transactionStatusCheckInterval` - The interval in milliseconds between transaction status checks.
-  - `withoutCLIReporting` - The flag indicating whether the CLI reporting should be disabled.
-- `castWallet`
-  - `passwordFile` - File path to the keystore password. 
-  - `keystore` - Use a keystore file or directory. Cannot be used with `account`.
-  - `account` - The name of the cast wallet account. Cannot be used with `keystore`.
-- `trezorWallet`
-  - `enabled` - The flag indicating whether to use the Trezor hardware wallet for signing transactions.
-  - `mnemonicIndex` - The mnemonic index for Trezor wallet.
+> [!NOTE]
+> Cast-based signing is only enabled once you provide `account`, `keystore`, or the matching CLI flags/environment variables.
 
-## Tasks
+Every CLI flag maps 1:1 to these settings (kebab-cased). For example, `npx hardhat migrate --verify --verify-parallel 3 --namespace l2` 
+overrides the corresponding config fields for that run.
 
-- `migrate` task, which allows you to deploy and automatically verify contracts.
-- `migrate:verify` task, which helps you verify already deployed contracts.
+## Usage
 
-To view the available options, run the help command:
+Each migration file must match `X_name.migration.ts` (where `X` is the execution order). Hardhat Migrate injects an instance 
+of `Deployer` into the default-exported async function so you can focus on contract logic and recovery.
 
-```bash
-npx hardhat help migrate
+```ts
+// ./deploy/1_token.migration.ts
+import { ethers } from "ethers";
+import type { Deployer } from "@solarity/hardhat-migrate";
+import { Reporter } from "@solarity/hardhat-migrate";
+
+import { ERC20Mock__factory } from "../generated-types/ethers";
+
+export default async function (deployer: Deployer) {
+  const token = await deployer.deploy(ERC20Mock__factory, ["Example Token", "ET", 18]);
+
+  await (await token.mint("0x1E3953B6ee74461169A3E346060AE27bD0B5bF2B", ethers.parseEther("1000"), {
+    customData: { txName: "Mint allocation" },
+  })).wait();
+
+  await Reporter.reportContractsMD(["Example Token", await token.getAddress()]);
+}
 ```
 
-> [!WARNING]
-> If you are willing to verify smart contracts source code, make sure to specify the correct config for the `@nomicfoundation/hardhat-verify` plugin.
+`npx hardhat migrate --network sepolia` compiles contracts (forced when `execution.force` is true), runs each script in order, 
+shows live transaction status, and produces Markdown/JSON reports under `cache/`.
 
-## Migration naming
+## Verification
 
-It is **mandatory** to follow this naming convention for migration files:
+If `migrate.verification.verify` is `true`, verification kicks in right after the last migration finishes. You can re-run verification later via `npx hardhat migrate:verify --input-file ./cache/.migrate.storage.json --parallel 4 --attempts 5`.
 
-> X_migration_name.migration.[js|ts]
+## Migration naming & namespaces
 
-- Where **X** is an ordinal number indicating the order in which the migration will be applied.
-- **migration_name** is simply the name of the migration.
+Place migrations under `pathToMigrations` (default `./deploy`) and prefix them with an ordinal: `1_token.migration.ts`, `2_setup.migration.ts`, etc. To isolate environments, create subfolders and set `migrate.paths.namespace` or pass `--namespace <folder>`:
+
+```
+deploy
+├── l1
+│   ├── 1_core.migration.ts
+│   └── 2_setup.migration.ts
+└── l2-testnet
+    ├── 1_prepare.migration.ts
+    └── 2_bridge.migration.ts
+```
+
+`npx hardhat migrate --namespace l2-testnet` executes only the files inside that scope.
+
+## Recovery & transaction naming
+
+Enable `execution.continue` (or pass `--continue`) to resume from the first failed transaction. To avoid collisions when 
+rerunning the same contract method, set `txName` via `overrides.customData`:
+
+```ts
+await contract.someMethod(value, { customData: { txName: "configure:v1" } });
+```
+
+Recovered transactions/contracts are logged so you can confirm what was reused versus redeployed. 
+If collisions are detected, the CLI warns that recovery might be unreliable and suggests supplying explicit names.
+
+## External wallets
+
+Hardhat Migrate can sign via Foundry Cast or Trezor Connect in addition to the default Hardhat signer.
+
+```ts
+const config: HardhatUserConfig = {
+  // ...
+  migrate: {
+    castWallet: { account: "test-0", passwordFile: "./passwords/.env" },
+    trezorWallet: { enabled: false, mnemonicIndex: 0 },
+  },
+};
+```
+
+CLI overrides are available as `--account`, `--password-file`, `--keystore`, `--trezor-enabled`, and `--trezor-mnemonic-index`. 
+See [External Wallets](./docs/ExternalWallets.md) for best practices around secrets.
 
 ## Example
 
-After importing the necessary dependencies to the `hardhat.config`, create the file `1_token.migration.ts` in the `deploy` directory.
-
-Then run:
-
-```bash
-npx hardhat migrate --network <the network of choice>
-```
-
-This command will run the migration script and execute all the specified actions, producing the following *live* deployment log:
+The snippet below shows the structure of a simple migration alongside the corresponding CLI output and stored report.
 
 <table>
 <tr>
@@ -167,28 +191,20 @@ This command will run the migration script and execute all the specified actions
 // file location: ./deploy/1_token.migration.ts
 
 import { ethers } from "ethers";
-
-import { Deployer, Reporter } from "@solarity/hardhat-migrate";
+import type { Deployer } from "@solarity/hardhat-migrate";
+import { Reporter } from "@solarity/hardhat-migrate";
 
 import { ERC20Mock__factory } from "../generated-types/ethers";
 
-export = async (deployer: Deployer) => {
-  // deploy the token via `Deployer` object
-  const token = await deployer.deploy(
-    ERC20Mock__factory, // contract to deploy
-    ["Example Token", "ET", 18] // constructor params
-  );
+export default async (deployer: Deployer) => {
+  const token = await deployer.deploy(ERC20Mock__factory, ["Example Token", "ET", 18]);
 
   const recipient = "0x1E3953B6ee74461169A3E346060AE27bD0B5bF2B";
   const amount = ethers.parseEther("1000");
 
-  // call `mint` function on the token
-  await token.mint(recipient, amount);
+  await token.mint(recipient, amount, { customData: { txName: "Airdrop" } });
 
-  // log the token address via `Reporter` object
-  await Reporter.reportContractsMD(
-    ["Example Token", await token.getAddress()]
-  );
+  await Reporter.reportContractsMD(["Example Token", await token.getAddress()]);
 };
 ```
 </td>
@@ -277,19 +293,19 @@ Total Cost:
 </tr>
 </table>
 
-The detailed migration report with all information about transactions is automatically saved in the `./cache` folder in either Markdown (.md) or JSON (.json) format based on the `reportFormat` configuration.
+Reports are saved under `cache/` as `.md` or `.json` depending on `paths.reportFormat`.
 
 ## Documentation
 
-For more detailed information, please refer to the following documentation:
-
-- [Deployer API](./docs/Deployer.md) - Core functionality for contract deployment
-- [Reporter API](./docs/Reporter.md) - Logging and reporting utilities 
-- [Migration Process](./docs/MigrationProcess.md) - Lifecycle and transaction handling
-- [External Wallets](./docs/ExternalWallets.md) - Cast Wallet and Trezor integration
-- [Detailed Example](./docs/DetailedExample.md) - Comprehensive migration example
+- [Deployer API](./docs/Deployer.md) — deployment helpers, proxies, signer management.
+- [Reporter API](./docs/Reporter.md) — logging utilities used from migration scripts.
+- [Migration Process](./docs/MigrationProcess.md) — lifecycle, namespaces, recovery, verification.
+- [External Wallets](./docs/ExternalWallets.md) — Cast and Trezor configuration/CLI overrides.
+- [Detailed Example](./docs/DetailedExample.md) — end-to-end walkthrough.
 
 ## Known limitations
 
-- Adding, removing, moving, or renaming contracts in your Hardhat project or reorganizing the directory structure after deployment may alter the resulting bytecode in some Solidity compiler versions. See this [Solidity issue](https://github.com/ethereum/solidity/issues/9573) for further information.
-- This plugin does not function properly with native Ethers factory methods, such as `factory.attach()`. Instead, use `deployer.deployed()`.
+- Changing Solidity compiler inputs (file layout, artifacts, etc.) between runs can alter bytecode and break verification. 
+See [Solidity#9573](https://github.com/ethereum/solidity/issues/9573) for details.
+- `factory.attach()` and similar native Ethers helpers bypass the storage that recovery relies on. Always use `deployer.deployed()` 
+or persist addresses manually via `deployer.save()`.

@@ -1,6 +1,6 @@
 import { ContractFactory, InterfaceAbi } from "ethers";
 
-import { Bytecode } from "./deployer";
+import { Bytecode } from "./deployer.js";
 
 export interface TypechainFactoryClass<A, I> {
   new (...args: any): A;
