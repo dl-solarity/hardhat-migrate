@@ -17,6 +17,10 @@
 - Updated the README, API docs, and fixture projects to document the new Hardhat 3 workflow, CLI flags, wallet guides, and
   reporting UX.
 
+## 3.1.2
+
+* Modified reporting to avoid `TODO` error on getting block from the provider in ethers
+
 ## 3.1.1
 
 - Fixed verification reporting with Blockscout explorers

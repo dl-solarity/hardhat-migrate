@@ -147,8 +147,6 @@ class BaseReporter {
 
     output += `> blockNumber: ${receipt.blockNumber}\n`;
 
-    output += `> blockTimestamp: ${(await receipt.getBlock()).timestamp}\n`;
-
     output += `> account: ${receipt.from}\n`;
 
     const value = (await receipt.getTransaction()).value;
