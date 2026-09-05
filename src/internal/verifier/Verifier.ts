@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import { verifyContract } from "@nomicfoundation/hardhat-verify/verify";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { CatchMethodError, getChainId, getPossibleImplementationAddress, sleep, SuppressLogs } from "../utils/index.js";
 
@@ -21,6 +22,12 @@ export class Verifier {
 
   @CatchMethodError
   public async verifyBatch(verifierBatchArgs: VerifierArgs[]) {
+    for (const name of ["parallel", "attempts"] as const) {
+      const value = this._config[name];
+      if (!Number.isSafeInteger(value) || value < 1) {
+        throw new Error(`Verification ${name} must be a positive safe integer`);
+      }
+    }
     const currentChainId = Number(await getChainId());
 
     const toVerify = verifierBatchArgs.filter((args) => args.chainId && currentChainId == args.chainId);
@@ -42,36 +49,36 @@ export class Verifier {
     Reporter!.reportVerificationBatchBegin();
 
     const parallel = this._config.parallel;
+    const failures: unknown[] = [];
 
     for (let i = 0; i < toVerify.length; i += parallel) {
       const batch = toVerify.slice(i, i + parallel);
 
-      await Promise.all(batch.map((args) => this._verify(args)));
+      const results = await Promise.allSettled(batch.map((args) => this._verify(args)));
+      failures.push(...results.filter((result) => result.status === "rejected").map((result) => result.reason));
     }
+    if (failures.length > 0) throw new AggregateError(failures, `${failures.length} contract verification(s) failed`);
   }
 
   @CatchMethodError
   private async _verify(verifierArgs: VerifierArgs): Promise<void> {
     const { contractAddress, contractName, constructorArguments } = verifierArgs;
 
+    let lastError: unknown;
     for (let attempts = 0; attempts < this._config.attempts; attempts++) {
       try {
         await this._tryVerify(contractAddress, contractName, constructorArguments);
-        break;
+        return;
       } catch (e: any) {
+        lastError = e;
         this._handleVerificationError(contractAddress, contractName, e);
-
-        if (
-          e.message !== undefined &&
-          typeof e.message === "string" &&
-          (e.message.includes("HH303: Unrecognized task 'verify:verify'") || e.message.includes("already verified"))
-        ) {
-          break;
-        }
       }
-
-      await sleep(2500);
+      if (attempts + 1 < this._config.attempts) await sleep(2500);
     }
+    throw new Error(
+      `Verification failed for ${contractName} (${contractAddress}) after ${this._config.attempts} attempt(s)`,
+      { cause: lastError },
+    );
   }
 
   @CatchMethodError
@@ -81,7 +88,7 @@ export class Verifier {
       (await this._tryVerifyWithProvider("blockscout", contractAddress, contractName, constructorArguments));
 
     if (verified) Reporter!.reportSuccessfulVerification(contractAddress, contractName);
-    else Reporter!.reportVerificationError(contractAddress, contractName, "Verification failed");
+    else throw new Error("No configured explorer confirmed verification");
   }
 
   @SuppressLogs
@@ -92,7 +99,7 @@ export class Verifier {
     constructorArguments: Args,
   ): Promise<boolean> {
     try {
-      const ok = await verifyContract(
+      const ok = await this._runVerificationTask(
         {
           address: contractAddress,
           constructorArgs: constructorArguments as unknown[],
@@ -111,26 +118,27 @@ export class Verifier {
 
       return ok;
     } catch (e: any) {
-      // Fallback when provider isn't configured or unsupported; let caller try the next provider.
-      const msg = (e?.message ?? "").toString().toLowerCase();
-      const isProviderConfigError =
-        msg.includes("block explorer not configured") ||
-        msg.includes("explorer_request") ||
-        msg.includes("invalid verification provider");
-
-      if (isProviderConfigError) return false;
+      const errors = HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL;
+      if (HardhatError.isHardhatError(e, errors.CONTRACT_ALREADY_VERIFIED)) return true;
+      // Typed provider/configuration failures allow another configured explorer.
+      // A bytecode/compiler/verification failure is not silently downgraded.
+      if (
+        HardhatError.isHardhatError(e, errors.BLOCK_EXPLORER_NOT_CONFIGURED) ||
+        HardhatError.isHardhatError(e, errors.EXPLORER_REQUEST_FAILED) ||
+        HardhatError.isHardhatError(e, errors.EXPLORER_REQUEST_STATUS_CODE_ERROR)
+      )
+        return false;
       throw e;
     }
   }
 
+  private _runVerificationTask(...args: Parameters<typeof verifyContract>): ReturnType<typeof verifyContract> {
+    return verifyContract(...args);
+  }
+
   @CatchMethodError
   private _handleVerificationError(contractAddress: string, contractName: string, error: any) {
-    if (error.message.toLowerCase().includes("already verified")) {
-      Reporter!.reportAlreadyVerified(contractAddress, contractName);
-      return;
-    } else {
-      Reporter!.reportVerificationError(contractAddress, contractName, error.message);
-    }
+    Reporter!.reportVerificationError(contractAddress, contractName, String(error?.message ?? error));
   }
 
   private async _verifyProxy(proxyAddress: string) {
@@ -179,16 +187,18 @@ export class Verifier {
         verifyProxyResponse.result,
       );
 
-      while (responseBody.result === "Pending in queue") {
+      let polls = 0;
+      while (responseBody.result === "Pending in queue" && polls++ < 24) {
         await sleep(5000);
         responseBody = await this._checkProxyVerificationStatus(
           { apiUrl: etherscanApiUrl, apiKey: etherscanApiKey },
           verifyProxyResponse.result,
         );
       }
+      verifyProxyResponse = responseBody;
     }
 
-    if (verifyProxyResponse.status === RESPONSE_OK) {
+    if (verifyProxyResponse.status === RESPONSE_OK && verifyProxyResponse.result !== "Pending in queue") {
       Reporter!.reportSuccessfulProxyLinking(proxyAddress, implAddress);
     } else {
       Reporter!.reportFailedProxyLinking(proxyAddress, implAddress, verifyProxyResponse.result);
