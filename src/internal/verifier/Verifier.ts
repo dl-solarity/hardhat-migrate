@@ -21,6 +21,12 @@ export class Verifier {
 
   @CatchMethodError
   public async verifyBatch(verifierBatchArgs: VerifierArgs[]) {
+    for (const name of ["parallel", "attempts"] as const) {
+      const value = this._config[name];
+      if (!Number.isSafeInteger(value) || value < 1) {
+        throw new Error(`Verification ${name} must be a positive safe integer`);
+      }
+    }
     const currentChainId = Number(await getChainId());
 
     const toVerify = verifierBatchArgs.filter((args) => args.chainId && currentChainId == args.chainId);
@@ -42,36 +48,36 @@ export class Verifier {
     Reporter!.reportVerificationBatchBegin();
 
     const parallel = this._config.parallel;
+    const failures: unknown[] = [];
 
     for (let i = 0; i < toVerify.length; i += parallel) {
       const batch = toVerify.slice(i, i + parallel);
 
-      await Promise.all(batch.map((args) => this._verify(args)));
+      const results = await Promise.allSettled(batch.map((args) => this._verify(args)));
+      failures.push(...results.filter((result) => result.status === "rejected").map((result) => result.reason));
     }
+    if (failures.length > 0) throw new AggregateError(failures, `${failures.length} contract verification(s) failed`);
   }
 
   @CatchMethodError
   private async _verify(verifierArgs: VerifierArgs): Promise<void> {
     const { contractAddress, contractName, constructorArguments } = verifierArgs;
 
+    let lastError: unknown;
     for (let attempts = 0; attempts < this._config.attempts; attempts++) {
       try {
         await this._tryVerify(contractAddress, contractName, constructorArguments);
-        break;
+        return;
       } catch (e: any) {
+        lastError = e;
         this._handleVerificationError(contractAddress, contractName, e);
-
-        if (
-          e.message !== undefined &&
-          typeof e.message === "string" &&
-          (e.message.includes("HH303: Unrecognized task 'verify:verify'") || e.message.includes("already verified"))
-        ) {
-          break;
-        }
       }
-
-      await sleep(2500);
+      if (attempts + 1 < this._config.attempts) await sleep(2500);
     }
+    throw new Error(
+      `Verification failed for ${contractName} (${contractAddress}) after ${this._config.attempts} attempt(s)`,
+      { cause: lastError },
+    );
   }
 
   @CatchMethodError
@@ -81,7 +87,7 @@ export class Verifier {
       (await this._tryVerifyWithProvider("blockscout", contractAddress, contractName, constructorArguments));
 
     if (verified) Reporter!.reportSuccessfulVerification(contractAddress, contractName);
-    else Reporter!.reportVerificationError(contractAddress, contractName, "Verification failed");
+    else throw new Error("No configured explorer confirmed verification");
   }
 
   @SuppressLogs
@@ -125,12 +131,7 @@ export class Verifier {
 
   @CatchMethodError
   private _handleVerificationError(contractAddress: string, contractName: string, error: any) {
-    if (error.message.toLowerCase().includes("already verified")) {
-      Reporter!.reportAlreadyVerified(contractAddress, contractName);
-      return;
-    } else {
-      Reporter!.reportVerificationError(contractAddress, contractName, error.message);
-    }
+    Reporter!.reportVerificationError(contractAddress, contractName, String(error?.message ?? error));
   }
 
   private async _verifyProxy(proxyAddress: string) {
@@ -179,16 +180,18 @@ export class Verifier {
         verifyProxyResponse.result,
       );
 
-      while (responseBody.result === "Pending in queue") {
+      let polls = 0;
+      while (responseBody.result === "Pending in queue" && polls++ < 24) {
         await sleep(5000);
         responseBody = await this._checkProxyVerificationStatus(
           { apiUrl: etherscanApiUrl, apiKey: etherscanApiKey },
           verifyProxyResponse.result,
         );
       }
+      verifyProxyResponse = responseBody;
     }
 
-    if (verifyProxyResponse.status === RESPONSE_OK) {
+    if (verifyProxyResponse.status === RESPONSE_OK && verifyProxyResponse.result !== "Pending in queue") {
       Reporter!.reportSuccessfulProxyLinking(proxyAddress, implAddress);
     } else {
       Reporter!.reportFailedProxyLinking(proxyAddress, implAddress, verifyProxyResponse.result);

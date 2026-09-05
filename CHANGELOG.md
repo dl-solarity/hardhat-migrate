@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.0.0-rc.1
+
+### Fixes
+
+- Verification batches now fail when a contract exhausts its attempts or no explorer confirms success, instead of only logging an error and exiting successfully. In-flight checks and later batches finish before the aggregate failure is returned.
+- Validate verification loop bounds, handle non-Error failures safely, and avoid a redundant delay after the final attempt.
+- Bound proxy-verification polling and report its terminal status instead of the initial queue-acceptance response. Proxy linking remains best-effort and is separate from source verification.
+
+This advances the existing Hardhat 3 major-version prerelease without introducing another framework/API migration. Hardhat 2 consumers must keep a compatible 3.x release or apply the narrowly scoped backport; upgrading them to 4.x is not required by these fixes. No registry publication is implied.
+
 ## 4.0.0-rc.0
 
 ### Breaking changes

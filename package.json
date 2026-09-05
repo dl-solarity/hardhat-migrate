@@ -1,6 +1,6 @@
 {
   "name": "@solarity/hardhat-migrate",
-  "version": "4.0.0-rc.0",
+  "version": "4.0.0-rc.1",
   "description": "The simplest way to deploy smart contracts",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
