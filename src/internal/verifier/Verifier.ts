@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import { verifyContract } from "@nomicfoundation/hardhat-verify/verify";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { CatchMethodError, getChainId, getPossibleImplementationAddress, sleep, SuppressLogs } from "../utils/index.js";
 
@@ -98,7 +99,7 @@ export class Verifier {
     constructorArguments: Args,
   ): Promise<boolean> {
     try {
-      const ok = await verifyContract(
+      const ok = await this._runVerificationTask(
         {
           address: contractAddress,
           constructorArgs: constructorArguments as unknown[],
@@ -117,16 +118,22 @@ export class Verifier {
 
       return ok;
     } catch (e: any) {
-      // Fallback when provider isn't configured or unsupported; let caller try the next provider.
-      const msg = (e?.message ?? "").toString().toLowerCase();
-      const isProviderConfigError =
-        msg.includes("block explorer not configured") ||
-        msg.includes("explorer_request") ||
-        msg.includes("invalid verification provider");
-
-      if (isProviderConfigError) return false;
+      const errors = HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL;
+      if (HardhatError.isHardhatError(e, errors.CONTRACT_ALREADY_VERIFIED)) return true;
+      // Typed provider/configuration failures allow another configured explorer.
+      // A bytecode/compiler/verification failure is not silently downgraded.
+      if (
+        HardhatError.isHardhatError(e, errors.BLOCK_EXPLORER_NOT_CONFIGURED) ||
+        HardhatError.isHardhatError(e, errors.EXPLORER_REQUEST_FAILED) ||
+        HardhatError.isHardhatError(e, errors.EXPLORER_REQUEST_STATUS_CODE_ERROR)
+      )
+        return false;
       throw e;
     }
+  }
+
+  private _runVerificationTask(...args: Parameters<typeof verifyContract>): ReturnType<typeof verifyContract> {
+    return verifyContract(...args);
   }
 
   @CatchMethodError

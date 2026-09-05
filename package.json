@@ -54,6 +54,7 @@
     ]
   },
   "dependencies": {
+    "@nomicfoundation/hardhat-errors": "3.0.5",
     "@nomicfoundation/hardhat-utils": "3.0.0",
     "@nomicfoundation/hardhat-zod-utils": "3.0.0",
     "axios": "1.9.0",

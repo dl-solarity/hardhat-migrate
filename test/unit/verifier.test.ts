@@ -3,6 +3,8 @@ import { useEnvironment } from "../helpers.js";
 import { Verifier } from "../../src/internal/verifier/Verifier.js";
 import { Reporter } from "../../src/internal/tools/reporters/Reporter.js";
 import { networkManager } from "../../src/internal/tools/network/NetworkManager.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { MigrateError } from "../../src/internal/utils/MigrateError.js";
 
 describe("Verifier outcomes", () => {
   useEnvironment("ethers");
@@ -59,6 +61,70 @@ describe("Verifier outcomes", () => {
       throw new Error("already verified lookup failed");
     };
     await expect(verifier._verify(entry)).to.be.rejectedWith("after 1 attempt");
+  });
+  it("accepts the real HH3 already-verified error as terminal success", async () => {
+    let calls = 0;
+    verifier._runVerificationTask = async () => {
+      calls++;
+      throw new HardhatError(HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_ALREADY_VERIFIED, {
+        contract: entry.contractName,
+        address: entry.contractAddress,
+      });
+    };
+    await verifier._verify(entry);
+    expect(calls).to.equal(1);
+  });
+  it("falls back on real HH3 missing-explorer and request errors", async () => {
+    const descriptors = HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL;
+    const errors = [
+      new HardhatError(descriptors.BLOCK_EXPLORER_NOT_CONFIGURED, {
+        verificationProvider: "Etherscan",
+        chainId: 31337,
+      }),
+      new HardhatError(descriptors.EXPLORER_REQUEST_FAILED, {
+        url: "https://example.invalid",
+        errorMessage: "unavailable",
+        name: "Etherscan",
+      }),
+      new HardhatError(descriptors.EXPLORER_REQUEST_STATUS_CODE_ERROR, {
+        url: "https://example.invalid",
+        statusCode: 503,
+        errorMessage: "unavailable",
+        name: "Etherscan",
+      }),
+    ];
+    for (const error of errors) {
+      const providers: string[] = [];
+      verifier._runVerificationTask = async (args: any) => {
+        providers.push(args.provider);
+        if (args.provider === "etherscan") throw error;
+        return true;
+      };
+      await verifier._verify(entry);
+      expect(providers).to.deep.equal(["etherscan", "blockscout"]);
+    }
+  });
+  it("preserves real verification failures and the aggregate cause chain", async () => {
+    const error = new HardhatError(HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_FAILED, {
+      reason: "bytecode mismatch",
+      librariesWarning: "",
+    });
+    let calls = 0;
+    verifier._runVerificationTask = async () => {
+      calls++;
+      throw error;
+    };
+    try {
+      await verifier.verifyBatch([entry]);
+      expect.fail("must reject");
+    } catch (caught: any) {
+      expect(caught).to.be.instanceOf(MigrateError);
+      expect(caught.cause).to.be.instanceOf(AggregateError);
+      let nested = caught.cause.errors[0];
+      while (nested.cause) nested = nested.cause;
+      expect(nested).to.equal(error);
+    }
+    expect(calls).to.equal(1);
   });
   it("handles non-Error throws without masking them", async () => {
     expect(() => verifier._handleVerificationError(entry.contractAddress, entry.contractName, null)).not.to.throw();

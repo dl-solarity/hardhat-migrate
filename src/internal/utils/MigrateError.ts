@@ -1,6 +1,6 @@
 export class MigrateError extends Error {
   constructor(message: string, options?: ErrorOptions) {
-    super(message);
+    super(message, options);
 
     this.name = this.constructor.name;
 
